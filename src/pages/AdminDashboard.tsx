@@ -159,7 +159,7 @@ const CourseManagement: React.FC = () => {
     setEditPdfFile(null);
   };
   return <div>
-      <div className="flex justify-between items-center mb-6 ">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold mb-2">Course Management</h2>
           <p className="text-gray-600">
@@ -169,7 +169,7 @@ const CourseManagement: React.FC = () => {
         
         <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" /> Add Course
             </Button>
           </DialogTrigger>
@@ -566,7 +566,7 @@ const QuizManagement: React.FC = () => {
     setIsPassMarkModalOpen(false);
   };
   return <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold mb-2">Quiz Management</h2>
           <p className="text-gray-600">
@@ -574,10 +574,10 @@ const QuizManagement: React.FC = () => {
           </p>
         </div>
         
-        <div className="flex space-x-3">
+        <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 w-full md:w-auto">
           <Dialog open={isPassMarkModalOpen} onOpenChange={setIsPassMarkModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full md:w-auto">
                 Set Pass Mark
               </Button>
             </DialogTrigger>
@@ -613,7 +613,7 @@ const QuizManagement: React.FC = () => {
           
           <Dialog open={isAddQuizSetOpen} onOpenChange={setIsAddQuizSetOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Plus className="mr-2 h-4 w-4" /> Add Quiz Set
               </Button>
             </DialogTrigger>
@@ -866,7 +866,7 @@ const StudentManagement: React.FC = () => {
     setStudentPassword('');
   };
   return <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold mb-2">Student Management</h2>
           <p className="text-gray-600">
@@ -876,7 +876,7 @@ const StudentManagement: React.FC = () => {
         
         <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" /> Add Student
             </Button>
           </DialogTrigger>
