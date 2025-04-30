@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course, Lesson, QuizSet, Student } from '@/contexts/DataContext';
@@ -928,3 +929,133 @@ const QuizManagement: React.FC = () => {
                         
                         <div className="space-y-3">
                           <Label>Answer Options</Label>
+                          <RadioGroup value={String(correctAnswer)} onValueChange={(v) => setCorrectAnswer(Number(v))}>
+                            {answerOptions.map((option, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <RadioGroupItem value={String(index)} id={`edit-option-${index}`} />
+                                <Input
+                                  placeholder={`Option ${index + 1}`}
+                                  value={option}
+                                  onChange={(e) => updateAnswerOption(index, e.target.value)}
+                                  className="flex-grow"
+                                />
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleUpdateQuizQuestion} 
+                          disabled={!questionText || answerOptions.some(option => !option)}
+                        >
+                          Update Question
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                {quizSet.questions.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <p className="text-gray-600 mb-4">No questions in this quiz set yet.</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => openAddQuizQuestionDialog(quizSet)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add Your First Question
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {quizSet.questions.map((question) => (
+                      <div 
+                        key={question.id} 
+                        className="border rounded-md p-4 bg-white"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h5 className="font-semibold">{question.question}</h5>
+                            <ul className="mt-2 text-sm space-y-1">
+                              {question.options.map((option, index) => (
+                                <li 
+                                  key={index}
+                                  className={index === question.correctAnswer ? "text-primary font-medium" : "text-gray-600"}
+                                >
+                                  {index === question.correctAnswer && (
+                                    <Check className="inline-block mr-1 h-3 w-3" />
+                                  )}
+                                  {option}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="flex space-x-1">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => openEditQuizQuestionDialog(quizSet, question.id)}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => handleDeleteQuizQuestion(quizSet.id, question.id)}
+                            >
+                              <Trash className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
+    </div>
+  );
+};
+
+// Main Dashboard Component
+const AdminDashboard: React.FC = () => {
+  const { logout } = useAuth();
+  
+  return (
+    <AppLayout>
+      <div className="container mx-auto p-4 max-w-6xl">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <Button 
+            variant="outline" 
+            onClick={logout}
+            className="flex items-center space-x-2"
+          >
+            <LogOut className="h-4 w-4" /> 
+            <span>Logout</span>
+          </Button>
+        </div>
+        
+        <Tabs defaultValue="courses">
+          <TabsList className="mb-8 grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="courses">Manage Courses</TabsTrigger>
+            <TabsTrigger value="quizzes">Manage Quizzes</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="courses">
+            <CourseManagement />
+          </TabsContent>
+          
+          <TabsContent value="quizzes">
+            <QuizManagement />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default AdminDashboard;
