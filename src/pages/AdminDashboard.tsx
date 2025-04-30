@@ -4,44 +4,33 @@ import { useData, Course, Lesson, QuizSet, Student } from '@/contexts/DataContex
 import AppLayout from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock } from 'lucide-react';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
-  const { courses, addCourse, updateCourse, deleteCourse, addLesson, updateLesson, deleteLesson } = useData();
+  const {
+    courses,
+    addCourse,
+    updateCourse,
+    deleteCourse,
+    addLesson,
+    updateLesson,
+    deleteLesson
+  } = useData();
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isEditCourseOpen, setIsEditCourseOpen] = useState(false);
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
   const [isEditLessonOpen, setIsEditLessonOpen] = useState(false);
-  
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-  
+
   // Form states
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
@@ -51,8 +40,9 @@ const CourseManagement: React.FC = () => {
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [editPdfFile, setEditPdfFile] = useState<File | null>(null);
-
-  const { quizSets } = useData();
+  const {
+    quizSets
+  } = useData();
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
@@ -109,7 +99,8 @@ const CourseManagement: React.FC = () => {
       addLesson(currentCourse.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: '/placeholder.pdf', // In a real app, this would be the uploaded PDF URL
+        pdfUrl: '/placeholder.pdf',
+        // In a real app, this would be the uploaded PDF URL
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -166,9 +157,7 @@ const CourseManagement: React.FC = () => {
     setPdfFile(null);
     setEditPdfFile(null);
   };
-
-  return (
-    <div>
+  return <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold mb-2">Course Management</h2>
@@ -193,22 +182,11 @@ const CourseManagement: React.FC = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="courseTitle">Course Title</Label>
-                <Input
-                  id="courseTitle"
-                  placeholder="Enter course title"
-                  value={courseTitle}
-                  onChange={(e) => setCourseTitle(e.target.value)}
-                />
+                <Input id="courseTitle" placeholder="Enter course title" value={courseTitle} onChange={e => setCourseTitle(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="courseDescription">Course Description</Label>
-                <Textarea
-                  id="courseDescription"
-                  placeholder="Enter course description"
-                  value={courseDescription}
-                  onChange={(e) => setCourseDescription(e.target.value)}
-                  rows={4}
-                />
+                <Textarea id="courseDescription" placeholder="Enter course description" value={courseDescription} onChange={e => setCourseDescription(e.target.value)} rows={4} />
               </div>
             </div>
             <div className="flex justify-end">
@@ -230,20 +208,11 @@ const CourseManagement: React.FC = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="editCourseTitle">Course Title</Label>
-                <Input
-                  id="editCourseTitle"
-                  value={courseTitle}
-                  onChange={(e) => setCourseTitle(e.target.value)}
-                />
+                <Input id="editCourseTitle" value={courseTitle} onChange={e => setCourseTitle(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="editCourseDescription">Course Description</Label>
-                <Textarea
-                  id="editCourseDescription"
-                  value={courseDescription}
-                  onChange={(e) => setCourseDescription(e.target.value)}
-                  rows={4}
-                />
+                <Textarea id="editCourseDescription" value={courseDescription} onChange={e => setCourseDescription(e.target.value)} rows={4} />
               </div>
             </div>
             <div className="flex justify-end">
@@ -255,17 +224,13 @@ const CourseManagement: React.FC = () => {
         </Dialog>
       </div>
       
-      {courses.length === 0 ? (
-        <div className="text-center py-12 bg-gray-100 rounded-lg">
+      {courses.length === 0 ? <div className="text-center py-12 bg-gray-100 rounded-lg">
           <p className="text-gray-600 mb-4">No courses available.</p>
           <Button onClick={() => setIsAddCourseOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add Your First Course
           </Button>
-        </div>
-      ) : (
-        <Accordion type="single" collapsible className="space-y-4">
-          {courses.map((course) => (
-            <AccordionItem key={course.id} value={course.id} className="border rounded-md overflow-hidden">
+        </div> : <Accordion type="single" collapsible className="space-y-4">
+          {courses.map(course => <AccordionItem key={course.id} value={course.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
                 <div className="flex justify-between items-center w-full">
                   <div className="text-left">
@@ -273,24 +238,16 @@ const CourseManagement: React.FC = () => {
                     <p className="text-sm text-gray-600">{course.description}</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditCourseDialog(course);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                openEditCourseDialog(course);
+              }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteCourse(course);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                handleDeleteCourse(course);
+              }}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
@@ -303,11 +260,7 @@ const CourseManagement: React.FC = () => {
                   
                   <Dialog open={isAddLessonOpen} onOpenChange={setIsAddLessonOpen}>
                     <DialogTrigger asChild>
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openAddLessonDialog(course)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => openAddLessonDialog(course)}>
                         <Plus className="mr-2 h-4 w-4" /> Add Lesson
                       </Button>
                     </DialogTrigger>
@@ -322,22 +275,11 @@ const CourseManagement: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="lessonTitle">Lesson Title</Label>
-                            <Input
-                              id="lessonTitle"
-                              placeholder="Enter lesson title"
-                              value={lessonTitle}
-                              onChange={(e) => setLessonTitle(e.target.value)}
-                            />
+                            <Input id="lessonTitle" placeholder="Enter lesson title" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="lessonDescription">Lesson Description</Label>
-                            <Textarea
-                              id="lessonDescription"
-                              placeholder="Enter a short description"
-                              value={lessonDescription}
-                              onChange={(e) => setLessonDescription(e.target.value)}
-                              rows={3}
-                            />
+                            <Textarea id="lessonDescription" placeholder="Enter a short description" value={lessonDescription} onChange={e => setLessonDescription(e.target.value)} rows={3} />
                           </div>
                         </div>
                         
@@ -348,56 +290,32 @@ const CourseManagement: React.FC = () => {
                             <p className="text-sm text-gray-600">
                               Drag and drop your PDF here, or click to select a file
                             </p>
-                            <Input
-                              id="pdfUpload"
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileChange(e, false)}
-                              className="hidden"
-                            />
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-2"
-                              onClick={() => document.getElementById('pdfUpload')?.click()}
-                            >
+                            <Input id="pdfUpload" type="file" accept=".pdf" onChange={e => handleFileChange(e, false)} className="hidden" />
+                            <Button variant="outline" size="sm" className="mt-2" onClick={() => document.getElementById('pdfUpload')?.click()}>
                               Choose File
                             </Button>
-                            {pdfFile && (
-                              <p className="mt-2 text-sm text-green-600">
+                            {pdfFile && <p className="mt-2 text-sm text-green-600">
                                 Selected: {pdfFile.name}
-                              </p>
-                            )}
+                              </p>}
                           </div>
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes">Instructor Notes</Label>
-                          <Textarea
-                            id="instructorNotes"
-                            placeholder="Add instructor notes (supports HTML)"
-                            value={instructorNotes}
-                            onChange={(e) => setInstructorNotes(e.target.value)}
-                            rows={6}
-                          />
+                          <Textarea id="instructorNotes" placeholder="Add instructor notes (supports HTML)" value={instructorNotes} onChange={e => setInstructorNotes(e.target.value)} rows={6} />
                         </div>
                         
                         <div className="space-y-2">
                           <Label>Attach Quiz Set (Optional)</Label>
-                          <Select 
-                            value={selectedQuizSetId || 'none'} 
-                            onValueChange={(value) => setSelectedQuizSetId(value === 'none' ? null : value)}
-                          >
+                          <Select value={selectedQuizSetId || 'none'} onValueChange={value => setSelectedQuizSetId(value === 'none' ? null : value)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a quiz set (optional)" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">None</SelectItem>
-                              {quizSets.map((quizSet) => (
-                                <SelectItem key={quizSet.id} value={quizSet.id}>
+                              {quizSets.map(quizSet => <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -419,23 +337,14 @@ const CourseManagement: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 ">
                           <div className="space-y-2">
                             <Label htmlFor="editLessonTitle">Lesson Title</Label>
-                            <Input
-                              id="editLessonTitle"
-                              value={lessonTitle}
-                              onChange={(e) => setLessonTitle(e.target.value)}
-                            />
+                            <Input id="editLessonTitle" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="editLessonDescription">Lesson Description</Label>
-                            <Textarea
-                              id="editLessonDescription"
-                              value={lessonDescription}
-                              onChange={(e) => setLessonDescription(e.target.value)}
-                              rows={3}
-                            />
+                            <Textarea id="editLessonDescription" value={lessonDescription} onChange={e => setLessonDescription(e.target.value)} rows={3} />
                           </div>
                         </div>
 
@@ -446,55 +355,32 @@ const CourseManagement: React.FC = () => {
                             <p className="text-sm text-gray-600">
                               {currentLesson?.pdfUrl ? "Current PDF will be kept unless you select a new one" : "No PDF currently, upload one"}
                             </p>
-                            <Input
-                              id="editPdfUpload"
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileChange(e, true)}
-                              className="hidden"
-                            />
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-2"
-                              onClick={() => document.getElementById('editPdfUpload')?.click()}
-                            >
+                            <Input id="editPdfUpload" type="file" accept=".pdf" onChange={e => handleFileChange(e, true)} className="hidden" />
+                            <Button variant="outline" size="sm" className="mt-2" onClick={() => document.getElementById('editPdfUpload')?.click()}>
                               Choose File
                             </Button>
-                            {editPdfFile && (
-                              <p className="mt-2 text-sm text-green-600">
+                            {editPdfFile && <p className="mt-2 text-sm text-green-600">
                                 Selected: {editPdfFile.name}
-                              </p>
-                            )}
+                              </p>}
                           </div>
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes">Instructor Notes</Label>
-                          <Textarea
-                            id="editInstructorNotes"
-                            value={instructorNotes}
-                            onChange={(e) => setInstructorNotes(e.target.value)}
-                            rows={6}
-                          />
+                          <Textarea id="editInstructorNotes" value={instructorNotes} onChange={e => setInstructorNotes(e.target.value)} rows={6} />
                         </div>
                         
                         <div className="space-y-2">
                           <Label>Attach Quiz Set (Optional)</Label>
-                          <Select 
-                            value={selectedQuizSetId || 'none'} 
-                            onValueChange={(value) => setSelectedQuizSetId(value === 'none' ? null : value)}
-                          >
+                          <Select value={selectedQuizSetId || 'none'} onValueChange={value => setSelectedQuizSetId(value === 'none' ? null : value)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a quiz set (optional)" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">None</SelectItem>
-                              {quizSets.map((quizSet) => (
-                                <SelectItem key={quizSet.id} value={quizSet.id}>
+                              {quizSets.map(quizSet => <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -508,86 +394,60 @@ const CourseManagement: React.FC = () => {
                   </Dialog>
                 </div>
                 
-                {course.lessons.length === 0 ? (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                {course.lessons.length === 0 ? <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <p className="text-gray-600 mb-4">No lessons in this course yet.</p>
                     <Button variant="outline" onClick={() => openAddLessonDialog(course)}>
                       <Plus className="mr-2 h-4 w-4" /> Add Your First Lesson
                     </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[...course.lessons]
-                      .sort((a, b) => a.order - b.order)
-                      .map((lesson) => (
-                        <div 
-                          key={lesson.id} 
-                          className="border rounded-md p-4 bg-white"
-                        >
+                  </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => <div key={lesson.id} className="border rounded-md p-4 bg-white">
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h5 className="font-semibold">{lesson.order}. {lesson.title}</h5>
                               <p className="text-sm text-gray-600">{lesson.description}</p>
                             </div>
                             <div className="flex space-x-1">
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => openEditLessonDialog(course, lesson)}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => openEditLessonDialog(course, lesson)}>
                                 <Pencil className="h-3 w-3" />
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => handleDeleteLesson(course.id, lesson.id)}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => handleDeleteLesson(course.id, lesson.id)}>
                                 <Trash className="h-3 w-3" />
                               </Button>
                             </div>
                           </div>
-                          {lesson.quizSetId && (
-                            <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
+                          {lesson.quizSetId && <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
                               <Check className="mr-1 h-3 w-3" />
                               Has Quiz
-                            </div>
-                          )}
-                        </div>
-                    ))}
-                  </div>
-                )}
+                            </div>}
+                        </div>)}
+                  </div>}
               </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
-    </div>
-  );
+            </AccordionItem>)}
+        </Accordion>}
+    </div>;
 };
 
 // Quiz Management Components
 const QuizManagement: React.FC = () => {
-  const { 
-    quizSets, 
+  const {
+    quizSets,
     quizSettings,
-    addQuizSet, 
-    updateQuizSet, 
+    addQuizSet,
+    updateQuizSet,
     deleteQuizSet,
     addQuizQuestion,
     updateQuizQuestion,
     deleteQuizQuestion,
     updateQuizSettings
   } = useData();
-  
   const [isAddQuizSetOpen, setIsAddQuizSetOpen] = useState(false);
   const [isEditQuizSetOpen, setIsEditQuizSetOpen] = useState(false);
   const [isAddQuizQuestionOpen, setIsAddQuizQuestionOpen] = useState(false);
   const [isEditQuizQuestionOpen, setIsEditQuizQuestionOpen] = useState(false);
   const [isPassMarkModalOpen, setIsPassMarkModalOpen] = useState(false);
-  
   const [currentQuizSet, setCurrentQuizSet] = useState<QuizSet | null>(null);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
-  
+
   // Form states
   const [quizSetTitle, setQuizSetTitle] = useState('');
   const [questionText, setQuestionText] = useState('');
@@ -595,7 +455,7 @@ const QuizManagement: React.FC = () => {
   const [correctAnswer, setCorrectAnswer] = useState<number>(0);
   const [passMarkPercentage, setPassMarkPercentage] = useState(quizSettings.passMarkPercentage);
   const [enforcePassMark, setEnforcePassMark] = useState(quizSettings.enforcePassMark);
-  
+
   // Handle add quiz set
   const handleAddQuizSet = () => {
     addQuizSet({
@@ -604,7 +464,7 @@ const QuizManagement: React.FC = () => {
     setQuizSetTitle('');
     setIsAddQuizSetOpen(false);
   };
-  
+
   // Handle update quiz set
   const handleUpdateQuizSet = () => {
     if (currentQuizSet) {
@@ -614,21 +474,21 @@ const QuizManagement: React.FC = () => {
       setIsEditQuizSetOpen(false);
     }
   };
-  
+
   // Handle delete quiz set
   const handleDeleteQuizSet = (quizSetId: string) => {
     if (window.confirm('Are you sure you want to delete this quiz set?')) {
       deleteQuizSet(quizSetId);
     }
   };
-  
+
   // Open edit quiz set dialog
   const openEditQuizSetDialog = (quizSet: QuizSet) => {
     setCurrentQuizSet(quizSet);
     setQuizSetTitle(quizSet.title);
     setIsEditQuizSetOpen(true);
   };
-  
+
   // Handle add quiz question
   const handleAddQuizQuestion = () => {
     if (currentQuizSet) {
@@ -641,7 +501,7 @@ const QuizManagement: React.FC = () => {
       setIsAddQuizQuestionOpen(false);
     }
   };
-  
+
   // Handle update quiz question
   const handleUpdateQuizQuestion = () => {
     if (currentQuizSet && currentQuestionId) {
@@ -654,50 +514,48 @@ const QuizManagement: React.FC = () => {
       setIsEditQuizQuestionOpen(false);
     }
   };
-  
+
   // Handle delete quiz question
   const handleDeleteQuizQuestion = (quizSetId: string, questionId: string) => {
     if (window.confirm('Are you sure you want to delete this question?')) {
       deleteQuizQuestion(quizSetId, questionId);
     }
   };
-  
+
   // Open add quiz question dialog
   const openAddQuizQuestionDialog = (quizSet: QuizSet) => {
     setCurrentQuizSet(quizSet);
     resetQuizQuestionForm();
     setIsAddQuizQuestionOpen(true);
   };
-  
+
   // Open edit quiz question dialog
   const openEditQuizQuestionDialog = (quizSet: QuizSet, questionId: string) => {
     setCurrentQuizSet(quizSet);
     setCurrentQuestionId(questionId);
-    
     const question = quizSet.questions.find(q => q.id === questionId);
     if (question) {
       setQuestionText(question.question);
       setAnswerOptions([...question.options]);
       setCorrectAnswer(question.correctAnswer);
     }
-    
     setIsEditQuizQuestionOpen(true);
   };
-  
+
   // Reset quiz question form
   const resetQuizQuestionForm = () => {
     setQuestionText('');
     setAnswerOptions(['', '', '', '']);
     setCorrectAnswer(0);
   };
-  
+
   // Handle updating answer option
   const updateAnswerOption = (index: number, value: string) => {
     const newOptions = [...answerOptions];
     newOptions[index] = value;
     setAnswerOptions(newOptions);
   };
-  
+
   // Handle save pass mark settings
   const handleSavePassMarkSettings = () => {
     updateQuizSettings({
@@ -706,9 +564,7 @@ const QuizManagement: React.FC = () => {
     });
     setIsPassMarkModalOpen(false);
   };
-
-  return (
-    <div>
+  return <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold mb-2">Quiz Management</h2>
@@ -735,26 +591,12 @@ const QuizManagement: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="passMarkPercentage">Pass Mark Percentage</Label>
                   <div className="flex items-center">
-                    <Input
-                      id="passMarkPercentage"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={passMarkPercentage}
-                      onChange={(e) => setPassMarkPercentage(Number(e.target.value))}
-                      className="w-20"
-                    />
+                    <Input id="passMarkPercentage" type="number" min="0" max="100" value={passMarkPercentage} onChange={e => setPassMarkPercentage(Number(e.target.value))} className="w-20" />
                     <span className="ml-2">%</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
-                    id="enforcePassMark"
-                    type="checkbox"
-                    checked={enforcePassMark}
-                    onChange={(e) => setEnforcePassMark(e.target.checked)}
-                    className="rounded"
-                  />
+                  <input id="enforcePassMark" type="checkbox" checked={enforcePassMark} onChange={e => setEnforcePassMark(e.target.checked)} className="rounded" />
                   <Label htmlFor="enforcePassMark">
                     Enforce pass mark (prevents progress if quiz is failed)
                   </Label>
@@ -784,12 +626,7 @@ const QuizManagement: React.FC = () => {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="quizSetTitle">Quiz Set Title</Label>
-                  <Input
-                    id="quizSetTitle"
-                    placeholder="Enter quiz set title"
-                    value={quizSetTitle}
-                    onChange={(e) => setQuizSetTitle(e.target.value)}
-                  />
+                  <Input id="quizSetTitle" placeholder="Enter quiz set title" value={quizSetTitle} onChange={e => setQuizSetTitle(e.target.value)} />
                 </div>
               </div>
               <div className="flex justify-end">
@@ -802,17 +639,13 @@ const QuizManagement: React.FC = () => {
         </div>
       </div>
       
-      {quizSets.length === 0 ? (
-        <div className="text-center py-12 bg-gray-100 rounded-lg">
+      {quizSets.length === 0 ? <div className="text-center py-12 bg-gray-100 rounded-lg">
           <p className="text-gray-600 mb-4">No quiz sets available.</p>
           <Button onClick={() => setIsAddQuizSetOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add Your First Quiz Set
           </Button>
-        </div>
-      ) : (
-        <Accordion type="single" collapsible className="space-y-4">
-          {quizSets.map((quizSet) => (
-            <AccordionItem key={quizSet.id} value={quizSet.id} className="border rounded-md overflow-hidden">
+        </div> : <Accordion type="single" collapsible className="space-y-4">
+          {quizSets.map(quizSet => <AccordionItem key={quizSet.id} value={quizSet.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
                 <div className="flex justify-between items-center w-full">
                   <div className="text-left">
@@ -820,24 +653,16 @@ const QuizManagement: React.FC = () => {
                     <p className="text-sm text-gray-600">{quizSet.questions.length} questions</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditQuizSetDialog(quizSet);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                openEditQuizSetDialog(quizSet);
+              }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteQuizSet(quizSet.id);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                handleDeleteQuizSet(quizSet.id);
+              }}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
@@ -850,11 +675,7 @@ const QuizManagement: React.FC = () => {
                   
                   <Dialog open={isAddQuizQuestionOpen} onOpenChange={setIsAddQuizQuestionOpen}>
                     <DialogTrigger asChild>
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openAddQuizQuestionDialog(quizSet)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => openAddQuizQuestionDialog(quizSet)}>
                         <Plus className="mr-2 h-4 w-4" /> Add Question
                       </Button>
                     </DialogTrigger>
@@ -868,36 +689,21 @@ const QuizManagement: React.FC = () => {
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Label htmlFor="questionText">Question</Label>
-                          <Input
-                            id="questionText"
-                            placeholder="Enter question text"
-                            value={questionText}
-                            onChange={(e) => setQuestionText(e.target.value)}
-                          />
+                          <Input id="questionText" placeholder="Enter question text" value={questionText} onChange={e => setQuestionText(e.target.value)} />
                         </div>
                         
                         <div className="space-y-3">
                           <Label>Answer Options</Label>
-                          <RadioGroup value={String(correctAnswer)} onValueChange={(v) => setCorrectAnswer(Number(v))}>
-                            {answerOptions.map((option, index) => (
-                              <div key={index} className="flex items-center space-x-2">
+                          <RadioGroup value={String(correctAnswer)} onValueChange={v => setCorrectAnswer(Number(v))}>
+                            {answerOptions.map((option, index) => <div key={index} className="flex items-center space-x-2">
                                 <RadioGroupItem value={String(index)} id={`option-${index}`} />
-                                <Input
-                                  placeholder={`Option ${index + 1}`}
-                                  value={option}
-                                  onChange={(e) => updateAnswerOption(index, e.target.value)}
-                                  className="flex-grow"
-                                />
-                              </div>
-                            ))}
+                                <Input placeholder={`Option ${index + 1}`} value={option} onChange={e => updateAnswerOption(index, e.target.value)} className="flex-grow" />
+                              </div>)}
                           </RadioGroup>
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button 
-                          onClick={handleAddQuizQuestion} 
-                          disabled={!questionText || answerOptions.some(option => !option)}
-                        >
+                        <Button onClick={handleAddQuizQuestion} disabled={!questionText || answerOptions.some(option => !option)}>
                           Save Question
                         </Button>
                       </div>
@@ -915,34 +721,21 @@ const QuizManagement: React.FC = () => {
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Label htmlFor="editQuestionText">Question</Label>
-                          <Input
-                            id="editQuestionText"
-                            value={questionText}
-                            onChange={(e) => setQuestionText(e.target.value)}
-                          />
+                          <Input id="editQuestionText" value={questionText} onChange={e => setQuestionText(e.target.value)} />
                         </div>
                         
                         <div className="space-y-3">
                           <Label>Answer Options</Label>
-                          <RadioGroup value={String(correctAnswer)} onValueChange={(v) => setCorrectAnswer(Number(v))}>
-                            {answerOptions.map((option, index) => (
-                              <div key={index} className="flex items-center space-x-2">
+                          <RadioGroup value={String(correctAnswer)} onValueChange={v => setCorrectAnswer(Number(v))}>
+                            {answerOptions.map((option, index) => <div key={index} className="flex items-center space-x-2">
                                 <RadioGroupItem value={String(index)} id={`edit-option-${index}`} />
-                                <Input
-                                  value={option}
-                                  onChange={(e) => updateAnswerOption(index, e.target.value)}
-                                  className="flex-grow"
-                                />
-                              </div>
-                            ))}
+                                <Input value={option} onChange={e => updateAnswerOption(index, e.target.value)} className="flex-grow" />
+                              </div>)}
                           </RadioGroup>
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button 
-                          onClick={handleUpdateQuizQuestion} 
-                          disabled={!questionText || answerOptions.some(option => !option)}
-                        >
+                        <Button onClick={handleUpdateQuizQuestion} disabled={!questionText || answerOptions.some(option => !option)}>
                           Update Question
                         </Button>
                       </div>
@@ -950,60 +743,40 @@ const QuizManagement: React.FC = () => {
                   </Dialog>
                 </div>
                 
-                {quizSet.questions.length === 0 ? (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                {quizSet.questions.length === 0 ? <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <p className="text-gray-600 mb-4">No questions in this quiz set yet.</p>
                     <Button variant="outline" onClick={() => openAddQuizQuestionDialog(quizSet)}>
                       <Plus className="mr-2 h-4 w-4" /> Add Your First Question
                     </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {quizSet.questions.map((question) => (
-                      <div 
-                        key={question.id} 
-                        className="border rounded-md p-4 bg-white"
-                      >
+                  </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {quizSet.questions.map(question => <div key={question.id} className="border rounded-md p-4 bg-white">
                         <div className="flex justify-between items-start">
                           <p className="font-medium">{question.question}</p>
                           <div className="flex space-x-1">
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={() => openEditQuizQuestionDialog(quizSet, question.id)}
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => openEditQuizQuestionDialog(quizSet, question.id)}>
                               <Pencil className="h-3 w-3" />
                             </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={() => handleDeleteQuizQuestion(quizSet.id, question.id)}
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => handleDeleteQuizQuestion(quizSet.id, question.id)}>
                               <Trash className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
-    </div>
-  );
+            </AccordionItem>)}
+        </Accordion>}
+    </div>;
 };
 
 // Student Management Components
 const StudentManagement: React.FC = () => {
-  const { 
-    students, 
+  const {
+    students,
     courses,
-    progress, 
-    addStudent, 
-    updateStudent, 
+    progress,
+    addStudent,
+    updateStudent,
     deleteStudent,
     assignCourse,
     removeCourseAssignment,
@@ -1011,19 +784,17 @@ const StudentManagement: React.FC = () => {
     getStudentProgress,
     getTotalQuizScore
   } = useData();
-  
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [isEditStudentOpen, setIsEditStudentOpen] = useState(false);
   const [isAssignCourseOpen, setIsAssignCourseOpen] = useState(false);
-  
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
-  
+
   // Form states
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
-  
+
   // Handle add student
   const handleAddStudent = () => {
     addStudent({
@@ -1035,7 +806,7 @@ const StudentManagement: React.FC = () => {
     resetStudentForm();
     setIsAddStudentOpen(false);
   };
-  
+
   // Handle update student
   const handleUpdateStudent = () => {
     if (currentStudent) {
@@ -1047,14 +818,14 @@ const StudentManagement: React.FC = () => {
       setIsEditStudentOpen(false);
     }
   };
-  
+
   // Handle delete student
   const handleDeleteStudent = (studentId: string) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       deleteStudent(studentId);
     }
   };
-  
+
   // Open edit student dialog
   const openEditStudentDialog = (student: Student) => {
     setCurrentStudent(student);
@@ -1063,7 +834,7 @@ const StudentManagement: React.FC = () => {
     setStudentPassword(student.password);
     setIsEditStudentOpen(true);
   };
-  
+
   // Handle assign course
   const handleAssignCourse = () => {
     if (currentStudent && selectedCourseId) {
@@ -1072,30 +843,28 @@ const StudentManagement: React.FC = () => {
       setIsAssignCourseOpen(false);
     }
   };
-  
+
   // Open assign course dialog
   const openAssignCourseDialog = (student: Student) => {
     setCurrentStudent(student);
     setSelectedCourseId('');
     setIsAssignCourseOpen(true);
   };
-  
+
   // Format time spent
   const formatTimeSpent = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
     return `${minutes}min`;
   };
-  
+
   // Reset student form
   const resetStudentForm = () => {
     setStudentName('');
     setStudentEmail('');
     setStudentPassword('');
   };
-
-  return (
-    <div>
+  return <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold mb-2">Student Management</h2>
@@ -1120,41 +889,21 @@ const StudentManagement: React.FC = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="studentName">Full Name</Label>
-                <Input
-                  id="studentName"
-                  placeholder="Enter student name"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                />
+                <Input id="studentName" placeholder="Enter student name" value={studentName} onChange={e => setStudentName(e.target.value)} />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="studentEmail">Email</Label>
-                <Input
-                  id="studentEmail"
-                  type="email"
-                  placeholder="Enter student email"
-                  value={studentEmail}
-                  onChange={(e) => setStudentEmail(e.target.value)}
-                />
+                <Input id="studentEmail" type="email" placeholder="Enter student email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="studentPassword">Password</Label>
-                <Input
-                  id="studentPassword"
-                  type="password"
-                  placeholder="Enter password"
-                  value={studentPassword}
-                  onChange={(e) => setStudentPassword(e.target.value)}
-                />
+                <Input id="studentPassword" type="password" placeholder="Enter password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
               </div>
             </div>
             <div className="flex justify-end">
-              <Button 
-                onClick={handleAddStudent} 
-                disabled={!studentName || !studentEmail || !studentPassword}
-              >
+              <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail || !studentPassword}>
                 Add Student
               </Button>
             </div>
@@ -1172,38 +921,21 @@ const StudentManagement: React.FC = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="editStudentName">Full Name</Label>
-                <Input
-                  id="editStudentName"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                />
+                <Input id="editStudentName" value={studentName} onChange={e => setStudentName(e.target.value)} />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="editStudentEmail">Email</Label>
-                <Input
-                  id="editStudentEmail"
-                  type="email"
-                  value={studentEmail}
-                  onChange={(e) => setStudentEmail(e.target.value)}
-                />
+                <Input id="editStudentEmail" type="email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="editStudentPassword">Password</Label>
-                <Input
-                  id="editStudentPassword"
-                  type="password"
-                  value={studentPassword}
-                  onChange={(e) => setStudentPassword(e.target.value)}
-                />
+                <Input id="editStudentPassword" type="password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
               </div>
             </div>
             <div className="flex justify-end">
-              <Button 
-                onClick={handleUpdateStudent} 
-                disabled={!studentName || !studentEmail || !studentPassword}
-              >
+              <Button onClick={handleUpdateStudent} disabled={!studentName || !studentEmail || !studentPassword}>
                 Update Student
               </Button>
             </div>
@@ -1226,14 +958,9 @@ const StudentManagement: React.FC = () => {
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
                   <SelectContent>
-                    {courses
-                      .filter(course => !currentStudent?.assignedCourses.includes(course.id))
-                      .map(course => (
-                        <SelectItem key={course.id} value={course.id}>
+                    {courses.filter(course => !currentStudent?.assignedCourses.includes(course.id)).map(course => <SelectItem key={course.id} value={course.id}>
                           {course.title}
-                        </SelectItem>
-                      ))
-                    }
+                        </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -1247,17 +974,13 @@ const StudentManagement: React.FC = () => {
         </Dialog>
       </div>
       
-      {students.length === 0 ? (
-        <div className="text-center py-12 bg-gray-100 rounded-lg">
+      {students.length === 0 ? <div className="text-center py-12 bg-gray-100 rounded-lg">
           <p className="text-gray-600 mb-4">No students available.</p>
           <Button onClick={() => setIsAddStudentOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add Your First Student
           </Button>
-        </div>
-      ) : (
-        <Accordion type="single" collapsible className="space-y-4">
-          {students.map((student) => (
-            <AccordionItem key={student.id} value={student.id} className="border rounded-md overflow-hidden">
+        </div> : <Accordion type="single" collapsible className="space-y-4">
+          {students.map(student => <AccordionItem key={student.id} value={student.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
                 <div className="flex justify-between items-center w-full">
                   <div className="text-left">
@@ -1265,24 +988,16 @@ const StudentManagement: React.FC = () => {
                     <p className="text-sm text-gray-600">{student.email}</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditStudentDialog(student);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                openEditStudentDialog(student);
+              }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteStudent(student.id);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                handleDeleteStudent(student.id);
+              }}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
@@ -1292,40 +1007,27 @@ const StudentManagement: React.FC = () => {
               <AccordionContent className="p-4">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-sm font-medium">Assigned Courses</h4>
-                  <Button 
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openAssignCourseDialog(student)}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => openAssignCourseDialog(student)}>
                     <Plus className="mr-2 h-4 w-4" /> Assign Course
                   </Button>
                 </div>
                 
-                {student.assignedCourses.length === 0 ? (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                {student.assignedCourses.length === 0 ? <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <p className="text-gray-600 mb-4">No courses assigned yet.</p>
                     <Button variant="outline" onClick={() => openAssignCourseDialog(student)}>
                       <Plus className="mr-2 h-4 w-4" /> Assign First Course
                     </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {student.assignedCourses.map((courseId) => {
-                      const course = courses.find(c => c.id === courseId);
-                      if (!course) return null;
-                      
-                      const studentProgress = getStudentProgress(student.id, courseId);
-                      const completedLessons = studentProgress.filter(p => p.completed).length;
-                      const totalLessons = course.lessons.length;
-                      const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
-                      const quizScore = getTotalQuizScore(student.id, courseId);
-                      const isLocked = studentProgress.some(p => p.locked);
-                      
-                      return (
-                        <div
-                          key={courseId}
-                          className="border rounded-md p-4 bg-white"
-                        >
+                  </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {student.assignedCourses.map(courseId => {
+              const course = courses.find(c => c.id === courseId);
+              if (!course) return null;
+              const studentProgress = getStudentProgress(student.id, courseId);
+              const completedLessons = studentProgress.filter(p => p.completed).length;
+              const totalLessons = course.lessons.length;
+              const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
+              const quizScore = getTotalQuizScore(student.id, courseId);
+              const isLocked = studentProgress.some(p => p.locked);
+              return <div key={courseId} className="border rounded-md p-4 bg-white">
                           <div className="flex justify-between items-start mb-3">
                             <div>
                               <h5 className="font-semibold">{course.title}</h5>
@@ -1334,19 +1036,10 @@ const StudentManagement: React.FC = () => {
                               </p>
                             </div>
                             <div className="flex space-x-1">
-                              <Button
-                                size="sm"
-                                variant={isLocked ? "default" : "outline"}
-                                className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
-                                onClick={() => toggleCourseLock(student.id, courseId)}
-                              >
+                              <Button size="sm" variant={isLocked ? "default" : "outline"} className={isLocked ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => toggleCourseLock(student.id, courseId)}>
                                 <Lock className="h-3 w-3" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeCourseAssignment(student.id, courseId)}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => removeCourseAssignment(student.id, courseId)}>
                                 <Trash className="h-3 w-3" />
                               </Button>
                             </div>
@@ -1368,36 +1061,28 @@ const StudentManagement: React.FC = () => {
                             </div>
                           </div>
                           
-                          {quizScore.total > 0 && (
-                            <div className="mt-2 text-xs text-gray-600">
+                          {quizScore.total > 0 && <div className="mt-2 text-xs text-gray-600">
                               Quiz Score: {quizScore.score} / {quizScore.total}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                            </div>}
+                        </div>;
+            })}
+                  </div>}
               </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
-    </div>
-  );
+            </AccordionItem>)}
+        </Accordion>}
+    </div>;
 };
 
 // Main Admin Dashboard
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [activeTab, setActiveTab] = useState("courses");
-
   if (!user) {
     return <div>Loading...</div>;
   }
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
@@ -1421,8 +1106,6 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default AdminDashboard;
