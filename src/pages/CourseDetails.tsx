@@ -98,21 +98,23 @@ const CourseDetails: React.FC = () => {
                         <CheckCircle className="inline-block ml-2 h-4 w-4 text-green-500" />
                       )}
                     </CardTitle>
-                    {isAccessible ? (
-                      <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
-                        <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
-                          {isCompleted ? (
-                            <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
-                          ) : (
-                            <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
-                          )}
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button disabled size="sm" variant="outline">
-                        <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
-                      </Button>
-                    )}
+                    <div className="flex-shrink-0">
+                      {isAccessible ? (
+                        <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
+                          <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
+                            {isCompleted ? (
+                              <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
+                            ) : (
+                              <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
+                            )}
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button disabled size="sm" variant="outline">
+                          <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
