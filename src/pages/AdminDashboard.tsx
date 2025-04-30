@@ -356,14 +356,14 @@ const CourseManagement: React.FC = () => {
                         <div className="space-y-2">
                           <Label>Attach Quiz Set (Optional)</Label>
                           <Select 
-                            value={selectedQuizSetId || ''} 
-                            onValueChange={(value) => setSelectedQuizSetId(value || null)}
+                            value={selectedQuizSetId || 'none'} 
+                            onValueChange={(value) => setSelectedQuizSetId(value === 'none' ? null : value)}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a quiz set (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {quizSets.map((quizSet) => (
                                 <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
@@ -422,14 +422,14 @@ const CourseManagement: React.FC = () => {
                         <div className="space-y-2">
                           <Label>Attach Quiz Set (Optional)</Label>
                           <Select 
-                            value={selectedQuizSetId || ''} 
-                            onValueChange={(value) => setSelectedQuizSetId(value || null)}
+                            value={selectedQuizSetId || 'none'} 
+                            onValueChange={(value) => setSelectedQuizSetId(value === 'none' ? null : value)}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a quiz set (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {quizSets.map((quizSet) => (
                                 <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
