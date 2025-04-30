@@ -273,7 +273,7 @@ const CourseManagement: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1  gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="lessonTitle">Lesson Title</Label>
                             <Input id="lessonTitle" placeholder="Enter lesson title" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} />
