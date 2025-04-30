@@ -2,14 +2,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import LogoutButton from '@/components/LogoutButton';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,13 +22,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {user && (
             <div className="flex items-center space-x-4">
               <span className="hidden md:inline">Welcome, {user.name}</span>
-              <Button 
-                variant="outline" 
-                onClick={logout} 
-                className="text-white border-white hover:bg-primary-light hover:text-white"
-              >
-                Logout
-              </Button>
+              <LogoutButton />
             </div>
           )}
         </div>
