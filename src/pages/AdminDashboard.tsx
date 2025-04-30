@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course, Lesson, QuizSet, Student } from '@/contexts/DataContext';
@@ -30,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock, LogOut } from 'lucide-react';
+import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock } from 'lucide-react';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
@@ -42,10 +41,6 @@ const CourseManagement: React.FC = () => {
   
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-  
-  // File states
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [editPdfFile, setEditPdfFile] = useState<File | null>(null);
   
   // Form states
   const [courseTitle, setCourseTitle] = useState('');
@@ -94,25 +89,13 @@ const CourseManagement: React.FC = () => {
     setIsEditCourseOpen(true);
   };
 
-  // Handle file selection
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      if (isEdit) {
-        setEditPdfFile(files[0]);
-      } else {
-        setPdfFile(files[0]);
-      }
-    }
-  };
-
   // Handle add lesson
   const handleAddLesson = () => {
     if (currentCourse) {
       addLesson(currentCourse.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: pdfFile ? URL.createObjectURL(pdfFile) : '/placeholder.pdf', // In a real app, this would be the uploaded PDF URL
+        pdfUrl: '/placeholder.pdf', // In a real app, this would be the uploaded PDF URL
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -127,7 +110,6 @@ const CourseManagement: React.FC = () => {
       updateLesson(currentCourse.id, currentLesson.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: editPdfFile ? URL.createObjectURL(editPdfFile) : currentLesson.pdfUrl,
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -158,7 +140,6 @@ const CourseManagement: React.FC = () => {
     setLessonDescription(lesson.description);
     setInstructorNotes(lesson.instructorNotes);
     setSelectedQuizSetId(lesson.quizSetId);
-    setEditPdfFile(null);
     setIsEditLessonOpen(true);
   };
 
@@ -168,8 +149,6 @@ const CourseManagement: React.FC = () => {
     setLessonDescription('');
     setInstructorNotes('');
     setSelectedQuizSetId(null);
-    setPdfFile(null);
-    setEditPdfFile(null);
   };
 
   return (
@@ -336,12 +315,11 @@ const CourseManagement: React.FC = () => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="lessonDescription">Lesson Description</Label>
-                            <Textarea
+                            <Input
                               id="lessonDescription"
                               placeholder="Enter a short description"
                               value={lessonDescription}
                               onChange={(e) => setLessonDescription(e.target.value)}
-                              rows={3}
                             />
                           </div>
                         </div>
@@ -356,23 +334,11 @@ const CourseManagement: React.FC = () => {
                             <Input
                               id="pdfUpload"
                               type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileChange(e, false)}
                               className="hidden"
                             />
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-2"
-                              onClick={() => document.getElementById('pdfUpload')?.click()}
-                            >
+                            <Button variant="outline" size="sm" className="mt-2">
                               Choose File
                             </Button>
-                            {pdfFile && (
-                              <p className="mt-2 text-sm text-green-600">
-                                Selected: {pdfFile.name}
-                              </p>
-                            )}
                           </div>
                         </div>
                         
@@ -435,42 +401,11 @@ const CourseManagement: React.FC = () => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="editLessonDescription">Lesson Description</Label>
-                            <Textarea
+                            <Input
                               id="editLessonDescription"
                               value={lessonDescription}
                               onChange={(e) => setLessonDescription(e.target.value)}
-                              rows={3}
                             />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="editPdfUpload">Update PDF Slides (Optional)</Label>
-                          <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
-                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">
-                              {currentLesson?.pdfUrl ? "Current PDF will be kept unless you select a new one" : "No PDF currently, upload one"}
-                            </p>
-                            <Input
-                              id="editPdfUpload"
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileChange(e, true)}
-                              className="hidden"
-                            />
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-2"
-                              onClick={() => document.getElementById('editPdfUpload')?.click()}
-                            >
-                              Choose File
-                            </Button>
-                            {editPdfFile && (
-                              <p className="mt-2 text-sm text-green-600">
-                                Selected: {editPdfFile.name}
-                              </p>
-                            )}
                           </div>
                         </div>
                         
@@ -934,7 +869,6 @@ const QuizManagement: React.FC = () => {
                               <div key={index} className="flex items-center space-x-2">
                                 <RadioGroupItem value={String(index)} id={`edit-option-${index}`} />
                                 <Input
-                                  placeholder={`Option ${index + 1}`}
                                   value={option}
                                   onChange={(e) => updateAnswerOption(index, e.target.value)}
                                   className="flex-grow"
@@ -959,37 +893,19 @@ const QuizManagement: React.FC = () => {
                 {quizSet.questions.length === 0 ? (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <p className="text-gray-600 mb-4">No questions in this quiz set yet.</p>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => openAddQuizQuestionDialog(quizSet)}
-                    >
+                    <Button variant="outline" onClick={() => openAddQuizQuestionDialog(quizSet)}>
                       <Plus className="mr-2 h-4 w-4" /> Add Your First Question
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {quizSet.questions.map((question) => (
                       <div 
                         key={question.id} 
                         className="border rounded-md p-4 bg-white"
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h5 className="font-semibold">{question.question}</h5>
-                            <ul className="mt-2 text-sm space-y-1">
-                              {question.options.map((option, index) => (
-                                <li 
-                                  key={index}
-                                  className={index === question.correctAnswer ? "text-primary font-medium" : "text-gray-600"}
-                                >
-                                  {index === question.correctAnswer && (
-                                    <Check className="inline-block mr-1 h-3 w-3" />
-                                  )}
-                                  {option}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                        <div className="flex justify-between items-start">
+                          <p className="font-medium">{question.question}</p>
                           <div className="flex space-x-1">
                             <Button 
                               size="sm" 
@@ -1020,33 +936,424 @@ const QuizManagement: React.FC = () => {
   );
 };
 
-// Main Dashboard Component
-const AdminDashboard: React.FC = () => {
-  const { logout } = useAuth();
+// Student Management Components
+const StudentManagement: React.FC = () => {
+  const { 
+    students, 
+    courses,
+    progress, 
+    addStudent, 
+    updateStudent, 
+    deleteStudent,
+    assignCourse,
+    removeCourseAssignment,
+    toggleCourseLock,
+    getStudentProgress,
+    getTotalQuizScore
+  } = useData();
   
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
+  const [isEditStudentOpen, setIsEditStudentOpen] = useState(false);
+  const [isAssignCourseOpen, setIsAssignCourseOpen] = useState(false);
+  
+  const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+  
+  // Form states
+  const [studentName, setStudentName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [studentPassword, setStudentPassword] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  
+  // Handle add student
+  const handleAddStudent = () => {
+    addStudent({
+      name: studentName,
+      email: studentEmail,
+      password: studentPassword,
+      assignedCourses: []
+    });
+    resetStudentForm();
+    setIsAddStudentOpen(false);
+  };
+  
+  // Handle update student
+  const handleUpdateStudent = () => {
+    if (currentStudent) {
+      updateStudent(currentStudent.id, {
+        name: studentName,
+        email: studentEmail,
+        password: studentPassword
+      });
+      setIsEditStudentOpen(false);
+    }
+  };
+  
+  // Handle delete student
+  const handleDeleteStudent = (studentId: string) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      deleteStudent(studentId);
+    }
+  };
+  
+  // Open edit student dialog
+  const openEditStudentDialog = (student: Student) => {
+    setCurrentStudent(student);
+    setStudentName(student.name);
+    setStudentEmail(student.email);
+    setStudentPassword(student.password);
+    setIsEditStudentOpen(true);
+  };
+  
+  // Handle assign course
+  const handleAssignCourse = () => {
+    if (currentStudent && selectedCourseId) {
+      assignCourse(currentStudent.id, selectedCourseId);
+      setSelectedCourseId('');
+      setIsAssignCourseOpen(false);
+    }
+  };
+  
+  // Open assign course dialog
+  const openAssignCourseDialog = (student: Student) => {
+    setCurrentStudent(student);
+    setSelectedCourseId('');
+    setIsAssignCourseOpen(true);
+  };
+  
+  // Format time spent
+  const formatTimeSpent = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}min`;
+  };
+  
+  // Reset student form
+  const resetStudentForm = () => {
+    setStudentName('');
+    setStudentEmail('');
+    setStudentPassword('');
+  };
+
   return (
-    <AppLayout>
-      <div className="container mx-auto p-4 max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button 
-            variant="outline" 
-            onClick={logout}
-            className="flex items-center space-x-2"
-          >
-            <LogOut className="h-4 w-4" /> 
-            <span>Logout</span>
-          </Button>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Student Management</h2>
+          <p className="text-gray-600">
+            Manage students and their course assignments.
+          </p>
         </div>
         
-        <Tabs defaultValue="courses">
-          <TabsList className="mb-8 grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="courses">Manage Courses</TabsTrigger>
-            <TabsTrigger value="quizzes">Manage Quizzes</TabsTrigger>
+        <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Student
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Student</DialogTitle>
+              <DialogDescription>
+                Create a new student account.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="studentName">Full Name</Label>
+                <Input
+                  id="studentName"
+                  placeholder="Enter student name"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="studentEmail">Email</Label>
+                <Input
+                  id="studentEmail"
+                  type="email"
+                  placeholder="Enter student email"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="studentPassword">Password</Label>
+                <Input
+                  id="studentPassword"
+                  type="password"
+                  placeholder="Enter password"
+                  value={studentPassword}
+                  onChange={(e) => setStudentPassword(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddStudent} 
+                disabled={!studentName || !studentEmail || !studentPassword}
+              >
+                Add Student
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isEditStudentOpen} onOpenChange={setIsEditStudentOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Student</DialogTitle>
+              <DialogDescription>
+                Update the student's information.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="editStudentName">Full Name</Label>
+                <Input
+                  id="editStudentName"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentEmail">Email</Label>
+                <Input
+                  id="editStudentEmail"
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentPassword">Password</Label>
+                <Input
+                  id="editStudentPassword"
+                  type="password"
+                  value={studentPassword}
+                  onChange={(e) => setStudentPassword(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleUpdateStudent} 
+                disabled={!studentName || !studentEmail || !studentPassword}
+              >
+                Update Student
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isAssignCourseOpen} onOpenChange={setIsAssignCourseOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Course</DialogTitle>
+              <DialogDescription>
+                Assign a course to {currentStudent?.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="courseSelect">Select Course</Label>
+                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses
+                      .filter(course => !currentStudent?.assignedCourses.includes(course.id))
+                      .map(course => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.title}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleAssignCourse} disabled={!selectedCourseId}>
+                Assign Course
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      {students.length === 0 ? (
+        <div className="text-center py-12 bg-gray-100 rounded-lg">
+          <p className="text-gray-600 mb-4">No students available.</p>
+          <Button onClick={() => setIsAddStudentOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add Your First Student
+          </Button>
+        </div>
+      ) : (
+        <Accordion type="single" collapsible className="space-y-4">
+          {students.map((student) => (
+            <AccordionItem key={student.id} value={student.id} className="border rounded-md overflow-hidden">
+              <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
+                <div className="flex justify-between items-center w-full">
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold">{student.name}</h3>
+                    <p className="text-sm text-gray-600">{student.email}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditStudentDialog(student);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteStudent(student.id);
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              
+              <AccordionContent className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-medium">Assigned Courses</h4>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openAssignCourseDialog(student)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Assign Course
+                  </Button>
+                </div>
+                
+                {student.assignedCourses.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <p className="text-gray-600 mb-4">No courses assigned yet.</p>
+                    <Button variant="outline" onClick={() => openAssignCourseDialog(student)}>
+                      <Plus className="mr-2 h-4 w-4" /> Assign First Course
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {student.assignedCourses.map((courseId) => {
+                      const course = courses.find(c => c.id === courseId);
+                      if (!course) return null;
+                      
+                      const studentProgress = getStudentProgress(student.id, courseId);
+                      const completedLessons = studentProgress.filter(p => p.completed).length;
+                      const totalLessons = course.lessons.length;
+                      const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
+                      const quizScore = getTotalQuizScore(student.id, courseId);
+                      const isLocked = studentProgress.some(p => p.locked);
+                      
+                      return (
+                        <div
+                          key={courseId}
+                          className="border rounded-md p-4 bg-white"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h5 className="font-semibold">{course.title}</h5>
+                              <p className="text-sm text-gray-600">
+                                Progress: {completedLessons} / {totalLessons} lessons
+                              </p>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant={isLocked ? "default" : "outline"}
+                                className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
+                                onClick={() => toggleCourseLock(student.id, courseId)}
+                              >
+                                <Lock className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeCourseAssignment(student.id, courseId)}
+                              >
+                                <Trash className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                            <div className="flex items-center">
+                              <Clock className="mr-1 h-3 w-3" />
+                              <span>
+                                Time spent: {formatTimeSpent(totalTimeSpent)}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <Eye className="mr-1 h-3 w-3" />
+                              <span>
+                                {studentProgress.filter(p => p.pdfViewed).length} / {totalLessons} viewed
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {quizScore.total > 0 && (
+                            <div className="mt-2 text-xs text-gray-600">
+                              Quiz Score: {quizScore.score} / {quizScore.total}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
+    </div>
+  );
+};
+
+// Main Admin Dashboard
+const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("courses");
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <AppLayout>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        
+        <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-8">
+            <TabsTrigger value="courses">Course Management</TabsTrigger>
+            <TabsTrigger value="students">Student Management</TabsTrigger>
+            <TabsTrigger value="quizzes">Quiz Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses">
             <CourseManagement />
+          </TabsContent>
+          
+          <TabsContent value="students">
+            <StudentManagement />
           </TabsContent>
           
           <TabsContent value="quizzes">
