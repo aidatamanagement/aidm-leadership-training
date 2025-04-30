@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
@@ -1075,22 +1076,23 @@ const StudentManagement: React.FC = () => {
 
 // Main Admin Dashboard
 const AdminDashboard: React.FC = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("courses");
+  const isMobile = useIsMobile();
+  
   if (!user) {
     return <div>Loading...</div>;
   }
+  
   return <AppLayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-8">
-            <TabsTrigger value="courses">Course Management</TabsTrigger>
-            <TabsTrigger value="students">Student Management</TabsTrigger>
-            <TabsTrigger value="quizzes">Quiz Management</TabsTrigger>
+          <TabsList className="mb-8 w-full">
+            <TabsTrigger value="courses" className="mb-2 md:mb-0">Course Management</TabsTrigger>
+            <TabsTrigger value="students" className="mb-2 md:mb-0">Student Management</TabsTrigger>
+            <TabsTrigger value="quizzes" className="mb-2 md:mb-0">Quiz Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses">
