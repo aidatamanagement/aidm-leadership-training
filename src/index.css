@@ -1,3 +1,6 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -98,4 +94,44 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.quiz-option.correct {
+  @apply bg-green-100 border-green-500;
+}
+
+.quiz-option.incorrect {
+  @apply bg-red-100 border-red-500;
+}
+
+.rich-text-editor img {
+  @apply max-w-full h-auto my-2;
+}
+
+.rich-text-editor ul {
+  @apply list-disc pl-5 my-2;
+}
+
+.rich-text-editor ol {
+  @apply list-decimal pl-5 my-2;
+}
+
+.rich-text-editor h1 {
+  @apply text-2xl font-bold my-2;
+}
+
+.rich-text-editor h2 {
+  @apply text-xl font-bold my-2;
+}
+
+.rich-text-editor h3 {
+  @apply text-lg font-bold my-2;
+}
+
+.rich-text-editor p {
+  @apply my-2;
+}
+
+.rich-text-editor a {
+  @apply text-primary underline;
 }
