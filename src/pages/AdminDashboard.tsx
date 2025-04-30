@@ -49,8 +49,22 @@ const CourseManagement: React.FC = () => {
   const [lessonDescription, setLessonDescription] = useState('');
   const [instructorNotes, setInstructorNotes] = useState('');
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [editPdfFile, setEditPdfFile] = useState<File | null>(null);
 
   const { quizSets } = useData();
+
+  // Handle file selection
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      if (isEdit) {
+        setEditPdfFile(files[0]);
+      } else {
+        setPdfFile(files[0]);
+      }
+    }
+  };
 
   // Handle add course
   const handleAddCourse = () => {
@@ -149,6 +163,8 @@ const CourseManagement: React.FC = () => {
     setLessonDescription('');
     setInstructorNotes('');
     setSelectedQuizSetId(null);
+    setPdfFile(null);
+    setEditPdfFile(null);
   };
 
   return (
@@ -315,11 +331,12 @@ const CourseManagement: React.FC = () => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="lessonDescription">Lesson Description</Label>
-                            <Input
+                            <Textarea
                               id="lessonDescription"
                               placeholder="Enter a short description"
                               value={lessonDescription}
                               onChange={(e) => setLessonDescription(e.target.value)}
+                              rows={3}
                             />
                           </div>
                         </div>
@@ -334,11 +351,23 @@ const CourseManagement: React.FC = () => {
                             <Input
                               id="pdfUpload"
                               type="file"
+                              accept=".pdf"
+                              onChange={(e) => handleFileChange(e, false)}
                               className="hidden"
                             />
-                            <Button variant="outline" size="sm" className="mt-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={() => document.getElementById('pdfUpload')?.click()}
+                            >
                               Choose File
                             </Button>
+                            {pdfFile && (
+                              <p className="mt-2 text-sm text-green-600">
+                                Selected: {pdfFile.name}
+                              </p>
+                            )}
                           </div>
                         </div>
                         
@@ -346,7 +375,7 @@ const CourseManagement: React.FC = () => {
                           <Label htmlFor="instructorNotes">Instructor Notes</Label>
                           <Textarea
                             id="instructorNotes"
-                            placeholder="Add instructor notes (supports rich text)"
+                            placeholder="Add instructor notes (supports HTML)"
                             value={instructorNotes}
                             onChange={(e) => setInstructorNotes(e.target.value)}
                             rows={6}
@@ -401,11 +430,42 @@ const CourseManagement: React.FC = () => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="editLessonDescription">Lesson Description</Label>
-                            <Input
+                            <Textarea
                               id="editLessonDescription"
                               value={lessonDescription}
                               onChange={(e) => setLessonDescription(e.target.value)}
+                              rows={3}
                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="editPdfUpload">Update PDF Slides (Optional)</Label>
+                          <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
+                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-600">
+                              {currentLesson?.pdfUrl ? "Current PDF will be kept unless you select a new one" : "No PDF currently, upload one"}
+                            </p>
+                            <Input
+                              id="editPdfUpload"
+                              type="file"
+                              accept=".pdf"
+                              onChange={(e) => handleFileChange(e, true)}
+                              className="hidden"
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={() => document.getElementById('editPdfUpload')?.click()}
+                            >
+                              Choose File
+                            </Button>
+                            {editPdfFile && (
+                              <p className="mt-2 text-sm text-green-600">
+                                Selected: {editPdfFile.name}
+                              </p>
+                            )}
                           </div>
                         </div>
                         

@@ -13,7 +13,7 @@ const InstructorNotes: React.FC<InstructorNotesProps> = ({ notes }) => {
       <Card>
         <CardContent className="p-6">
           <div 
-            className="rich-text-editor"
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: notes || 'No instructor notes available.' }}
           />
         </CardContent>
