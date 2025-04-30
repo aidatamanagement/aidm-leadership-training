@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,31 +89,29 @@ const CourseDetails: React.FC = () => {
                     : 'border-l-4 border-l-gray-300 opacity-75'
                 }`}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
-                      {lesson.order}. {lesson.title}
-                      {isCompleted && (
-                        <CheckCircle className="inline-block ml-2 h-4 w-4 text-green-500" />
-                      )}
-                    </CardTitle>
-                    <div className="flex-shrink-0">
-                      {isAccessible ? (
-                        <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
-                          <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
-                            {isCompleted ? (
-                              <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
-                            ) : (
-                              <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
-                            )}
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button disabled size="sm" variant="outline">
-                          <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
-                        </Button>
-                      )}
-                    </div>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">
+                    {lesson.order}. {lesson.title}
+                    {isCompleted && (
+                      <CheckCircle className="inline-block ml-2 h-4 w-4 text-green-500" />
+                    )}
+                  </CardTitle>
+                  <div className="flex-shrink-0">
+                    {isAccessible ? (
+                      <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
+                        <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
+                          {isCompleted ? (
+                            <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
+                          ) : (
+                            <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
+                          )}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button disabled size="sm" variant="outline">
+                        <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">

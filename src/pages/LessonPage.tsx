@@ -124,6 +124,14 @@ const LessonPage: React.FC = () => {
     }
   }, [timeTracker, user, courseId, lessonId]);
 
+  // Automatically mark PDF as viewed when component mounts
+  useEffect(() => {
+    if (user && courseId && lessonId && !isPdfViewed) {
+      setIsPdfViewed(true);
+      updatePdfViewed(user.id, courseId, lessonId);
+    }
+  }, [user, courseId, lessonId, isPdfViewed]);
+
   if (!user || !course || !lesson) {
     return (
       <AppLayout>
@@ -261,16 +269,8 @@ const LessonPage: React.FC = () => {
         <Card className="mb-8">
           <CardContent className="p-4">
             <div className="bg-gray-100 rounded-lg p-6 min-h-[400px] flex flex-col items-center justify-center">
-              <p className="text-gray-500 mb-4">PDF Slide Viewer</p>
-              <Button onClick={handlePdfView}>
-                View PDF Content
-              </Button>
-              {isPdfViewed && (
-                <div className="mt-4 flex items-center text-green-600">
-                  <Check className="mr-2 h-4 w-4" />
-                  Marked as viewed
-                </div>
-              )}
+              <p className="text-gray-500">PDF Content</p>
+              {/* PDF content would be displayed here */}
             </div>
           </CardContent>
         </Card>

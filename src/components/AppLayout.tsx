@@ -22,7 +22,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {user && (
             <div className="flex items-center space-x-4">
               <span className="hidden md:inline">Welcome, {user.name}</span>
-              <Button variant="outline" onClick={logout} className="text-white border-white hover:bg-primary-light">
+              <Button 
+                variant="outline" 
+                onClick={logout} 
+                className="text-white border-white hover:bg-primary-light hover:text-white"
+              >
                 Logout
               </Button>
             </div>
