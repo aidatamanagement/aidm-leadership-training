@@ -90,47 +90,50 @@ const CourseDetails: React.FC = () => {
                     : 'border-l-4 border-l-gray-300 opacity-75'
                 }`}
               >
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <div className="space-y-1">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">
                       {lesson.order}. {lesson.title}
                       {isCompleted && (
                         <CheckCircle className="inline-block ml-2 h-4 w-4 text-green-500" />
                       )}
                     </CardTitle>
-                    {lesson.quizSetId && (
-                      <Badge variant="outline" className="bg-primary/10 text-primary">
-                        Includes Quiz
-                      </Badge>
+                    {isAccessible ? (
+                      <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
+                        <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
+                          {isCompleted ? (
+                            <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
+                          ) : (
+                            <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
+                          )}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button disabled size="sm" variant="outline">
+                        <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
+                      </Button>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">{lesson.description}</p>
-                  
-                  {progress && progress.quizScore !== null && (
-                    <div className="mt-2 text-xs text-gray-600">
-                      Quiz Score: {progress.quizScore} / {progress.quizScore !== null ? 'N/A' : '?'}
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap items-start justify-between">
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">{lesson.description}</p>
+                      
+                      {lesson.quizSetId && (
+                        <Badge variant="outline" className="bg-primary/10 text-primary">
+                          Includes Quiz
+                        </Badge>
+                      )}
+                      
+                      {progress && progress.quizScore !== null && (
+                        <div className="text-xs text-gray-600">
+                          Quiz Score: {progress.quizScore} / {progress.quizScore !== null ? 'N/A' : '?'}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </CardContent>
-                <CardFooter>
-                  {isAccessible ? (
-                    <Button asChild className="w-full sm:w-auto" variant={isCompleted ? "outline" : "default"}>
-                      <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
-                        {isCompleted ? (
-                          <>View Lesson <Eye className="ml-2 h-4 w-4" /></>
-                        ) : (
-                          <>Start Lesson <Play className="ml-2 h-4 w-4" /></>
-                        )}
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button disabled className="w-full sm:w-auto" variant="outline">
-                      <Lock className="mr-2 h-4 w-4" /> Complete Previous Lesson
-                    </Button>
-                  )}
-                </CardFooter>
               </Card>
             );
           })}
