@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course, Lesson, QuizSet, Student } from '@/contexts/DataContext';
@@ -30,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Eye, Check, Lock, Plus, Pencil, Trash, Upload } from 'lucide-react';
+import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock } from 'lucide-react';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
