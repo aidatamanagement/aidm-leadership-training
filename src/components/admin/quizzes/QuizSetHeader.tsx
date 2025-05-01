@@ -1,36 +1,34 @@
 
 import React from 'react';
-import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface QuizSetHeaderProps {
   title: string;
-  description?: string;
   onEdit: (e: React.MouseEvent) => void;
 }
 
-const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({ 
-  title, 
-  description,
-  onEdit
-}) => {
+const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({ title, onEdit }) => {
   return (
-    <CardHeader>
-      <div className="flex items-center justify-between">
-        <CardTitle>{title}</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onEdit}
-          className="h-8 w-8 p-0"
+    <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
+      <div className="flex justify-between items-center w-full">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="opacity-70 hover:opacity-100"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent accordion from toggling
+            onEdit(e);
+          }}
         >
           <Pencil className="h-4 w-4" />
-          <span className="sr-only">Edit quiz title</span>
         </Button>
       </div>
-      {description && <p className="text-sm text-gray-500">{description}</p>}
-    </CardHeader>
+    </AccordionTrigger>
   );
 };
 

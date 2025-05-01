@@ -18,6 +18,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 interface QuizCardProps {
   quizSet: QuizSet;
@@ -40,11 +41,28 @@ const QuizCard: React.FC<QuizCardProps> = ({
 }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(quizSet.title);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleTitleUpdate = () => {
+  const handleTitleUpdate = async () => {
     if (editTitle.trim() !== '') {
-      onUpdateQuizSet(quizSet.id, { title: editTitle });
-      setIsEditDialogOpen(false);
+      try {
+        setIsUpdating(true);
+        await onUpdateQuizSet(quizSet.id, { title: editTitle });
+        toast({
+          title: "Success",
+          description: "Quiz title updated successfully",
+        });
+        setIsEditDialogOpen(false);
+      } catch (error) {
+        console.error("Error updating quiz title:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update quiz title",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
@@ -69,7 +87,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             variant="destructive"
             size="sm"
             onClick={() => onDeleteQuizSet(quizSet.id)}
-            disabled={isLoading}
+            disabled={isLoading || isUpdating}
           >
             <Trash className="h-4 w-4 mr-1" />
             Delete Quiz
@@ -97,7 +115,13 @@ const QuizCard: React.FC<QuizCardProps> = ({
       </CardContent>
 
       {/* Edit Quiz Title Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+          // Reset to original title when dialog is closed without saving
+          setEditTitle(quizSet.title);
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Quiz Title</DialogTitle>
@@ -113,12 +137,16 @@ const QuizCard: React.FC<QuizCardProps> = ({
                 value={editTitle} 
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="Enter quiz title"
+                autoFocus
               />
             </div>
           </div>
           <div className="flex justify-end">
-            <Button onClick={handleTitleUpdate} disabled={!editTitle.trim() || isLoading}>
-              Update Quiz Title
+            <Button 
+              onClick={handleTitleUpdate} 
+              disabled={!editTitle.trim() || isLoading || isUpdating}
+            >
+              {isUpdating ? "Updating..." : "Update Quiz Title"}
             </Button>
           </div>
         </DialogContent>

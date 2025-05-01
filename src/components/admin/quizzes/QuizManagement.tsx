@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import QuizCard from './QuizCard';
+import { toast } from '@/components/ui/use-toast';
 
 const QuizManagement: React.FC = () => {
   const { 
@@ -23,8 +24,20 @@ const QuizManagement: React.FC = () => {
   
   const handleCreateQuizSet = async () => {
     if (newQuizTitle.trim()) {
-      await addQuizSet({ title: newQuizTitle.trim() });
-      setNewQuizTitle('');
+      try {
+        await addQuizSet({ title: newQuizTitle.trim() });
+        setNewQuizTitle('');
+        toast({
+          title: "Success",
+          description: "Quiz set created successfully"
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create quiz set",
+          variant: "destructive"
+        });
+      }
     }
   };
   
