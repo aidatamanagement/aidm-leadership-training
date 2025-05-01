@@ -49,14 +49,15 @@ export const addStudent = async (
   role: string = 'student'
 ): Promise<void> => {
   try {
-    // Create auth user using admin API to avoid automatic sign-in
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: student.email,
       password: password,
-      email_confirm: true,
-      user_metadata: {
-        name: student.name,
-        role: role
+      options: {
+        data: {
+          name: student.name,
+          role: role
+        }
       }
     });
 
