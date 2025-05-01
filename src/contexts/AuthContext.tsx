@@ -18,7 +18,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   getSession: () => Promise<Session | null>;
 }
@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state change:", event);
         setSession(session);
         if (session?.user) {
           // Get user profile with role information
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -120,16 +121,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: 'Login successful',
         description: `Welcome back!`,
       });
-
-      // Redirect will happen automatically via onAuthStateChange
+      
+      return true;
     } catch (error: any) {
       toast({
         title: 'Login failed',
         description: error.message || 'Something went wrong',
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
+      return false;
     }
   };
 

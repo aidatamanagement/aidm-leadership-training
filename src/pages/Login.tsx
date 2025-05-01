@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,9 @@ const Login: React.FC = () => {
   useEffect(() => {
     // Redirect if user is already logged in
     if (isAuthenticated && user) {
-      navigate(user.type === 'admin' ? '/admin' : '/dashboard');
+      // Set timeout to prevent flash of login page
+      const redirectPath = user.type === 'admin' ? '/admin' : '/dashboard';
+      navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -28,7 +29,11 @@ const Login: React.FC = () => {
     setError('');
     
     try {
-      await login(email, password);
+      // Show loading state immediately to prevent additional clicks
+      const success = await login(email, password);
+      
+      // Login function now handles redirection via the useEffect hook above
+      // No need for manual redirection here as it will be caught by useEffect
     } catch (err: any) {
       setError(err.message || 'Login failed');
     }
