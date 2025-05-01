@@ -73,44 +73,40 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
       setUploading(true);
       setProgress(10); // Start with some initial progress
       
-      // First check if the "pdfs" bucket exists
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        throw bucketsError;
-      }
-      
-      const pdfsBucketExists = buckets?.some(bucket => bucket.name === 'pdfs');
-      
-      if (!pdfsBucketExists) {
-        throw new Error('Storage bucket "pdfs" not found. Please contact administrator.');
-      }
-      
       // Create a unique filename
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${lessonId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
-      setProgress(30); // Update progress after bucket check
+      setProgress(30); // Update progress
       
-      // Upload file to Supabase storage
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      // Direct upload to Supabase storage - this is the critical part
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('pdfs')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true // Use upsert to replace if file exists
         });
       
       if (uploadError) {
-        throw uploadError;
+        console.error("Upload error details:", uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+      
+      if (!uploadData || !uploadData.path) {
+        throw new Error('Upload completed but no file path returned');
       }
       
       setProgress(70); // Update progress after upload
       
       // Get the public URL
       const { data } = supabase.storage.from('pdfs').getPublicUrl(filePath);
-      const url = data.publicUrl;
       
+      if (!data || !data.publicUrl) {
+        throw new Error('Failed to get public URL for uploaded file');
+      }
+      
+      const url = data.publicUrl;
       setProgress(100); // Complete progress
       
       setPdfUrl(url);
@@ -122,11 +118,21 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
       });
     } catch (error: any) {
       console.error('PDF Upload Error:', error);
-      toast({
-        title: 'Upload Failed',
-        description: error.message || 'Failed to upload PDF file.',
-        variant: 'destructive',
-      });
+      
+      // Check if the error is related to missing bucket
+      if (error.message && error.message.includes('bucket')) {
+        toast({
+          title: 'Storage Error',
+          description: 'PDF storage is not properly configured. Please contact administrator.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Upload Failed',
+          description: error.message || 'Failed to upload PDF file.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setUploading(false);
       // Reset progress after a delay
