@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,30 +7,23 @@ import { Progress } from '@/components/ui/progress';
 import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/use-toast';
 import { FileIcon, UploadIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PDFUploaderProps {
   lessonId?: string;
   onUploadComplete: (url: string) => void;
   currentPdfUrl?: string;
-  required?: boolean;
 }
 
 const PDFUploader: React.FC<PDFUploaderProps> = ({ 
   lessonId = 'new-lesson', 
   onUploadComplete,
-  currentPdfUrl,
-  required = true
+  currentPdfUrl
 }) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | undefined>(currentPdfUrl);
+  const { uploadPdf } = useData();
   
-  useEffect(() => {
-    setPdfUrl(currentPdfUrl);
-  }, [currentPdfUrl]);
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     
@@ -71,68 +64,33 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
     
     try {
       setUploading(true);
-      setProgress(10); // Start with some initial progress
       
-      // Create a unique filename
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${lessonId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${fileName}`;
-      
-      setProgress(30); // Update progress
-      
-      // Direct upload to Supabase storage - this is the critical part
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pdfs')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: true // Use upsert to replace if file exists
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = prev + 10;
+          return newProgress > 90 ? 90 : newProgress;
         });
+      }, 300);
       
-      if (uploadError) {
-        console.error("Upload error details:", uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
+      const url = await uploadPdf(selectedFile, lessonId);
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      if (url) {
+        onUploadComplete(url);
+        toast({
+          title: 'Upload Complete',
+          description: 'PDF file has been uploaded successfully.'
+        });
       }
-      
-      if (!uploadData || !uploadData.path) {
-        throw new Error('Upload completed but no file path returned');
-      }
-      
-      setProgress(70); // Update progress after upload
-      
-      // Get the public URL
-      const { data } = supabase.storage.from('pdfs').getPublicUrl(filePath);
-      
-      if (!data || !data.publicUrl) {
-        throw new Error('Failed to get public URL for uploaded file');
-      }
-      
-      const url = data.publicUrl;
-      setProgress(100); // Complete progress
-      
-      setPdfUrl(url);
-      onUploadComplete(url);
-      
-      toast({
-        title: 'Upload Complete',
-        description: 'PDF file has been uploaded successfully.'
-      });
     } catch (error: any) {
-      console.error('PDF Upload Error:', error);
-      
-      // Check if the error is related to missing bucket
-      if (error.message && error.message.includes('bucket')) {
-        toast({
-          title: 'Storage Error',
-          description: 'PDF storage is not properly configured. Please contact administrator.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Upload Failed',
-          description: error.message || 'Failed to upload PDF file.',
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload PDF file.',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
       // Reset progress after a delay
@@ -148,9 +106,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="pdf-upload" className={required ? "after:content-['*'] after:text-red-500 after:ml-1" : ""}>
-        PDF Document
-      </Label>
+      <Label htmlFor="pdf-upload">PDF Document</Label>
       
       {!uploading && progress === 0 && (
         <div className="flex items-start gap-4">
@@ -160,7 +116,6 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
             accept=".pdf"
             onChange={handleFileChange}
             className="flex-1"
-            required={required && !pdfUrl}
           />
           <Button 
             type="button" 
@@ -183,16 +138,16 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         </div>
       )}
       
-      {pdfUrl && (
+      {currentPdfUrl && (
         <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between">
           <div className="flex items-center">
             <FileIcon className="h-5 w-5 text-blue-500 mr-2" />
             <span className="text-sm font-medium truncate max-w-[200px]">
-              {getPdfFilename(pdfUrl)}
+              {getPdfFilename(currentPdfUrl)}
             </span>
           </div>
           <a 
-            href={pdfUrl} 
+            href={currentPdfUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-sm text-blue-600 hover:underline"
