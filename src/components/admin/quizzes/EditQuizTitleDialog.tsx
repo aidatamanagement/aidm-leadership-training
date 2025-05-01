@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
 
 interface EditQuizTitleDialogProps {
   isOpen: boolean;
@@ -30,14 +31,29 @@ const EditQuizTitleDialog: React.FC<EditQuizTitleDialogProps> = ({
 
   // Reset title when dialog opens with new initialTitle
   useEffect(() => {
-    setTitle(initialTitle);
+    if (isOpen) {
+      setTitle(initialTitle);
+    }
   }, [initialTitle, isOpen]);
 
   const handleSave = async () => {
-    if (title && title !== initialTitle) {
-      await onSave(title);
+    try {
+      if (title && title !== initialTitle) {
+        await onSave(title);
+        toast({
+          title: "Success",
+          description: "Quiz title has been updated",
+        });
+      }
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error saving quiz title:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quiz title",
+        variant: "destructive",
+      });
     }
-    onOpenChange(false);
   };
 
   return (
@@ -64,7 +80,7 @@ const EditQuizTitleDialog: React.FC<EditQuizTitleDialogProps> = ({
         <div className="flex justify-end">
           <Button 
             onClick={handleSave} 
-            disabled={!title || isLoading}
+            disabled={!title || title === initialTitle || isLoading}
           >
             {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>

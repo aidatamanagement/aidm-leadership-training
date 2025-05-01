@@ -31,13 +31,14 @@ const QuizCard: React.FC<QuizCardProps> = ({
 }) => {
   const [isEditTitleDialogOpen, setIsEditTitleDialogOpen] = useState(false);
   
-  const handleTitleUpdate = (newTitle: string) => {
+  const handleTitleUpdate = async (newTitle: string) => {
     return onUpdateQuizSet(quizSet.id, { title: newTitle });
   };
 
   const handleEditIconClick = (e: React.MouseEvent) => {
     // Prevent accordion from toggling when clicking the edit icon
     e.stopPropagation();
+    console.log("Edit icon clicked, opening dialog"); // Debug log
     setIsEditTitleDialogOpen(true);
   };
 
@@ -45,7 +46,6 @@ const QuizCard: React.FC<QuizCardProps> = ({
     <Card className="mb-6">
       <QuizSetHeader 
         title={quizSet.title} 
-        onTitleUpdate={handleTitleUpdate}
         onEditClick={handleEditIconClick}
       />
       <CardContent className="space-y-4">
