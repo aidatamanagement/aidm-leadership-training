@@ -3,17 +3,18 @@ import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { UserType } from '@/contexts/AuthContext';
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  allowedRoles: ('admin' | 'student')[];
+  allowedRoles: UserType[];
 }
 
 const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type as any) && user.type !== 'admin') {
+    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to view this page.',
@@ -40,7 +41,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   }
 
   // Check if the user's role is in the allowed roles
-  if (!allowedRoles.includes(user.type as 'admin' | 'student')) {
+  if (!allowedRoles.includes(user.type)) {
     // Redirect based on user type
     return <Navigate to="/dashboard" replace />;
   }

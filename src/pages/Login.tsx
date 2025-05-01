@@ -21,9 +21,19 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect if user is already logged in
+    // Check if there's a password reset token in the URL (in the hash fragment)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
+    
+    if (accessToken && type === 'recovery') {
+      // Redirect to password reset page
+      navigate('/password-reset', { replace: true });
+      return;
+    }
+    
+    // Regular redirect if user is already logged in
     if (isAuthenticated && user) {
-      // Set timeout to prevent flash of login page
       const redirectPath = user.type === 'admin' ? '/admin' : '/dashboard';
       navigate(redirectPath, { replace: true });
     }
@@ -50,7 +60,7 @@ const Login: React.FC = () => {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/password-reset`,
       });
       
       if (error) throw error;
