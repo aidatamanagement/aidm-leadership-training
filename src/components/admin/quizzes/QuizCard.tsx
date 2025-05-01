@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { QuizSet, QuizQuestion } from '@/contexts/types/DataTypes';
 import QuizSetHeader from './QuizSetHeader';
 import QuizQuestionItem from './QuizQuestionItem';
 import AddQuestionForm from './AddQuestionForm';
+import EditQuizTitleDialog from './EditQuizTitleDialog';
 
 interface QuizCardProps {
   quizSet: QuizSet;
@@ -28,8 +29,16 @@ const QuizCard: React.FC<QuizCardProps> = ({
   onDeleteQuestion,
   isLoading = false
 }) => {
+  const [isEditTitleDialogOpen, setIsEditTitleDialogOpen] = useState(false);
+  
   const handleTitleUpdate = (newTitle: string) => {
-    onUpdateQuizSet(quizSet.id, { title: newTitle });
+    return onUpdateQuizSet(quizSet.id, { title: newTitle });
+  };
+
+  const handleEditIconClick = (e: React.MouseEvent) => {
+    // Prevent accordion from toggling when clicking the edit icon
+    e.stopPropagation();
+    setIsEditTitleDialogOpen(true);
   };
 
   return (
@@ -37,6 +46,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
       <QuizSetHeader 
         title={quizSet.title} 
         onTitleUpdate={handleTitleUpdate}
+        onEditClick={handleEditIconClick}
       />
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
@@ -73,6 +83,14 @@ const QuizCard: React.FC<QuizCardProps> = ({
           />
         </div>
       </CardContent>
+
+      <EditQuizTitleDialog
+        isOpen={isEditTitleDialogOpen}
+        onOpenChange={setIsEditTitleDialogOpen}
+        initialTitle={quizSet.title}
+        onSave={handleTitleUpdate}
+        isLoading={isLoading}
+      />
     </Card>
   );
 };
