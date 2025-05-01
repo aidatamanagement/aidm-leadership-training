@@ -95,6 +95,7 @@ interface DataContextType {
   isLoading: boolean;
   refreshData: () => Promise<void>;
   uploadPdf: (file: File, lessonId: string) => Promise<string>;
+  isCourseLockedForUser: (userId: string, courseId: string) => boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -1555,6 +1556,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { score: totalScore, total: totalPossible };
   };
 
+  // Helper function to check if a course is locked for a user
+  const isCourseLockedForUser = (userId: string, courseId: string) => {
+    // Find if there's a lock status for this user-course combination
+    const userProgress = progress.find(
+      p => p.userId === userId && p.courseId === courseId
+    );
+    
+    // If progress exists and it's locked, return true
+    return userProgress ? userProgress.locked : false;
+  };
+
   return (
     <DataContext.Provider value={{
       courses,
@@ -1590,7 +1602,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getTotalQuizScore,
       isLoading,
       refreshData,
-      uploadPdf
+      uploadPdf,
+      isCourseLockedForUser
     }}>
       {children}
     </DataContext.Provider>
