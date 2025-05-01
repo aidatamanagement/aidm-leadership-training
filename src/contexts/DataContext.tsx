@@ -94,6 +94,7 @@ interface DataContextType {
   getTotalQuizScore: (userId: string, courseId: string) => { score: number; total: number };
   isLoading: boolean;
   refreshData: () => Promise<void>;
+  uploadPdf: (file: File, lessonId: string) => Promise<string | null>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -359,6 +360,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Helper function to generate a random ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
+
+  // PDF upload function
+  const uploadPdf = async (file: File, lessonId: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${lessonId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('pdfs')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('pdfs')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error('Error uploading PDF:', error);
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload PDF',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
 
   // Course functions
   const addCourse = async (course: Omit<Course, 'id' | 'lessons'>) => {
@@ -1555,7 +1589,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLessonAccessible,
       getTotalQuizScore,
       isLoading,
-      refreshData
+      refreshData,
+      uploadPdf
     }}>
       {children}
     </DataContext.Provider>
