@@ -9,22 +9,10 @@ interface QuizSetHeaderProps {
   quizSetId: string;
   title: string;
   onDelete: () => void;
-  onTitleUpdate?: (newTitle: string) => void;
 }
 
-const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({ 
-  quizSetId, 
-  title, 
-  onDelete,
-  onTitleUpdate 
-}) => {
+const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({ quizSetId, title, onDelete }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  const handleTitleUpdated = () => {
-    if (onTitleUpdate) {
-      onTitleUpdate(title);
-    }
-  };
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -61,7 +49,6 @@ const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({
         currentTitle={title}
         isOpen={editDialogOpen}
         setIsOpen={setEditDialogOpen}
-        onSuccess={handleTitleUpdated}
       />
     </div>
   );
