@@ -1,47 +1,54 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isResetMode, setIsResetMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, isLoading: authLoading, isAuthenticated, user } = useAuth();
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const { login, isLoading, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    // Redirect if user is already logged in
-    if (isAuthenticated && user) {
-      navigate(user.type === 'admin' ? '/admin' : '/dashboard');
-    }
-
-    // Check if we're on the login page because of a password reset redirect
-    const accessToken = new URLSearchParams(location.hash.substring(1)).get('access_token');
-    const type = new URLSearchParams(location.hash.substring(1)).get('type');
+    // Check if there's a password reset token in the URL (in the hash fragment)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
     
     if (accessToken && type === 'recovery') {
-      // Redirect to password reset page with the token
-      navigate(`/password-reset?token=${accessToken}`);
+      // Redirect to password reset page
+      navigate('/password-reset', { replace: true });
+      return;
     }
-  }, [isAuthenticated, user, navigate, location]);
+    
+    // Regular redirect if user is already logged in
+    if (isAuthenticated && user) {
+      const redirectPath = user.type === 'admin' ? '/admin' : '/dashboard';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
     try {
-      await login(email, password);
+      // Show loading state immediately to prevent additional clicks
+      const success = await login(email, password);
+      
+      // Login function now handles redirection via the useEffect hook above
+      // No need for manual redirection here as it will be caught by useEffect
     } catch (err: any) {
       setError(err.message || 'Login failed');
     }
@@ -49,16 +56,10 @@ const Login: React.FC = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      setError('Please enter your email address');
-      return;
-    }
-    
-    setIsLoading(true);
+    setIsResetLoading(true);
     
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
         redirectTo: `${window.location.origin}/password-reset`,
       });
       
@@ -66,20 +67,19 @@ const Login: React.FC = () => {
       
       toast({
         title: 'Password reset email sent',
-        description: 'Check your email for a link to reset your password',
+        description: 'Check your inbox for a password reset link',
       });
       
-      setIsResetMode(false);
+      setShowForgotPassword(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email');
+      toast({
+        title: 'Password reset failed',
+        description: err.message || 'Something went wrong',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false);
+      setIsResetLoading(false);
     }
-  };
-
-  const toggleMode = () => {
-    setIsResetMode(!isResetMode);
-    setError('');
   };
 
   return (
@@ -89,48 +89,14 @@ const Login: React.FC = () => {
         <p className="text-gray-600">Sign in to access your training materials</p>
       </div>
       
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl">
-            {isResetMode ? 'Reset Password' : 'Login'}
-          </CardTitle>
-          <CardDescription>
-            {isResetMode 
-              ? 'Enter your email to receive a password reset link' 
-              : 'Enter your credentials to continue'}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          {isResetMode ? (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              {error && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
-                <Input 
-                  id="reset-email" 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-primary hover:bg-primary-light"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
-              </Button>
-            </form>
-          ) : (
+      {!showForgotPassword ? (
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Login</CardTitle>
+            <CardDescription>Enter your credentials to continue</CardDescription>
+          </CardHeader>
+          
+          <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               {error && (
                 <Alert variant="destructive" className="mb-4">
@@ -154,8 +120,8 @@ const Login: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <button 
-                    type="button" 
-                    onClick={toggleMode} 
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?
@@ -174,24 +140,56 @@ const Login: React.FC = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-primary hover:bg-primary-light"
-                disabled={authLoading}
+                disabled={isLoading}
               >
-                {authLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
-          )}
-        </CardContent>
-        
-        <CardFooter className="flex justify-center">
-          <button 
-            type="button" 
-            onClick={toggleMode}
-            className="text-sm text-primary hover:underline"
-          >
-            {isResetMode ? 'Back to login' : ''}
-          </button>
-        </CardFooter>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Reset Password</CardTitle>
+            <CardDescription>Enter your email to receive a password reset link</CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resetEmail">Email</Label>
+                <Input 
+                  id="resetEmail" 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={isResetLoading}
+                >
+                  {isResetLoading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+                
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="flex-1"
+                >
+                  Back to Login
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

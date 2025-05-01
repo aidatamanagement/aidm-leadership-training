@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/components/ui/use-toast';
@@ -14,87 +14,59 @@ const PasswordReset: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
-  // Get the token from URL parameters
-  const token = searchParams.get('token');
-  
+  const location = useLocation();
+
+  // Get the access token from the URL hash
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setError('Invalid or missing reset token');
-        return;
-      }
-
-      try {
-        // Use the password recovery method which will verify if the token is valid
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: 'recovery'
-        });
-        
-        if (error) {
-          throw error;
-        }
-        
-        setIsValidToken(true);
-      } catch (err: any) {
-        console.error('Token verification error:', err);
-        setError(err.message || 'Invalid or expired reset token');
-      }
-    };
-
-    verifyToken();
-  }, [token]);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    console.log("Hash parameters:", { type, hasAccessToken: !!accessToken });
+    
+    // If no access token or not a recovery, redirect to login
+    if (!accessToken || type !== 'recovery') {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    // Validate password
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-
-    // Check if passwords match
+    
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
+    
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    
     setIsLoading(true);
-
+    setError('');
+    
     try {
-      // Update the password
-      const { error } = await supabase.auth.updateUser({ 
-        password: password 
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
-
-      if (error) {
-        throw error;
-      }
-
-      // Sign out the user to prevent automatic login
-      await supabase.auth.signOut();
       
-      setIsSuccess(true);
+      if (error) throw error;
       
       toast({
         title: 'Password updated successfully',
-        description: 'You can now login with your new password',
+        description: 'You can now log in with your new password',
       });
-
-      // Navigate to login page after a short delay
+      
+      // Wait a moment, then redirect to login
       setTimeout(() => {
-        navigate('/');
-      }, 2000);
-
+        navigate('/', { replace: true });
+      }, 1500);
+      
     } catch (err: any) {
-      console.error('Password update error:', err);
+      console.error('Error updating password:', err);
       setError(err.message || 'Failed to update password');
     } finally {
       setIsLoading(false);
@@ -105,9 +77,9 @@ const PasswordReset: React.FC = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-primary mb-2">AIDM Leadership Training</h1>
-        <p className="text-gray-600">Create a new password</p>
+        <p className="text-gray-600">Set your new password</p>
       </div>
-      
+
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl">Update Password</CardTitle>
@@ -115,87 +87,55 @@ const PasswordReset: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          {error ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          
-          {isSuccess ? (
-            <div className="text-center py-4">
-              <p className="text-green-600 mb-4">
-                Password updated successfully! Redirecting to login page...
-              </p>
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-              </div>
+          <form onSubmit={handlePasswordUpdate} className="space-y-4">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">New Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Enter your new password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
-          ) : !isValidToken ? (
-            <div className="text-center py-4">
-              <p className="text-gray-600 mb-4">
-                {error || 'Verifying your reset token...'}
-              </p>
-              {!error && (
-                <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              )}
-              {error && (
-                <Button 
-                  onClick={() => navigate('/')}
-                  className="mt-4"
-                >
-                  Return to Login
-                </Button>
-              )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input 
+                id="confirmPassword" 
+                type="password" 
+                placeholder="Confirm your new password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
-          ) : (
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input 
-                  id="new-password" 
-                  type="password" 
-                  placeholder="Enter your new password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input 
-                  id="confirm-password" 
-                  type="password" 
-                  placeholder="Confirm your new password" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-primary hover:bg-primary-light"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Updating...' : 'Update Password'}
-              </Button>
-              
-              <div className="text-center">
-                <button 
-                  type="button" 
-                  onClick={() => navigate('/')}
-                  className="text-sm text-primary hover:underline mt-4"
-                >
-                  Back to login
-                </button>
-              </div>
-            </form>
-          )}
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-light"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Updating...' : 'Update Password'}
+            </Button>
+          </form>
         </CardContent>
+        
+        <CardFooter className="flex justify-center">
+          <Button 
+            variant="link" 
+            onClick={() => navigate('/', { replace: true })}
+          >
+            Back to Login
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
