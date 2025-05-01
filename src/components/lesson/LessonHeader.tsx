@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock } from 'lucide-react';
+import { formatTimeSpent } from '@/lib/utils';
 
 interface LessonHeaderProps {
   courseId: string;
@@ -17,13 +18,6 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   lessonDescription,
   timeSpent 
 }) => {
-  // Format seconds into mm:ss
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
-  };
-
   return (
     <div className="mb-6">
       <Button variant="ghost" size="sm" asChild className="mb-4">
@@ -42,7 +36,7 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
         
         <div className="mt-4 md:mt-0 flex items-center text-gray-600">
           <Clock className="mr-2 h-4 w-4" />
-          <span>Time spent: {formatTime(timeSpent)}</span>
+          <span>Time spent: {formatTimeSpent(timeSpent)}</span>
         </div>
       </div>
     </div>

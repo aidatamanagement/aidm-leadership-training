@@ -15,6 +15,9 @@ import InstructorNotes from '@/components/lesson/InstructorNotes';
 import QuizSection from '@/components/lesson/QuizSection';
 import LessonNavigation from '@/components/lesson/LessonNavigation';
 
+// Import custom hook
+import { useLessonTimer } from '@/hooks/useLessonTimer';
+
 const LessonPage: React.FC = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
@@ -41,7 +44,6 @@ const LessonPage: React.FC = () => {
   
   // State for user interaction
   const [quizScore, setQuizScore] = useState(0);
-  const [timeTracker, setTimeTracker] = useState<number>(0);
   const [isPdfViewed, setIsPdfViewed] = useState(false);
   
   // Navigation state
@@ -54,6 +56,16 @@ const LessonPage: React.FC = () => {
       ? getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId)
       : null
   );
+  
+  // Use our custom timer hook
+  const { totalTimeSpent } = useLessonTimer({
+    userId: user?.id || null,
+    courseId: courseId || '',
+    lessonId: lessonId || '',
+    initialTimeSpent: progress?.timeSpent || 0,
+    updateTimeSpent,
+    saveIntervalSeconds: 30
+  });
 
   useEffect(() => {
     // Update data when URL params change
@@ -107,28 +119,6 @@ const LessonPage: React.FC = () => {
       }
     }
   }, [courseId, lessonId, courses, quizSets, user, getStudentProgress]);
-
-  // Time tracking
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeTracker(prev => prev + 1);
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-      // Save time spent when component unmounts
-      if (user && courseId && lessonId && timeTracker > 0) {
-        updateTimeSpent(user.id, courseId, lessonId, timeTracker);
-      }
-    };
-  }, [user, courseId, lessonId, updateTimeSpent]);
-
-  // Save time spent every 30 seconds
-  useEffect(() => {
-    if (timeTracker > 0 && timeTracker % 30 === 0 && user && courseId && lessonId) {
-      updateTimeSpent(user.id, courseId, lessonId, 30);
-    }
-  }, [timeTracker, user, courseId, lessonId, updateTimeSpent]);
 
   // Automatically mark PDF as viewed
   useEffect(() => {
@@ -199,7 +189,7 @@ const LessonPage: React.FC = () => {
           courseId={courseId!}
           lessonTitle={lesson.title}
           lessonDescription={lesson.description}
-          timeSpent={timeTracker + (progress?.timeSpent || 0)}
+          timeSpent={totalTimeSpent}
         />
         
         <PDFViewer pdfUrl={lesson.pdfUrl} />
