@@ -5,47 +5,56 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PDFViewerProps {
-  pdfUrl?: string;
-  lessonId?: string;
+  pdfUrl?: string; // Make pdfUrl optional since we'll fetch it if not provided
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, lessonId }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl: propsPdfUrl }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lessonPdfUrl, setLessonPdfUrl] = useState<string | null>(pdfUrl || null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(propsPdfUrl || null);
+  const { lessonId } = useParams<{ lessonId: string }>();
 
-  // Fetch the lesson PDF URL if lessonId is provided but pdfUrl is not
+  // Fetch the PDF URL from the database if not provided as prop
   useEffect(() => {
-    const fetchLessonPdf = async () => {
-      if (!pdfUrl && lessonId) {
+    if (propsPdfUrl) {
+      setPdfUrl(propsPdfUrl);
+      return;
+    }
+    
+    if (lessonId) {
+      const fetchPdfUrl = async () => {
         try {
           const { data, error } = await supabase
             .from('lessons')
             .select('pdf_url')
             .eq('id', lessonId)
-            .single();
-
-          if (error) throw error;
-          if (data && data.pdf_url) {
-            setLessonPdfUrl(data.pdf_url);
+            .maybeSingle();
+          
+          if (error) {
+            throw error;
+          }
+          
+          if (data?.pdf_url) {
+            setPdfUrl(data.pdf_url);
           }
         } catch (err: any) {
           console.error('Error fetching PDF URL:', err);
-          setError(`Could not load PDF: ${err.message}`);
+          setError('Failed to load PDF information from database');
           toast({
             title: 'Error',
-            description: 'Failed to fetch the PDF for this lesson.',
+            description: 'Could not load PDF information',
             variant: 'destructive',
           });
         }
-      }
-    };
-
-    fetchLessonPdf();
-  }, [lessonId, pdfUrl]);
+      };
+      
+      fetchPdfUrl();
+    }
+  }, [lessonId, propsPdfUrl]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -62,8 +71,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, lessonId }) => {
   };
 
   const openInNewTab = () => {
-    if (lessonPdfUrl) {
-      window.open(lessonPdfUrl, '_blank', 'noopener,noreferrer');
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -83,7 +92,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, lessonId }) => {
           </div>
         )}
         
-        {lessonPdfUrl ? (
+        {pdfUrl ? (
           <div className="flex flex-col">
             <div className="flex justify-end mb-2">
               <Button 
@@ -97,7 +106,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, lessonId }) => {
               </Button>
             </div>
             <iframe 
-              src={lessonPdfUrl}
+              src={pdfUrl}
               className="w-full min-h-[600px] border-0"
               onLoad={handleLoad}
               onError={handleError}
