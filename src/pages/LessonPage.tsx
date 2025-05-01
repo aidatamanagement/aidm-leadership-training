@@ -196,8 +196,7 @@ const LessonPage: React.FC = () => {
           timeSpent={timeTracker + (progress?.timeSpent || 0)}
         />
         
-        {/* Pass the exact PDF URL to the viewer */}
-        <PDFViewer pdfUrl={lesson.pdfUrl || ''} />
+        <PDFViewer pdfUrl={lesson.pdfUrl} />
         
         <InstructorNotes notes={lesson.instructorNotes} />
         

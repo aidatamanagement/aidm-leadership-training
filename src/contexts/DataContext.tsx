@@ -368,17 +368,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const fileName = `${lessonId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // First check if storage bucket exists
-      const { data: buckets, error: bucketError } = await supabase.storage
-        .listBuckets();
-        
-      if (bucketError) throw bucketError;
-      
-      const pdfsBucketExists = buckets.some(bucket => bucket.name === 'pdfs');
-      if (!pdfsBucketExists) {
-        throw new Error("Storage bucket 'pdfs' does not exist. Please contact an administrator.");
-      }
-
       const { error: uploadError, data } = await supabase.storage
         .from('pdfs')
         .upload(filePath, file, {
@@ -393,7 +382,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('pdfs')
         .getPublicUrl(filePath);
 
-      console.log("PDF successfully uploaded, public URL:", publicUrl);
       return publicUrl;
     } catch (error: any) {
       console.error('Error uploading PDF:', error);
@@ -402,7 +390,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: error.message || 'Failed to upload PDF',
         variant: 'destructive',
       });
-      throw error;
+      return null;
     }
   };
 
