@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course } from '@/contexts/DataContext';
@@ -20,31 +20,12 @@ const StudentDashboard: React.FC = () => {
     isCourseLockedForUser,
     isLoading
   } = useData();
-  const [dataReady, setDataReady] = useState(false);
-  
-  useEffect(() => {
-    // Only set data as ready when both user and student data are loaded
-    if (user && !isLoading && students.length > 0) {
-      setDataReady(true);
-    }
-  }, [user, students, isLoading]);
 
-  // Show a loading spinner while we're fetching data
-  if (isLoading || !dataReady) {
+  if (isLoading || !user) {
     return (
       <AppLayout>
-        <div className="min-h-[70vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!user) {
-    return (
-      <AppLayout>
-        <div className="min-h-[70vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center min-h-screen py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -52,11 +33,12 @@ const StudentDashboard: React.FC = () => {
 
   const currentStudent = students.find(s => s.id === user.id);
   if (!currentStudent) {
+    // Instead of showing an error message, render a loading state
+    // This prevents the flash of "Student Not Found" message
     return (
       <AppLayout>
-        <div className="text-center py-8">
-          <h1 className="text-2xl font-bold mb-4">Student Not Found</h1>
-          <p>Your account is not set up properly. Please contact an administrator.</p>
+        <div className="flex items-center justify-center min-h-screen py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
