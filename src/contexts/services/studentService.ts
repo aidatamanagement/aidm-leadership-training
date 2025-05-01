@@ -228,9 +228,13 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('course_id', courseId)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      console.error('Error fetching assignment:', fetchError);
+      throw fetchError;
+    }
 
     const newLockedStatus = !assignment.locked;
+    console.log('Toggling course lock to:', newLockedStatus);
 
     // Update the lock status
     const { error: updateError } = await supabase
@@ -239,13 +243,17 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('user_id', studentId)
       .eq('course_id', courseId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('Error updating lock status:', updateError);
+      throw updateError;
+    }
     
     toast({
       title: newLockedStatus ? 'Course Locked' : 'Course Unlocked',
       description: `Course access has been ${newLockedStatus ? 'disabled' : 'enabled'} for the student.`
     });
     
+    console.log('Lock status updated successfully to:', newLockedStatus);
     return newLockedStatus;
   } catch (error: any) {
     console.error('Error toggling course lock:', error);
@@ -255,5 +263,27 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       variant: 'destructive',
     });
     throw error;
+  }
+};
+
+// Check if a course is locked for a specific user
+export const isCourseLockedForUser = async (userId: string, courseId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_course_assignments')
+      .select('locked')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking course lock status:', error);
+      return false;
+    }
+
+    return data?.locked || false;
+  } catch (error) {
+    console.error('Error in isCourseLockedForUser:', error);
+    return false;
   }
 };
