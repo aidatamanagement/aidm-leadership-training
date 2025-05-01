@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useData } from '@/contexts/DataContext';
+import { toast } from '@/components/ui/use-toast';
 
 interface EditQuizTitleDialogProps {
   quizSetId: string;
@@ -26,6 +27,11 @@ const EditQuizTitleDialog: React.FC<EditQuizTitleDialogProps> = ({
   const [title, setTitle] = useState<string>(currentTitle);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Reset title when dialog opens with new currentTitle
+  React.useEffect(() => {
+    setTitle(currentTitle);
+  }, [currentTitle, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -35,10 +41,19 @@ const EditQuizTitleDialog: React.FC<EditQuizTitleDialogProps> = ({
     
     try {
       await updateQuizSet(quizSetId, { title });
+      toast({
+        title: "Success",
+        description: "Quiz title updated successfully",
+      });
       setIsOpen(false);
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Failed to update quiz title:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update quiz title",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
