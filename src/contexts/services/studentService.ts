@@ -57,7 +57,8 @@ export const addStudent = async (
         data: {
           name: student.name,
           role: role
-        }
+        },
+        emailRedirectTo: undefined // Prevent redirection by setting to undefined
       }
     });
 
@@ -67,7 +68,7 @@ export const addStudent = async (
     
     toast({
       title: 'Student Added',
-      description: `${student.name} has been added successfully.`
+      description: `${student.name} has been added successfully as a ${role}.`
     });
   } catch (error: any) {
     console.error('Error adding student:', error);

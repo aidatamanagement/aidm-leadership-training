@@ -24,11 +24,11 @@ const AdminStudentManagement: React.FC = () => {
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
 
   // Handle add student
-  const handleAddStudent = (name: string, email: string, password: string) => {
+  const handleAddStudent = (name: string, email: string, password: string, role: string = 'student') => {
     addStudent({
       name,
       email,
-    }, password, 'student'); // Always set to 'student' role
+    }, password, role); // Pass the selected role
     setIsAddStudentOpen(false);
   };
 
@@ -38,7 +38,7 @@ const AdminStudentManagement: React.FC = () => {
       updateStudent(currentStudent.id, {
         name,
         email,
-        role: 'student', // Ensure role remains 'student'
+        role: currentStudent.role, // Preserve existing role
         assignedCourses: currentStudent.assignedCourses
       });
       setIsEditStudentOpen(false);

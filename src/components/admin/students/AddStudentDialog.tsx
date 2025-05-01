@@ -4,24 +4,27 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 
 interface AddStudentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddStudent: (name: string, email: string, password: string) => void;
+  onAddStudent: (name: string, email: string, password: string, role: string) => void;
 }
 
 const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChange, onAddStudent }) => {
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
+  const [studentRole, setStudentRole] = useState('student');
   
   const handleAddStudent = () => {
-    onAddStudent(studentName, studentEmail, studentPassword);
+    onAddStudent(studentName, studentEmail, studentPassword, studentRole);
     setStudentName('');
     setStudentEmail('');
     setStudentPassword('');
+    setStudentRole('student');
   };
   
   return (
@@ -52,6 +55,19 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
           <div className="space-y-2">
             <Label htmlFor="studentPassword">Password</Label>
             <Input id="studentPassword" type="password" placeholder="Enter password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="studentRole">Role</Label>
+            <Select value={studentRole} onValueChange={setStudentRole}>
+              <SelectTrigger id="studentRole">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex justify-end">
