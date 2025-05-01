@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course } from '@/contexts/DataContext';
@@ -17,28 +17,20 @@ const StudentDashboard: React.FC = () => {
     getCompletedLessonsCount,
     getStudentProgress,
     getTotalQuizScore,
-    isCourseLockedForUser,
-    isLoading
+    isCourseLockedForUser
   } = useData();
 
-  if (isLoading || !user) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
+  if (!user) {
+    return <div>Loading...</div>;
   }
 
   const currentStudent = students.find(s => s.id === user.id);
   if (!currentStudent) {
-    // Instead of showing an error message, render a loading state
-    // This prevents the flash of "Student Not Found" message
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-screen py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-center py-8">
+          <h1 className="text-2xl font-bold mb-4">Student Not Found</h1>
+          <p>Your account is not set up properly. Please contact an administrator.</p>
         </div>
       </AppLayout>
     );
