@@ -21,12 +21,21 @@ const AssignCourseDialog: React.FC<AssignCourseDialogProps> = ({
   onOpenChange, 
   onAssignCourse 
 }) => {
-  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   
   const handleAssignCourse = () => {
-    onAssignCourse(selectedCourseId);
-    setSelectedCourseId('');
+    if (selectedCourseId) {
+      onAssignCourse(selectedCourseId);
+      setSelectedCourseId('');
+    }
   };
+  
+  // Reset the selected course when dialog opens/closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedCourseId('');
+    }
+  }, [isOpen]);
   
   const filteredCourses = student 
     ? availableCourses.filter(course => !student.assignedCourses.includes(course.id))
@@ -45,7 +54,7 @@ const AssignCourseDialog: React.FC<AssignCourseDialogProps> = ({
           <div className="space-y-2">
             <Label htmlFor="courseSelect">Select Course</Label>
             <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-              <SelectTrigger>
+              <SelectTrigger id="courseSelect">
                 <SelectValue placeholder="Select a course" />
               </SelectTrigger>
               <SelectContent>
@@ -59,7 +68,10 @@ const AssignCourseDialog: React.FC<AssignCourseDialogProps> = ({
           </div>
         </div>
         <div className="flex justify-end">
-          <Button onClick={handleAssignCourse} disabled={!selectedCourseId}>
+          <Button 
+            onClick={handleAssignCourse} 
+            disabled={!selectedCourseId}
+          >
             Assign Course
           </Button>
         </div>
