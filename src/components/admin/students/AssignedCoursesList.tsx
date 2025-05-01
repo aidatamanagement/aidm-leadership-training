@@ -2,7 +2,7 @@
 import React from 'react';
 import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, Trash, Clock, Eye } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import CourseCard from './CourseCard';
 
 interface AssignedCoursesListProps {
@@ -48,6 +48,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
             const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
             const quizScore = getTotalQuizScore(student.id, courseId);
             const isLocked = studentProgress.some(p => p.locked);
+            const viewedLessonsCount = studentProgress.filter(p => p.pdfViewed).length;
             
             return (
               <CourseCard 
@@ -58,7 +59,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 totalTimeSpent={totalTimeSpent}
                 quizScore={quizScore}
                 isLocked={isLocked}
-                viewedLessonsCount={studentProgress.filter(p => p.pdfViewed).length}
+                viewedLessonsCount={viewedLessonsCount}
                 onToggleLock={() => toggleCourseLock(student.id, courseId)}
                 onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
                 formatTimeSpent={formatTimeSpent}
