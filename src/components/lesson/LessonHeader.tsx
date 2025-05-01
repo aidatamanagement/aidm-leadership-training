@@ -1,50 +1,42 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { formatTimeSpent } from '@/lib/timeUtils';
 
 interface LessonHeaderProps {
   courseId: string;
   lessonTitle: string;
   lessonDescription: string;
   timeSpent: number;
+  formattedTimeSpent?: string;
 }
 
 const LessonHeader: React.FC<LessonHeaderProps> = ({ 
   courseId, 
   lessonTitle, 
-  lessonDescription,
-  timeSpent 
+  lessonDescription, 
+  timeSpent,
+  formattedTimeSpent 
 }) => {
-  // Format seconds into mm:ss
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
-  };
-
   return (
     <div className="mb-6">
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to={`/courses/${courseId}`}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Course
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+        <Link to={`/courses/${courseId}`} className="hover:underline">
+          Back to Course
         </Link>
-      </Button>
-      
-      <div className="flex flex-col md:flex-row justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {lessonTitle}
-          </h1>
-          <p className="text-gray-600">{lessonDescription}</p>
-        </div>
-        
-        <div className="mt-4 md:mt-0 flex items-center text-gray-600">
-          <Clock className="mr-2 h-4 w-4" />
-          <span>Time spent: {formatTime(timeSpent)}</span>
-        </div>
       </div>
+      
+      <h1 className="text-3xl font-bold mb-2">{lessonTitle}</h1>
+      
+      <div className="flex items-center gap-2 mb-4">
+        <Clock size={16} className="text-gray-500" />
+        <span className="text-sm text-gray-600">
+          Time spent: {formattedTimeSpent || formatTimeSpent(timeSpent)}
+        </span>
+      </div>
+      
+      <p className="text-gray-700">{lessonDescription}</p>
     </div>
   );
 };

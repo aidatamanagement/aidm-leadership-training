@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -7,6 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { formatTimeSpent } from '@/lib/timeUtils';
 
 // Import our components
 import LessonHeader from '@/components/lesson/LessonHeader';
@@ -41,19 +42,32 @@ const LessonPage: React.FC = () => {
   
   // State for user interaction
   const [quizScore, setQuizScore] = useState(0);
-  const [timeTracker, setTimeTracker] = useState<number>(0);
   const [isPdfViewed, setIsPdfViewed] = useState(false);
   
   // Navigation state
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
 
+  // Time tracking state with refs for more reliable tracking
+  const [displayTime, setDisplayTime] = useState<number>(0);
+  const timeRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastUpdateRef = useRef<number>(0);
+  
   // Track lesson progress
   const [progress, setProgress] = useState(
     user && courseId && lessonId 
       ? getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId)
       : null
   );
+
+  // Initialize time tracker from saved progress
+  useEffect(() => {
+    if (progress?.timeSpent) {
+      timeRef.current = progress.timeSpent;
+      setDisplayTime(progress.timeSpent);
+    }
+  }, [progress]);
 
   useEffect(() => {
     // Update data when URL params change
@@ -103,32 +117,110 @@ const LessonPage: React.FC = () => {
           }
           
           setIsPdfViewed(lessonProgress?.pdfViewed || false);
+          
+          // Reset time tracker for new lesson
+          if (lessonProgress?.timeSpent) {
+            timeRef.current = lessonProgress.timeSpent;
+            setDisplayTime(lessonProgress.timeSpent);
+          } else {
+            timeRef.current = 0;
+            setDisplayTime(0);
+          }
         }
       }
     }
+    
+    // Clear any existing timer when params change
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // Save current time spent if changing lesson
+    saveTimeSpent();
+    
+    // Start a new timer for the current lesson
+    startTimeTracking();
+    
+    return () => {
+      // Clean up timer and save progress when unmounting
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      saveTimeSpent();
+    };
   }, [courseId, lessonId, courses, quizSets, user, getStudentProgress]);
 
-  // Time tracking
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeTracker(prev => prev + 1);
+  // Time tracking functions
+  const startTimeTracking = () => {
+    if (timerRef.current) return; // Don't start if already running
+    
+    // Initialize the last update time
+    lastUpdateRef.current = Date.now();
+    
+    timerRef.current = setInterval(() => {
+      // Calculate elapsed time since last tick
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastUpdateRef.current) / 1000);
+      lastUpdateRef.current = now;
+      
+      // Update the time counter (both ref and state)
+      timeRef.current += elapsed;
+      setDisplayTime(timeRef.current);
+      
+      // Save time to backend every 30 seconds
+      if (timeRef.current % 30 < elapsed && user && courseId && lessonId) {
+        updateTimeSpent(user.id, courseId, lessonId, elapsed);
+        console.log(`Time tracking: saved ${elapsed} seconds`);
+      }
     }, 1000);
-
-    return () => {
-      clearInterval(timer);
-      // Save time spent when component unmounts
-      if (user && courseId && lessonId && timeTracker > 0) {
-        updateTimeSpent(user.id, courseId, lessonId, timeTracker);
+  };
+  
+  const saveTimeSpent = () => {
+    // Calculate time to save
+    const timeToSave = timeRef.current - (progress?.timeSpent || 0);
+    
+    // Only save if there's meaningful time to record
+    if (user && courseId && lessonId && timeToSave > 0) {
+      updateTimeSpent(user.id, courseId, lessonId, timeToSave);
+      console.log(`Time tracking: saved ${timeToSave} seconds on unmount/change`);
+    }
+  };
+  
+  // Set up visibility change handler to pause/resume timer
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Page is hidden, pause timer and save progress
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          saveTimeSpent();
+        }
+      } else {
+        // Page is visible again, resume timer
+        startTimeTracking();
       }
     };
-  }, [user, courseId, lessonId, updateTimeSpent]);
-
-  // Save time spent every 30 seconds
-  useEffect(() => {
-    if (timeTracker > 0 && timeTracker % 30 === 0 && user && courseId && lessonId) {
-      updateTimeSpent(user.id, courseId, lessonId, 30);
-    }
-  }, [timeTracker, user, courseId, lessonId, updateTimeSpent]);
+    
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Start time tracking when component mounts
+    startTimeTracking();
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      saveTimeSpent();
+    };
+  }, [user, courseId, lessonId]);
 
   // Automatically mark PDF as viewed
   useEffect(() => {
@@ -175,6 +267,9 @@ const LessonPage: React.FC = () => {
       }
     }
     
+    // Save current time before completing
+    saveTimeSpent();
+    
     // Mark the lesson as completed
     markLessonComplete(user.id, courseId, lessonId, quizScore);
     
@@ -192,6 +287,9 @@ const LessonPage: React.FC = () => {
     (quizScore / quizSet.questions.length * 100) < quizSettings.passMarkPercentage
   );
 
+  // Format the display time
+  const formattedTime = formatTimeSpent(displayTime);
+
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
@@ -199,7 +297,8 @@ const LessonPage: React.FC = () => {
           courseId={courseId!}
           lessonTitle={lesson.title}
           lessonDescription={lesson.description}
-          timeSpent={timeTracker + (progress?.timeSpent || 0)}
+          timeSpent={displayTime}
+          formattedTimeSpent={formattedTime}
         />
         
         <PDFViewer pdfUrl={lesson.pdfUrl} />
