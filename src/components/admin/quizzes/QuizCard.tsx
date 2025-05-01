@@ -1,14 +1,13 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash, Pencil } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { QuizSet, QuizQuestion } from '@/contexts/types/DataTypes';
 import QuizSetHeader from './QuizSetHeader';
 import QuizQuestionItem from './QuizQuestionItem';
 import AddQuestionForm from './AddQuestionForm';
-import EditQuizTitleDialog from './EditQuizTitleDialog';
 
 interface QuizCardProps {
   quizSet: QuizSet;
@@ -29,41 +28,16 @@ const QuizCard: React.FC<QuizCardProps> = ({
   onDeleteQuestion,
   isLoading = false
 }) => {
-  const [isEditTitleDialogOpen, setIsEditTitleDialogOpen] = useState(false);
-  
-  const handleTitleEdit = (e: React.MouseEvent) => {
-    // Prevent the accordion from toggling when clicking the edit button
-    e.stopPropagation();
-    setIsEditTitleDialogOpen(true);
+  const handleTitleUpdate = (newTitle: string) => {
+    onUpdateQuizSet(quizSet.id, { title: newTitle });
   };
 
   return (
     <Card className="mb-6">
-      <div className="flex items-center justify-between px-6 py-4 border-b">
-        <div>
-          <h3 className="text-lg font-semibold">{quizSet.title}</h3>
-          <p className="text-sm text-gray-600">{quizSet.questions.length} questions</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={handleTitleEdit}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteQuizSet(quizSet.id);
-            }}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <QuizSetHeader 
+        title={quizSet.title} 
+        onTitleUpdate={handleTitleUpdate}
+      />
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <Badge variant="outline">
@@ -99,13 +73,6 @@ const QuizCard: React.FC<QuizCardProps> = ({
           />
         </div>
       </CardContent>
-      
-      <EditQuizTitleDialog 
-        quizSet={quizSet}
-        isOpen={isEditTitleDialogOpen}
-        onOpenChange={setIsEditTitleDialogOpen}
-        onUpdateQuizSet={onUpdateQuizSet}
-      />
     </Card>
   );
 };
