@@ -3,11 +3,21 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash } from 'lucide-react';
+import { Trash, Pencil } from 'lucide-react';
 import { QuizSet, QuizQuestion } from '@/contexts/types/DataTypes';
 import QuizSetHeader from './QuizSetHeader';
 import QuizQuestionItem from './QuizQuestionItem';
 import AddQuestionForm from './AddQuestionForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 
 interface QuizCardProps {
   quizSet: QuizSet;
@@ -28,15 +38,27 @@ const QuizCard: React.FC<QuizCardProps> = ({
   onDeleteQuestion,
   isLoading = false
 }) => {
-  const handleTitleUpdate = (newTitle: string) => {
-    onUpdateQuizSet(quizSet.id, { title: newTitle });
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState(quizSet.title);
+
+  const handleTitleUpdate = () => {
+    if (editTitle.trim() !== '') {
+      onUpdateQuizSet(quizSet.id, { title: editTitle });
+      setIsEditDialogOpen(false);
+    }
+  };
+
+  const openEditDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent accordion toggle
+    setEditTitle(quizSet.title);
+    setIsEditDialogOpen(true);
   };
 
   return (
     <Card className="mb-6">
       <QuizSetHeader 
         title={quizSet.title} 
-        onTitleUpdate={handleTitleUpdate}
+        onEdit={openEditDialog}
       />
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
@@ -73,6 +95,34 @@ const QuizCard: React.FC<QuizCardProps> = ({
           />
         </div>
       </CardContent>
+
+      {/* Edit Quiz Title Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Quiz Title</DialogTitle>
+            <DialogDescription>
+              Update the title for this quiz set.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="quizTitle">Quiz Title</Label>
+              <Input 
+                id="quizTitle" 
+                value={editTitle} 
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Enter quiz title"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleTitleUpdate} disabled={!editTitle.trim() || isLoading}>
+              Update Quiz Title
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
