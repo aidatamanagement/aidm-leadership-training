@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 
-// Import our new components
+// Import our components
 import LessonHeader from '@/components/lesson/LessonHeader';
 import PDFViewer from '@/components/lesson/PDFViewer';
 import InstructorNotes from '@/components/lesson/InstructorNotes';
@@ -62,6 +63,8 @@ const LessonPage: React.FC = () => {
       setLesson(currentLesson);
       
       if (currentLesson) {
+        console.log("Lesson PDF URL:", currentLesson.pdfUrl);
+        
         // Find quiz set if it exists
         setQuizSet(
           currentLesson.quizSetId 
