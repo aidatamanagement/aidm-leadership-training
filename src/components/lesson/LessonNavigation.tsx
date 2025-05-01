@@ -36,13 +36,18 @@ const LessonNavigation: React.FC<LessonNavigationProps> = ({
           <Button 
             onClick={onCompleteLesson}
             disabled={disableCompletion}
+            title={disableCompletion ? "Complete all requirements before continuing" : "Complete and continue to next lesson"}
           >
             Complete & Continue <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         )}
         
         {!nextLesson && (
-          <Button onClick={onCompleteLesson}>
+          <Button 
+            onClick={onCompleteLesson}
+            disabled={disableCompletion}
+            title={disableCompletion ? "Complete all requirements before finishing" : "Complete the course"}
+          >
             Complete Course <Check className="ml-2 h-4 w-4" />
           </Button>
         )}

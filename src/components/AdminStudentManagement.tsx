@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData, Student } from '@/contexts/DataContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -33,15 +32,17 @@ const AdminStudentManagement: React.FC = () => {
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
-  const [studentRole, setStudentRole] = useState('student');
   const [selectedCourseId, setSelectedCourseId] = useState('');
+
+  // Filter only student role users
+  const filteredStudents = students.filter(student => student.role === 'student');
 
   // Handle add student
   const handleAddStudent = () => {
     addStudent({
       name: studentName,
       email: studentEmail,
-    }, studentPassword, studentRole);
+    }, studentPassword, 'student'); // Always set to 'student' role
     resetStudentForm();
     setIsAddStudentOpen(false);
   };
@@ -52,7 +53,7 @@ const AdminStudentManagement: React.FC = () => {
       updateStudent(currentStudent.id, {
         name: studentName,
         email: studentEmail,
-        role: studentRole,
+        role: 'student', // Ensure role remains 'student'
         assignedCourses: currentStudent.assignedCourses
       });
       setIsEditStudentOpen(false);
@@ -71,7 +72,6 @@ const AdminStudentManagement: React.FC = () => {
     setCurrentStudent(student);
     setStudentName(student.name);
     setStudentEmail(student.email);
-    setStudentRole(student.role);
     setIsEditStudentOpen(true);
   };
 
@@ -103,7 +103,6 @@ const AdminStudentManagement: React.FC = () => {
     setStudentName('');
     setStudentEmail('');
     setStudentPassword('');
-    setStudentRole('student');
   };
   
   return (
@@ -145,18 +144,7 @@ const AdminStudentManagement: React.FC = () => {
                 <Input id="studentPassword" type="password" placeholder="Enter password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="studentRole">Role</Label>
-                <Select value={studentRole} onValueChange={setStudentRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Role selector removed as requested, students will always be assigned 'student' role */}
             </div>
             <div className="flex justify-end">
               <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail || !studentPassword}>
@@ -185,18 +173,7 @@ const AdminStudentManagement: React.FC = () => {
                 <Input id="editStudentEmail" type="email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="studentRole">Role</Label>
-                <Select value={studentRole} onValueChange={setStudentRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Role selector removed as requested, students will always keep 'student' role */}
             </div>
             <div className="flex justify-end">
               <Button onClick={handleUpdateStudent} disabled={!studentName || !studentEmail}>
@@ -243,7 +220,7 @@ const AdminStudentManagement: React.FC = () => {
         </Dialog>
       </div>
       
-      {students.length === 0 ? (
+      {filteredStudents.length === 0 ? (
         <div className="text-center py-12 bg-gray-100 rounded-lg">
           <p className="text-gray-600 mb-4">No students available.</p>
           <Button onClick={() => setIsAddStudentOpen(true)}>
@@ -252,13 +229,13 @@ const AdminStudentManagement: React.FC = () => {
         </div>
       ) : (
         <Accordion type="single" collapsible className="space-y-4">
-          {students.map(student => (
+          {filteredStudents.map(student => (
             <AccordionItem key={student.id} value={student.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
                 <div className="flex justify-between items-center w-full">
                   <div className="text-left">
                     <h3 className="text-lg font-semibold">{student.name}</h3>
-                    <p className="text-sm text-gray-600">{student.email} - {student.role}</p>
+                    <p className="text-sm text-gray-600">{student.email}</p>
                   </div>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="ghost" onClick={e => {
@@ -320,6 +297,7 @@ const AdminStudentManagement: React.FC = () => {
                                 variant={isLocked ? "default" : "outline"} 
                                 className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
                                 onClick={() => toggleCourseLock(student.id, courseId)}
+                                title={isLocked ? "Unlock Course" : "Lock Course"}
                               >
                                 <Lock className="h-3 w-3" />
                               </Button>

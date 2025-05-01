@@ -665,16 +665,24 @@ const QuizManagement: React.FC = () => {
                     <p className="text-sm text-gray-600">{quizSet.questions.length} questions</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="ghost" onClick={e => {
-                e.stopPropagation();
-                openEditQuizSetDialog(quizSet);
-              }}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={e => {
+                        e.stopPropagation();
+                        openEditQuizSetDialog(quizSet);
+                      }}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={e => {
-                e.stopPropagation();
-                handleDeleteQuizSet(quizSet.id);
-              }}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleDeleteQuizSet(quizSet.id);
+                      }}
+                    >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
