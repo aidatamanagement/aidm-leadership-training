@@ -1,20 +1,18 @@
 
 import React, { useState } from 'react';
-import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Edit, Check, X } from 'lucide-react';
 
 interface QuizSetHeaderProps {
   title: string;
-  description?: string;
   onTitleUpdate: (newTitle: string) => void;
 }
 
 const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({ 
   title, 
-  description, 
-  onTitleUpdate
+  onTitleUpdate 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
@@ -77,7 +75,6 @@ const QuizSetHeader: React.FC<QuizSetHeaderProps> = ({
           </Button>
         </div>
       )}
-      {description && <CardDescription>{description}</CardDescription>}
     </CardHeader>
   );
 };
