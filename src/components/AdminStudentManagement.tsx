@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useData, Student } from '@/contexts/DataContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Lock, Plus, Pencil, Trash, Eye, Clock } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 // Student Management Component
 const AdminStudentManagement: React.FC = () => {
@@ -23,6 +25,7 @@ const AdminStudentManagement: React.FC = () => {
     getTotalQuizScore
   } = useData();
   
+  const { toast } = useToast();
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [isEditStudentOpen, setIsEditStudentOpen] = useState(false);
   const [isAssignCourseOpen, setIsAssignCourseOpen] = useState(false);
@@ -33,18 +36,46 @@ const AdminStudentManagement: React.FC = () => {
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter only student role users
   const filteredStudents = students.filter(student => student.role === 'student');
 
   // Handle add student
-  const handleAddStudent = () => {
-    addStudent({
-      name: studentName,
-      email: studentEmail,
-    }, studentPassword, 'student'); // Always set to 'student' role
-    resetStudentForm();
-    setIsAddStudentOpen(false);
+  const handleAddStudent = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    try {
+      const result = await addStudent({
+        name: studentName,
+        email: studentEmail,
+      }, studentPassword, 'student', { skipSignIn: true }); // Add skipSignIn option
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Student account created successfully",
+        });
+        resetStudentForm();
+        setIsAddStudentOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to create student account",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      console.error("Error adding student:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle update student
@@ -147,8 +178,11 @@ const AdminStudentManagement: React.FC = () => {
               {/* Role selector removed as requested, students will always be assigned 'student' role */}
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail || !studentPassword}>
-                Add Student
+              <Button 
+                onClick={handleAddStudent} 
+                disabled={!studentName || !studentEmail || !studentPassword || isSubmitting}
+              >
+                {isSubmitting ? 'Creating...' : 'Add Student'}
               </Button>
             </div>
           </DialogContent>

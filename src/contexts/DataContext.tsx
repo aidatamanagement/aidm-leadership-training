@@ -72,7 +72,7 @@ interface DataContextType {
   addLesson: (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => Promise<void>;
   updateLesson: (courseId: string, lessonId: string, updates: Partial<Lesson>) => Promise<void>;
   deleteLesson: (courseId: string, lessonId: string) => Promise<void>;
-  addStudent: (student: Omit<Student, 'id' | 'assignedCourses' | 'role'>, password: string, role?: string) => Promise<void>;
+  addStudent: (userData: { name: string; email: string }, password: string, role: string, options: { skipSignIn?: boolean } = {}) => Promise<{ success: boolean, error?: string }>;
   updateStudent: (studentId: string, updates: Partial<Student>) => Promise<void>;
   deleteStudent: (studentId: string) => Promise<void>;
   assignCourse: (studentId: string, courseId: string) => Promise<void>;
@@ -666,15 +666,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Student functions
-  const addStudent = async (student: Omit<Student, 'id' | 'assignedCourses' | 'role'>, password: string, role: string = 'student') => {
+  const addStudent = async (
+    userData: { name: string; email: string }, 
+    password: string, 
+    role: string = 'student',
+    options: { skipSignIn?: boolean } = {}
+  ) => {
     try {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: student.email,
+        email: userData.email,
         password: password,
         options: {
           data: {
-            name: student.name,
+            name: userData.name,
             role: role
           }
         }
@@ -686,19 +691,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       toast({
         title: 'Student Added',
-        description: `${student.name} has been added successfully.`
+        description: `${userData.name} has been added successfully.`
       });
       
-      // Refresh student list
-      await fetchStudents();
-      
+      // Skip signing in if skipSignIn option is provided
+      if (!options.skipSignIn) {
+        // Sign in with the new credentials
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: userData.email,
+          password: password,
+        });
+
+        if (signInError) throw signInError;
+      }
+
+      return { success: true };
     } catch (error: any) {
-      console.error('Error adding student:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to add student',
-        variant: 'destructive',
-      });
+      console.error("Error adding student:", error);
+      return { 
+        success: false, 
+        error: error.message || 'An error occurred while creating the account' 
+      };
     }
   };
 
