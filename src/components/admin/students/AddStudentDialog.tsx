@@ -22,6 +22,7 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
     setStudentName('');
     setStudentEmail('');
     setStudentPassword('');
+    onOpenChange(false); // Explicitly close the dialog after handling
   };
   
   return (

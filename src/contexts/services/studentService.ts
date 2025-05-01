@@ -57,7 +57,9 @@ export const addStudent = async (
         data: {
           name: student.name,
           role: role
-        }
+        },
+        // Disable auto session management to prevent automatic login after signup
+        emailRedirectTo: undefined
       }
     });
 
