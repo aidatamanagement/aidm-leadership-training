@@ -72,7 +72,7 @@ interface DataContextType {
   addLesson: (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => Promise<void>;
   updateLesson: (courseId: string, lessonId: string, updates: Partial<Lesson>) => Promise<void>;
   deleteLesson: (courseId: string, lessonId: string) => Promise<void>;
-  addStudent: (userData: { name: string; email: string }, password: string, role: string, options: { skipSignIn?: boolean } = {}) => Promise<{ success: boolean, error?: string }>;
+  addStudent: (userData: { name: string; email: string }, password: string, role: string, options?: { skipSignIn?: boolean }) => Promise<{ success: boolean, error?: string }>;
   updateStudent: (studentId: string, updates: Partial<Student>) => Promise<void>;
   deleteStudent: (studentId: string) => Promise<void>;
   assignCourse: (studentId: string, courseId: string) => Promise<void>;
@@ -670,7 +670,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userData: { name: string; email: string }, 
     password: string, 
     role: string = 'student',
-    options: { skipSignIn?: boolean } = {}
+    options?: { skipSignIn?: boolean }
   ) => {
     try {
       // Create auth user
@@ -695,7 +695,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       // Skip signing in if skipSignIn option is provided
-      if (!options.skipSignIn) {
+      if (!(options && options.skipSignIn)) {
         // Sign in with the new credentials
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: userData.email,
