@@ -49,9 +49,10 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
     // Check if URL ends with .pdf
     if (!pdfUrl.toLowerCase().endsWith('.pdf') && !pdfUrl.toLowerCase().includes('.pdf')) {
       toast({
-        title: 'Warning',
+        title: 'Not a PDF URL',
         description: 'URL does not appear to be a PDF. Make sure it links to a PDF file.',
-        variant: 'warning',
+        // Change from 'warning' to 'default' to fix the type error
+        variant: 'default',
       });
       // Continue anyway, might be a dynamic URL
     }
