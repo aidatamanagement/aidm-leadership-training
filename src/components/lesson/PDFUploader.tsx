@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,23 +7,30 @@ import { Progress } from '@/components/ui/progress';
 import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/use-toast';
 import { FileIcon, UploadIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PDFUploaderProps {
   lessonId?: string;
   onUploadComplete: (url: string) => void;
   currentPdfUrl?: string;
+  required?: boolean;
 }
 
 const PDFUploader: React.FC<PDFUploaderProps> = ({ 
   lessonId = 'new-lesson', 
   onUploadComplete,
-  currentPdfUrl
+  currentPdfUrl,
+  required = true
 }) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadPdf } = useData();
+  const [pdfUrl, setPdfUrl] = useState<string | undefined>(currentPdfUrl);
   
+  useEffect(() => {
+    setPdfUrl(currentPdfUrl);
+  }, [currentPdfUrl]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     
@@ -73,18 +80,43 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         });
       }, 300);
       
-      const url = await uploadPdf(selectedFile, lessonId);
+      // Check if the "pdfs" bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const pdfsBucketExists = buckets?.some(bucket => bucket.name === 'pdfs');
+      
+      if (!pdfsBucketExists) {
+        clearInterval(progressInterval);
+        throw new Error('Storage bucket "pdfs" not found. Please contact administrator.');
+      }
+      
+      // Create a unique filename
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${lessonId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      // Upload file to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('pdfs')
+        .upload(filePath, selectedFile);
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data } = supabase.storage.from('pdfs').getPublicUrl(filePath);
+      const url = data.publicUrl;
       
       clearInterval(progressInterval);
       setProgress(100);
       
-      if (url) {
-        onUploadComplete(url);
-        toast({
-          title: 'Upload Complete',
-          description: 'PDF file has been uploaded successfully.'
-        });
-      }
+      setPdfUrl(url);
+      onUploadComplete(url);
+      
+      toast({
+        title: 'Upload Complete',
+        description: 'PDF file has been uploaded successfully.'
+      });
     } catch (error: any) {
       toast({
         title: 'Upload Failed',
@@ -106,7 +138,9 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="pdf-upload">PDF Document</Label>
+      <Label htmlFor="pdf-upload" className={required ? "after:content-['*'] after:text-red-500 after:ml-1" : ""}>
+        PDF Document
+      </Label>
       
       {!uploading && progress === 0 && (
         <div className="flex items-start gap-4">
@@ -116,6 +150,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
             accept=".pdf"
             onChange={handleFileChange}
             className="flex-1"
+            required={required && !pdfUrl}
           />
           <Button 
             type="button" 
@@ -138,16 +173,16 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         </div>
       )}
       
-      {currentPdfUrl && (
+      {pdfUrl && (
         <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between">
           <div className="flex items-center">
             <FileIcon className="h-5 w-5 text-blue-500 mr-2" />
             <span className="text-sm font-medium truncate max-w-[200px]">
-              {getPdfFilename(currentPdfUrl)}
+              {getPdfFilename(pdfUrl)}
             </span>
           </div>
           <a 
-            href={currentPdfUrl} 
+            href={pdfUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-sm text-blue-600 hover:underline"
