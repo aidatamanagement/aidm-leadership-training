@@ -48,7 +48,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
               onToggleLock();
             }}
             title={isLocked ? "Unlock Course" : "Lock Course"}
-            aria-label={isLocked ? "Unlock Course" : "Lock Course"}
           >
             {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
@@ -59,7 +58,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
               e.stopPropagation();
               onRemoveCourse();
             }}
-            aria-label="Remove Course"
           >
             <Trash className="h-3 w-3" />
           </Button>

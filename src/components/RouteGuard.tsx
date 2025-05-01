@@ -1,10 +1,9 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { UserType } from '@/contexts/AuthContext';
-import { useData } from '@/contexts/DataContext';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -13,8 +12,6 @@ interface RouteGuardProps {
 
 const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { courseId } = useParams<{ courseId: string }>();
-  const { isCourseLockedForUser } = useData();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
@@ -25,21 +22,6 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
       });
     }
   }, [isLoading, isAuthenticated, user, allowedRoles]);
-
-  // Check if course is locked for student
-  if (isAuthenticated && !isLoading && user?.type === 'student' && courseId) {
-    const isCourseLocked = isCourseLockedForUser(user.id, courseId);
-    
-    if (isCourseLocked) {
-      toast({
-        title: 'Course Locked',
-        description: 'This course has been locked by your administrator.',
-        variant: 'destructive',
-      });
-      
-      return <Navigate to="/dashboard" replace />;
-    }
-  }
 
   if (isLoading) {
     return (

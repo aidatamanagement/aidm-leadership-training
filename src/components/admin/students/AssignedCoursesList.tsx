@@ -47,11 +47,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
             const totalLessons = course.lessons.length;
             const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
             const quizScore = getTotalQuizScore(student.id, courseId);
-            
-            // Get locked status from the first progress item for this course
-            const progressItem = studentProgress.find(p => p.courseId === courseId);
-            const isLocked = progressItem ? progressItem.locked : false;
-            
+            const isLocked = studentProgress.some(p => p.locked);
             const viewedLessonsCount = studentProgress.filter(p => p.pdfViewed).length;
             
             return (

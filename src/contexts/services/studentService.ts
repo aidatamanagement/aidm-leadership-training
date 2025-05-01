@@ -220,9 +220,6 @@ export const removeCourseAssignment = async (studentId: string, courseId: string
 // Toggle the lock status of a course for a student
 export const toggleCourseLock = async (studentId: string, courseId: string): Promise<boolean> => {
   try {
-    // Log the operation to help with debugging
-    console.info(`Toggling course lock for student ${studentId}, course ${courseId}`);
-    
     // Get current status
     const { data: assignment, error: fetchError } = await supabase
       .from('user_course_assignments')
@@ -231,13 +228,9 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('course_id', courseId)
       .single();
 
-    if (fetchError) {
-      console.error('Error fetching lock status:', fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
     const newLockedStatus = !assignment.locked;
-    console.info(`Setting lock status to ${newLockedStatus}`);
 
     // Update the lock status
     const { error: updateError } = await supabase
@@ -246,10 +239,7 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('user_id', studentId)
       .eq('course_id', courseId);
 
-    if (updateError) {
-      console.error('Error updating lock status:', updateError);
-      throw updateError;
-    }
+    if (updateError) throw updateError;
     
     toast({
       title: newLockedStatus ? 'Course Locked' : 'Course Unlocked',
