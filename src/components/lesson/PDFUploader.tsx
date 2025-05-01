@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { FileIcon, ExternalLinkIcon } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/use-toast';
+import { FileIcon, UploadIcon } from 'lucide-react';
 
 interface PDFUploaderProps {
   lessonId?: string;
@@ -17,48 +19,83 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
   onUploadComplete,
   currentPdfUrl
 }) => {
-  const [pdfUrl, setPdfUrl] = useState<string>(currentPdfUrl || '');
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { uploadPdf } = useData();
   
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPdfUrl(e.target.value);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (!file) return;
+    
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please select a PDF file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'PDF files must be less than 10MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setSelectedFile(file);
   };
   
-  const handleUrlSubmit = () => {
-    if (!pdfUrl) {
+  const handleUpload = async () => {
+    if (!selectedFile) {
       toast({
-        title: 'No URL Entered',
-        description: 'Please enter a PDF URL.',
+        title: 'No File Selected',
+        description: 'Please select a PDF file to upload.',
         variant: 'destructive',
       });
       return;
     }
     
-    // Basic URL validation
     try {
-      new URL(pdfUrl);
-    } catch (error) {
+      setUploading(true);
+      
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = prev + 10;
+          return newProgress > 90 ? 90 : newProgress;
+        });
+      }, 300);
+      
+      const url = await uploadPdf(selectedFile, lessonId);
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      if (url) {
+        onUploadComplete(url);
+        toast({
+          title: 'Upload Complete',
+          description: 'PDF file has been uploaded successfully.'
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: 'Invalid URL',
-        description: 'Please enter a valid URL.',
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload PDF file.',
         variant: 'destructive',
       });
-      return;
+    } finally {
+      setUploading(false);
+      // Reset progress after a delay
+      setTimeout(() => setProgress(0), 1000);
     }
-    
-    // Check if it's potentially a PDF URL (very basic check)
-    if (!pdfUrl.toLowerCase().endsWith('.pdf') && !pdfUrl.toLowerCase().includes('/pdf')) {
-      toast({
-        title: 'URL May Not Be a PDF',
-        description: 'The URL does not appear to be a PDF file. Continue anyway?',
-        variant: 'default',
-      });
-    }
-    
-    onUploadComplete(pdfUrl);
-    toast({
-      title: 'PDF URL Added',
-      description: 'PDF URL has been successfully saved.'
-    });
   };
   
   const getPdfFilename = (url?: string) => {
@@ -69,25 +106,37 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="pdf-url">PDF Document URL</Label>
+      <Label htmlFor="pdf-upload">PDF Document</Label>
       
-      <div className="flex items-start gap-4">
-        <Input
-          id="pdf-url"
-          type="url"
-          placeholder="Enter PDF URL (e.g., https://example.com/document.pdf)"
-          value={pdfUrl}
-          onChange={handleUrlChange}
-          className="flex-1"
-        />
-        <Button 
-          type="button" 
-          onClick={handleUrlSubmit}
-          size="sm"
-        >
-          Save URL
-        </Button>
-      </div>
+      {!uploading && progress === 0 && (
+        <div className="flex items-start gap-4">
+          <Input
+            id="pdf-upload"
+            type="file"
+            accept=".pdf"
+            onChange={handleFileChange}
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            onClick={handleUpload}
+            disabled={!selectedFile}
+            size="sm"
+          >
+            <UploadIcon className="h-4 w-4 mr-1" /> Upload
+          </Button>
+        </div>
+      )}
+      
+      {uploading && progress > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">Uploading {selectedFile?.name}...</span>
+            <span className="text-sm font-medium">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+      )}
       
       {currentPdfUrl && (
         <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between">
@@ -101,10 +150,9 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
             href={currentPdfUrl} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline flex items-center"
+            className="text-sm text-blue-600 hover:underline"
           >
             View
-            <ExternalLinkIcon className="h-4 w-4 ml-1" />
           </a>
         </div>
       )}
