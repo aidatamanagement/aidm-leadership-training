@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth, demoUserCredentials } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,15 +82,6 @@ const Login: React.FC = () => {
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
-
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                Register here
-              </Link>
-            </p>
-          </div>
         </CardContent>
         
         <CardFooter className="flex flex-col space-y-4 border-t pt-4">

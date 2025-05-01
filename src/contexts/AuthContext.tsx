@@ -2,8 +2,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export type UserType = 'admin' | 'student' | null;
 
@@ -19,13 +17,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  signup: (name: string, email: string, password: string, role?: UserType) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo users for testing - will be removed in production
+// Demo users for testing
 const demoUsers = [
   {
     id: '1',
@@ -48,206 +45,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Function to convert Supabase user to our app User type
-  const getUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-      }
-
-      if (!data) return null;
-
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        type: data.role as UserType,
-      };
-    } catch (error) {
-      console.error('Error in getUserProfile:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    // Check for active session on mount
-    const initializeAuth = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Get session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          const userProfile = await getUserProfile(session.user);
-          
-          if (userProfile) {
-            setUser(userProfile);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking auth session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          setIsLoading(true);
-          const userProfile = await getUserProfile(session.user);
-          if (userProfile) {
-            setUser(userProfile);
-          }
-          setIsLoading(false);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-      }
-    );
-
-    // Cleanup subscription
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Check for saved user in localStorage
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // First try Supabase authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        const userProfile = await getUserProfile(data.user);
-        
-        if (!userProfile) {
-          throw new Error('User profile not found');
-        }
-
-        setUser(userProfile);
-
-        toast({
-          title: 'Login successful',
-          description: `Welcome back, ${userProfile.name}!`,
-        });
-
-        // Redirect based on user type
-        if (userProfile.type === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
-      }
-    } catch (error: any) {
-      // If Supabase auth fails, try demo users for development purposes
-      // This will be removed in production
+      // This is a mock authentication - in a real app, this would be an API call
       const foundUser = demoUsers.find(
         (u) => u.email === email && u.password === password
       );
 
-      if (foundUser) {
-        const { password: _, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      if (!foundUser) {
+        throw new Error('Invalid email or password');
+      }
 
-        toast({
-          title: 'Login successful (Demo)',
-          description: `Welcome back, ${userWithoutPassword.name}!`,
-        });
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
 
-        // Redirect based on user type
-        if (userWithoutPassword.type === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+      toast({
+        title: 'Login successful',
+        description: `Welcome back, ${userWithoutPassword.name}!`,
+      });
+
+      // Redirect based on user type
+      if (userWithoutPassword.type === 'admin') {
+        navigate('/admin');
       } else {
-        toast({
-          title: 'Login failed',
-          description: error.message || 'Invalid email or password',
-          variant: 'destructive',
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      localStorage.removeItem('user');
-      navigate('/');
-      toast({
-        title: 'Logged out',
-        description: 'You have been successfully logged out.',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to log out',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signup = async (name: string, email: string, password: string, role: UserType = 'student') => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role
-          }
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        toast({
-          title: 'Registration successful',
-          description: 'Your account has been created. Please log in.',
-        });
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast({
-        title: 'Registration failed',
+        title: 'Login failed',
         description: error.message || 'Something went wrong',
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    navigate('/');
+    toast({
+      title: 'Logged out',
+      description: 'You have been successfully logged out.',
+    });
   };
 
   return (
@@ -258,7 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
-        signup
       }}
     >
       {children}
