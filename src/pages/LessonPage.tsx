@@ -30,6 +30,7 @@ const LessonPage: React.FC = () => {
     getStudentProgress
   } = useData();
 
+  // State for course and lesson data
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
   const [lesson, setLesson] = useState(
     course?.lessons.find(l => l.id === lessonId)
@@ -38,15 +39,16 @@ const LessonPage: React.FC = () => {
     lesson?.quizSetId ? quizSets.find(q => q.id === lesson.quizSetId) : null
   );
   
+  // State for user interaction
   const [quizScore, setQuizScore] = useState(0);
   const [timeTracker, setTimeTracker] = useState<number>(0);
   const [isPdfViewed, setIsPdfViewed] = useState(false);
   
-  // For navigation between lessons
+  // Navigation state
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
 
-  // Keep track of lesson progress in local state
+  // Track lesson progress
   const [progress, setProgress] = useState(
     user && courseId && lessonId 
       ? getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId)
@@ -54,7 +56,7 @@ const LessonPage: React.FC = () => {
   );
 
   useEffect(() => {
-    // Update data when params change
+    // Update data when URL params change
     const currentCourse = courses.find(c => c.id === courseId);
     setCourse(currentCourse);
     
@@ -65,7 +67,7 @@ const LessonPage: React.FC = () => {
       if (currentLesson) {
         console.log("Lesson PDF URL:", currentLesson.pdfUrl);
         
-        // Find quiz set if it exists
+        // Find quiz set if exists
         setQuizSet(
           currentLesson.quizSetId 
             ? quizSets.find(q => q.id === currentLesson.quizSetId) 
@@ -91,7 +93,7 @@ const LessonPage: React.FC = () => {
             : null
         );
         
-        // Check if this lesson is already completed
+        // Load user progress for this lesson
         if (user) {
           const lessonProgress = getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId);
           setProgress(lessonProgress);
@@ -128,7 +130,7 @@ const LessonPage: React.FC = () => {
     }
   }, [timeTracker, user, courseId, lessonId, updateTimeSpent]);
 
-  // Automatically mark PDF as viewed when component mounts
+  // Automatically mark PDF as viewed
   useEffect(() => {
     if (user && courseId && lessonId && !isPdfViewed) {
       setIsPdfViewed(true);
@@ -136,6 +138,7 @@ const LessonPage: React.FC = () => {
     }
   }, [user, courseId, lessonId, isPdfViewed, updatePdfViewed]);
 
+  // Error handling for missing data
   if (!user || !course || !lesson) {
     return (
       <AppLayout>
@@ -155,7 +158,7 @@ const LessonPage: React.FC = () => {
     setQuizScore(score);
   };
 
-  // Handle completing the lesson and navigating to next
+  // Handle completing the lesson
   const handleCompleteLesson = () => {
     // Check if this lesson has a required quiz
     if (quizSet && quizSettings.enforcePassMark) {
