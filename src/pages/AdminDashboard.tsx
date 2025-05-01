@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useData, Course, Lesson, QuizSet, Student, QuizQuestion } from '@/contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import AppLayout from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminStudentManagement from '@/components/AdminStudentManagement';
@@ -44,6 +44,9 @@ import {
   ClockIcon, 
   Eye 
 } from 'lucide-react';
+
+// Import types needed from DataContext
+import type { Student, Course, Lesson, QuizSet, QuizQuestion } from '@/contexts/DataContext';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
