@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/use-toast';
 import { FileIcon, UploadIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PDFUploaderProps {
   lessonId?: string;
@@ -22,7 +23,6 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadPdf } = useData();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,7 +65,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
     try {
       setUploading(true);
       
-      // Simulate upload progress
+      // Start progress animation
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           const newProgress = prev + 10;
@@ -73,17 +73,36 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         });
       }, 300);
       
-      const url = await uploadPdf(selectedFile, lessonId);
+      // Upload to Supabase storage
+      const fileName = `${lessonId}-${Date.now()}.pdf`;
+      
+      const { data, error } = await supabase.storage
+        .from('pdfs')
+        .upload(fileName, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       clearInterval(progressInterval);
-      setProgress(100);
       
-      if (url) {
-        onUploadComplete(url);
-        toast({
-          title: 'Upload Complete',
-          description: 'PDF file has been uploaded successfully.'
-        });
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        // Get the public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('pdfs')
+          .getPublicUrl(fileName);
+          
+        if (publicUrlData && publicUrlData.publicUrl) {
+          setProgress(100);
+          onUploadComplete(publicUrlData.publicUrl);
+          toast({
+            title: 'Upload Complete',
+            description: 'PDF file has been uploaded successfully.'
+          });
+        }
       }
     } catch (error: any) {
       toast({

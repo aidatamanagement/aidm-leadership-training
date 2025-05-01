@@ -94,7 +94,7 @@ interface DataContextType {
   getTotalQuizScore: (userId: string, courseId: string) => { score: number; total: number };
   isLoading: boolean;
   refreshData: () => Promise<void>;
-  uploadPdf: (file: File, lessonId: string) => Promise<string | null>;
+  uploadPdf: (file: File, lessonId: string) => Promise<string>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -362,7 +362,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
   // PDF upload function
-  const uploadPdf = async (file: File, lessonId: string): Promise<string | null> => {
+  const uploadPdf = async (file: File, lessonId: string): Promise<string> => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${lessonId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
