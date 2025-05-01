@@ -1,18 +1,60 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PDFViewerProps {
-  pdfUrl: string;
+  pdfUrl?: string; // Make pdfUrl optional since we'll fetch it if not provided
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl: propsPdfUrl }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(propsPdfUrl || null);
+  const { lessonId } = useParams<{ lessonId: string }>();
+
+  // Fetch the PDF URL from the database if not provided as prop
+  useEffect(() => {
+    if (propsPdfUrl) {
+      setPdfUrl(propsPdfUrl);
+      return;
+    }
+    
+    if (lessonId) {
+      const fetchPdfUrl = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('lessons')
+            .select('pdf_url')
+            .eq('id', lessonId)
+            .maybeSingle();
+          
+          if (error) {
+            throw error;
+          }
+          
+          if (data?.pdf_url) {
+            setPdfUrl(data.pdf_url);
+          }
+        } catch (err: any) {
+          console.error('Error fetching PDF URL:', err);
+          setError('Failed to load PDF information from database');
+          toast({
+            title: 'Error',
+            description: 'Could not load PDF information',
+            variant: 'destructive',
+          });
+        }
+      };
+      
+      fetchPdfUrl();
+    }
+  }, [lessonId, propsPdfUrl]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -29,7 +71,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   };
 
   const openInNewTab = () => {
-    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
