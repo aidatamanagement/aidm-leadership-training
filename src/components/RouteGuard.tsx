@@ -13,9 +13,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && 
-        !allowedRoles.includes(user.type as 'admin' | 'student') && 
-        user.type !== 'admin') {
+    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type as 'admin' | 'student') && user.type !== 'admin') {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to view this page.',
