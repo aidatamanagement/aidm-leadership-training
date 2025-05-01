@@ -1,17 +1,27 @@
 
-import React, { useState } from 'react';
-import { useAuth, demoUserCredentials } from '@/contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (isAuthenticated && user) {
+      navigate(user.type === 'admin' ? '/admin' : '/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,16 +96,13 @@ const Login: React.FC = () => {
         
         <CardFooter className="flex flex-col space-y-4 border-t pt-4">
           <div className="text-sm text-gray-600 text-center">
-            <strong>Demo Accounts:</strong>
+            <p>Don't have an account? Contact your administrator.</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 w-full text-sm">
-            {demoUserCredentials.map((cred, index) => (
-              <div key={index} className="bg-gray-100 p-2 rounded">
-                <p><strong>Role:</strong> {cred.type}</p>
-                <p><strong>Email:</strong> {cred.email}</p>
-                <p><strong>Password:</strong> {cred.password}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-2 w-full text-sm">
+            <div className="bg-gray-100 p-2 rounded">
+              <p className="text-center text-gray-600">Demo Accounts:</p>
+              <p className="text-xs text-gray-500 mt-1">Please set up accounts in the Supabase dashboard.</p>
+            </div>
           </div>
         </CardFooter>
       </Card>

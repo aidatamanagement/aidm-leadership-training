@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 // Types
 export interface QuizQuestion {
@@ -50,8 +52,8 @@ export interface Student {
   id: string;
   name: string;
   email: string;
-  password: string;
   assignedCourses: string[];
+  role: string;
 }
 
 interface QuizSettings {
@@ -65,676 +67,1306 @@ interface DataContextType {
   quizSets: QuizSet[];
   progress: StudentProgress[];
   quizSettings: QuizSettings;
-  addCourse: (course: Omit<Course, 'id' | 'lessons'>) => Course;
-  updateCourse: (courseId: string, updates: Partial<Course>) => void;
-  deleteCourse: (courseId: string) => void;
-  addLesson: (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => void;
-  updateLesson: (courseId: string, lessonId: string, updates: Partial<Lesson>) => void;
-  deleteLesson: (courseId: string, lessonId: string) => void;
-  addStudent: (student: Omit<Student, 'id'>) => void;
-  updateStudent: (studentId: string, updates: Partial<Student>) => void;
-  deleteStudent: (studentId: string) => void;
-  assignCourse: (studentId: string, courseId: string) => void;
-  removeCourseAssignment: (studentId: string, courseId: string) => void;
-  addQuizSet: (quizSet: Omit<QuizSet, 'id' | 'questions'>) => QuizSet;
-  updateQuizSet: (quizSetId: string, updates: Partial<QuizSet>) => void;
-  deleteQuizSet: (quizSetId: string) => void;
-  addQuizQuestion: (quizSetId: string, question: Omit<QuizQuestion, 'id'>) => void;
-  updateQuizQuestion: (quizSetId: string, questionId: string, updates: Partial<QuizQuestion>) => void;
-  deleteQuizQuestion: (quizSetId: string, questionId: string) => void;
-  updateQuizSettings: (settings: Partial<QuizSettings>) => void;
-  toggleCourseLock: (studentId: string, courseId: string) => void;
-  markLessonComplete: (userId: string, courseId: string, lessonId: string, quizScore?: number) => void;
-  updateTimeSpent: (userId: string, courseId: string, lessonId: string, seconds: number) => void;
-  updatePdfViewed: (userId: string, courseId: string, lessonId: string) => void;
+  addCourse: (course: Omit<Course, 'id' | 'lessons'>) => Promise<Course | null>;
+  updateCourse: (courseId: string, updates: Partial<Course>) => Promise<void>;
+  deleteCourse: (courseId: string) => Promise<void>;
+  addLesson: (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => Promise<void>;
+  updateLesson: (courseId: string, lessonId: string, updates: Partial<Lesson>) => Promise<void>;
+  deleteLesson: (courseId: string, lessonId: string) => Promise<void>;
+  addStudent: (student: Omit<Student, 'id' | 'assignedCourses' | 'role'>, password: string, role?: string) => Promise<void>;
+  updateStudent: (studentId: string, updates: Partial<Student>) => Promise<void>;
+  deleteStudent: (studentId: string) => Promise<void>;
+  assignCourse: (studentId: string, courseId: string) => Promise<void>;
+  removeCourseAssignment: (studentId: string, courseId: string) => Promise<void>;
+  addQuizSet: (quizSet: Omit<QuizSet, 'id' | 'questions'>) => Promise<QuizSet | null>;
+  updateQuizSet: (quizSetId: string, updates: Partial<QuizSet>) => Promise<void>;
+  deleteQuizSet: (quizSetId: string) => Promise<void>;
+  addQuizQuestion: (quizSetId: string, question: Omit<QuizQuestion, 'id'>) => Promise<void>;
+  updateQuizQuestion: (quizSetId: string, questionId: string, updates: Partial<QuizQuestion>) => Promise<void>;
+  deleteQuizQuestion: (quizSetId: string, questionId: string) => Promise<void>;
+  updateQuizSettings: (settings: Partial<QuizSettings>) => Promise<void>;
+  toggleCourseLock: (studentId: string, courseId: string) => Promise<void>;
+  markLessonComplete: (userId: string, courseId: string, lessonId: string, quizScore?: number) => Promise<void>;
+  updateTimeSpent: (userId: string, courseId: string, lessonId: string, seconds: number) => Promise<void>;
+  updatePdfViewed: (userId: string, courseId: string, lessonId: string) => Promise<void>;
   getStudentProgress: (userId: string, courseId: string) => StudentProgress[];
   getCompletedLessonsCount: (userId: string, courseId: string) => number;
   isLessonAccessible: (userId: string, courseId: string, lessonOrder: number) => boolean;
   getTotalQuizScore: (userId: string, courseId: string) => { score: number; total: number };
+  isLoading: boolean;
+  refreshData: () => Promise<void>;
 }
-
-// Generate some mock data
-const generateMockData = () => {
-  const quizSets: QuizSet[] = [
-    {
-      id: 'quiz1',
-      title: 'Leadership Basics Quiz',
-      questions: [
-        {
-          id: 'q1',
-          question: 'What is the primary role of a leader?',
-          options: [
-            'To give orders',
-            'To inspire and guide the team',
-            'To do all the work',
-            'To assign blame'
-          ],
-          correctAnswer: 1
-        },
-        {
-          id: 'q2',
-          question: 'Which leadership style involves making decisions collaboratively?',
-          options: [
-            'Autocratic',
-            'Democratic',
-            'Laissez-faire',
-            'Transactional'
-          ],
-          correctAnswer: 1
-        }
-      ]
-    },
-    {
-      id: 'quiz2',
-      title: 'Communication Skills Quiz',
-      questions: [
-        {
-          id: 'q1',
-          question: 'Active listening involves:',
-          options: [
-            'Interrupting frequently',
-            'Thinking about what to say next',
-            'Providing verbal and nonverbal feedback',
-            'Speaking loudly'
-          ],
-          correctAnswer: 2
-        },
-        {
-          id: 'q2',
-          question: 'Which communication channel is best for complex discussions?',
-          options: [
-            'Email',
-            'Text message',
-            'Face-to-face meeting',
-            'Social media'
-          ],
-          correctAnswer: 2
-        }
-      ]
-    }
-  ];
-
-  const courses: Course[] = [
-    {
-      id: 'course1',
-      title: 'Foundations of Leadership',
-      description: 'Learn the core principles of effective leadership in modern organizations.',
-      lessons: [
-        {
-          id: 'lesson1',
-          title: 'Introduction to Leadership',
-          description: 'Understand what leadership means in today\'s world',
-          pdfUrl: '/slides/intro-leadership.pdf',
-          instructorNotes: '<p>This lesson covers the fundamental concepts of leadership. Pay special attention to the difference between leadership and management.</p>',
-          quizSetId: 'quiz1',
-          order: 1
-        },
-        {
-          id: 'lesson2',
-          title: 'Leadership Styles',
-          description: 'Explore different leadership approaches and when to use them',
-          pdfUrl: '/slides/leadership-styles.pdf',
-          instructorNotes: '<p>In this lesson, we\'ll analyze various leadership styles and their effectiveness in different situations.</p>',
-          quizSetId: null,
-          order: 2
-        }
-      ]
-    },
-    {
-      id: 'course2',
-      title: 'Effective Communication',
-      description: 'Master the art of clear and impactful communication',
-      lessons: [
-        {
-          id: 'lesson1',
-          title: 'Communication Fundamentals',
-          description: 'Learn the basics of effective communication',
-          pdfUrl: '/slides/comm-fundamentals.pdf',
-          instructorNotes: '<p>This lesson introduces the communication model and common barriers to effective communication.</p>',
-          quizSetId: 'quiz2',
-          order: 1
-        },
-        {
-          id: 'lesson2',
-          title: 'Active Listening',
-          description: 'Develop your active listening skills',
-          pdfUrl: '/slides/active-listening.pdf',
-          instructorNotes: '<p>Active listening is perhaps the most important communication skill. This lesson provides practical exercises to improve your listening abilities.</p>',
-          quizSetId: null,
-          order: 2
-        }
-      ]
-    }
-  ];
-
-  const students: Student[] = [
-    {
-      id: '2',
-      name: 'John Student',
-      email: 'student@example.com',
-      password: 'student123',
-      assignedCourses: ['course1', 'course2']
-    }
-  ];
-
-  const progress: StudentProgress[] = [
-    {
-      userId: '2',
-      courseId: 'course1',
-      lessonId: 'lesson1',
-      completed: true,
-      timeSpent: 450, // 7.5 minutes
-      pdfViewed: true,
-      quizScore: 1,
-      quizAttempts: 1,
-      quizSetId: 'quiz1',
-      locked: false
-    },
-    {
-      userId: '2',
-      courseId: 'course1',
-      lessonId: 'lesson2',
-      completed: false,
-      timeSpent: 0,
-      pdfViewed: false,
-      quizScore: null,
-      quizAttempts: 0,
-      quizSetId: null,
-      locked: false
-    },
-    {
-      userId: '2',
-      courseId: 'course2',
-      lessonId: 'lesson1',
-      completed: false,
-      timeSpent: 120, // 2 minutes
-      pdfViewed: true,
-      quizScore: null,
-      quizAttempts: 0,
-      quizSetId: 'quiz2',
-      locked: false
-    }
-  ];
-
-  return { quizSets, courses, students, progress };
-};
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize with mock data or load from localStorage
-  const [courses, setCourses] = useState<Course[]>(() => {
-    const saved = localStorage.getItem('courses');
-    return saved ? JSON.parse(saved) : generateMockData().courses;
-  });
+  // State for our data
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [quizSets, setQuizSets] = useState<QuizSet[]>([]);
+  const [progress, setProgress] = useState<StudentProgress[]>([]);
+  const [quizSettings, setQuizSettings] = useState<QuizSettings>({ passMarkPercentage: 70, enforcePassMark: true });
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const { user } = useAuth();
 
-  const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem('students');
-    return saved ? JSON.parse(saved) : generateMockData().students;
-  });
+  // Fetch all data from Supabase
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        fetchCourses(),
+        fetchStudents(), 
+        fetchQuizSets(),
+        fetchProgress(),
+        fetchQuizSettings()
+      ]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch data. Please refresh the page.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const [quizSets, setQuizSets] = useState<QuizSet[]>(() => {
-    const saved = localStorage.getItem('quizSets');
-    return saved ? JSON.parse(saved) : generateMockData().quizSets;
-  });
+  // Fetch courses with their lessons
+  const fetchCourses = async () => {
+    try {
+      // Fetch courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*');
 
-  const [progress, setProgress] = useState<StudentProgress[]>(() => {
-    const saved = localStorage.getItem('progress');
-    return saved ? JSON.parse(saved) : generateMockData().progress;
-  });
+      if (coursesError) throw coursesError;
 
-  const [quizSettings, setQuizSettings] = useState<QuizSettings>(() => {
-    const saved = localStorage.getItem('quizSettings');
-    return saved ? JSON.parse(saved) : { passMarkPercentage: 70, enforcePassMark: true };
-  });
+      // Fetch lessons for each course
+      const { data: lessonsData, error: lessonsError } = await supabase
+        .from('lessons')
+        .select('*')
+        .order('order', { ascending: true });
 
-  // Save to localStorage when data changes
+      if (lessonsError) throw lessonsError;
+
+      // Map lessons to courses
+      const coursesWithLessons = coursesData.map(course => {
+        const courseLessons = lessonsData
+          .filter(lesson => lesson.course_id === course.id)
+          .map(lesson => ({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            pdfUrl: lesson.pdf_url,
+            instructorNotes: lesson.instructor_notes,
+            quizSetId: lesson.quiz_set_id,
+            order: lesson.order
+          }));
+
+        return {
+          id: course.id,
+          title: course.title,
+          description: course.description,
+          lessons: courseLessons
+        };
+      });
+
+      setCourses(coursesWithLessons);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      throw error;
+    }
+  };
+
+  // Fetch students with their assigned courses
+  const fetchStudents = async () => {
+    try {
+      // Fetch profiles with role 'student'
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
+
+      if (profilesError) throw profilesError;
+
+      // Fetch course assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_course_assignments')
+        .select('*');
+
+      if (assignmentsError) throw assignmentsError;
+
+      // Map assignments to students
+      const studentsWithCourses = profilesData.map(profile => {
+        const studentAssignments = assignmentsData
+          .filter(assignment => assignment.user_id === profile.id)
+          .map(assignment => assignment.course_id);
+
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          role: profile.role,
+          assignedCourses: studentAssignments
+        };
+      });
+
+      setStudents(studentsWithCourses);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      throw error;
+    }
+  };
+
+  // Fetch quiz sets with their questions
+  const fetchQuizSets = async () => {
+    try {
+      // Fetch quiz sets
+      const { data: quizSetsData, error: quizSetsError } = await supabase
+        .from('quiz_sets')
+        .select('*');
+
+      if (quizSetsError) throw quizSetsError;
+
+      // Fetch quiz questions
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('quiz_questions')
+        .select('*');
+
+      if (questionsError) throw questionsError;
+
+      // Map questions to quiz sets
+      const quizSetsWithQuestions = quizSetsData.map(quizSet => {
+        const quizQuestions = questionsData
+          .filter(question => question.quiz_set_id === quizSet.id)
+          .map(question => ({
+            id: question.id,
+            question: question.question,
+            options: question.options, // This should be an array in the database
+            correctAnswer: question.correct_answer
+          }));
+
+        return {
+          id: quizSet.id,
+          title: quizSet.title,
+          questions: quizQuestions
+        };
+      });
+
+      setQuizSets(quizSetsWithQuestions);
+    } catch (error) {
+      console.error('Error fetching quiz sets:', error);
+      throw error;
+    }
+  };
+
+  // Fetch user progress
+  const fetchProgress = async () => {
+    try {
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_progress')
+        .select('*');
+
+      if (progressError) throw progressError;
+
+      // Fetch course assignments to get locked status
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_course_assignments')
+        .select('*');
+
+      if (assignmentsError) throw assignmentsError;
+
+      // Map progress data to our format
+      const formattedProgress = progressData.map(p => {
+        const assignment = assignmentsData.find(
+          a => a.user_id === p.user_id && a.course_id === p.course_id
+        );
+
+        return {
+          userId: p.user_id,
+          courseId: p.course_id,
+          lessonId: p.lesson_id,
+          completed: p.completed,
+          timeSpent: p.time_spent,
+          pdfViewed: p.pdf_viewed,
+          quizScore: p.quiz_score,
+          quizAttempts: p.quiz_attempts,
+          quizSetId: null, // We'll set this from the lessons
+          locked: assignment ? assignment.locked : false
+        };
+      });
+
+      // Add quiz set IDs from lessons
+      const progressWithQuizSets = formattedProgress.map(p => {
+        const course = courses.find(c => c.id === p.courseId);
+        if (course) {
+          const lesson = course.lessons.find(l => l.id === p.lessonId);
+          if (lesson) {
+            return { ...p, quizSetId: lesson.quizSetId };
+          }
+        }
+        return p;
+      });
+
+      setProgress(progressWithQuizSets);
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+      throw error;
+    }
+  };
+
+  // Fetch quiz settings
+  const fetchQuizSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_settings')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No settings found, use defaults
+          return;
+        }
+        throw error;
+      }
+
+      if (data) {
+        setQuizSettings({
+          passMarkPercentage: data.pass_mark_percentage,
+          enforcePassMark: data.enforce_pass_mark
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching quiz settings:', error);
+      throw error;
+    }
+  };
+
+  // Refresh data
+  const refreshData = async () => {
+    await fetchAllData();
+  };
+
+  // Initial data load
   useEffect(() => {
-    localStorage.setItem('courses', JSON.stringify(courses));
-  }, [courses]);
-
-  useEffect(() => {
-    localStorage.setItem('students', JSON.stringify(students));
-  }, [students]);
-
-  useEffect(() => {
-    localStorage.setItem('quizSets', JSON.stringify(quizSets));
-  }, [quizSets]);
-
-  useEffect(() => {
-    localStorage.setItem('progress', JSON.stringify(progress));
-  }, [progress]);
-
-  useEffect(() => {
-    localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
-  }, [quizSettings]);
+    if (user) {
+      fetchAllData();
+    }
+  }, [user]);
 
   // Helper function to generate a random ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
   // Course functions
-  const addCourse = (course: Omit<Course, 'id' | 'lessons'>) => {
-    const newCourse: Course = {
-      ...course,
-      id: generateId(),
-      lessons: []
-    };
-    setCourses(prev => [...prev, newCourse]);
-    toast({
-      title: 'Course Added',
-      description: `${course.title} has been added successfully.`
-    });
-    return newCourse;
+  const addCourse = async (course: Omit<Course, 'id' | 'lessons'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .insert([
+          {
+            title: course.title,
+            description: course.description
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newCourse: Course = {
+        ...data,
+        lessons: []
+      };
+
+      setCourses(prev => [...prev, newCourse]);
+      
+      toast({
+        title: 'Course Added',
+        description: `${course.title} has been added successfully.`
+      });
+
+      return newCourse;
+    } catch (error: any) {
+      console.error('Error adding course:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add course',
+        variant: 'destructive',
+      });
+      return null;
+    }
   };
 
-  const updateCourse = (courseId: string, updates: Partial<Course>) => {
-    setCourses(prev => prev.map(course => 
-      course.id === courseId ? { ...course, ...updates } : course
-    ));
-    toast({
-      title: 'Course Updated',
-      description: 'Course details have been updated successfully.'
-    });
+  const updateCourse = async (courseId: string, updates: Partial<Course>) => {
+    try {
+      // Only update fields that are in the courses table
+      const { data, error } = await supabase
+        .from('courses')
+        .update({
+          title: updates.title,
+          description: updates.description
+        })
+        .eq('id', courseId)
+        .select();
+
+      if (error) throw error;
+
+      setCourses(prev => prev.map(course => 
+        course.id === courseId ? { ...course, ...updates } : course
+      ));
+      
+      toast({
+        title: 'Course Updated',
+        description: 'Course details have been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating course:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update course',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const deleteCourse = (courseId: string) => {
-    setCourses(prev => prev.filter(course => course.id !== courseId));
-    
-    // Clean up related data
-    setProgress(prev => prev.filter(p => p.courseId !== courseId));
-    setStudents(prev => prev.map(student => ({
-      ...student,
-      assignedCourses: student.assignedCourses.filter(id => id !== courseId)
-    })));
-    
-    toast({
-      title: 'Course Deleted',
-      description: 'The course and all associated data have been removed.'
-    });
+  const deleteCourse = async (courseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseId);
+
+      if (error) throw error;
+
+      setCourses(prev => prev.filter(course => course.id !== courseId));
+      
+      // Clean up related data (RLS policies will handle this in the database)
+      setProgress(prev => prev.filter(p => p.courseId !== courseId));
+      setStudents(prev => prev.map(student => ({
+        ...student,
+        assignedCourses: student.assignedCourses.filter(id => id !== courseId)
+      })));
+      
+      toast({
+        title: 'Course Deleted',
+        description: 'The course and all associated data have been removed.'
+      });
+    } catch (error: any) {
+      console.error('Error deleting course:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete course',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Lesson functions
-  const addLesson = (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => {
-    setCourses(prev => prev.map(course => {
-      if (course.id === courseId) {
-        const newOrder = course.lessons.length + 1;
-        const newLesson: Lesson = {
-          ...lesson,
-          id: generateId(),
-          order: newOrder
-        };
-        return {
-          ...course,
-          lessons: [...course.lessons, newLesson]
-        };
+  const addLesson = async (courseId: string, lesson: Omit<Lesson, 'id' | 'order'>) => {
+    try {
+      // Get the current max order for this course
+      const currentCourse = courses.find(c => c.id === courseId);
+      let newOrder = 1;
+      
+      if (currentCourse && currentCourse.lessons.length > 0) {
+        newOrder = Math.max(...currentCourse.lessons.map(l => l.order)) + 1;
       }
-      return course;
-    }));
-    toast({
-      title: 'Lesson Added',
-      description: `${lesson.title} has been added to the course.`
-    });
+
+      const { data, error } = await supabase
+        .from('lessons')
+        .insert([
+          {
+            course_id: courseId,
+            title: lesson.title,
+            description: lesson.description,
+            pdf_url: lesson.pdfUrl || '/placeholder.pdf',
+            instructor_notes: lesson.instructorNotes,
+            quiz_set_id: lesson.quizSetId,
+            order: newOrder
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newLesson: Lesson = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        pdfUrl: data.pdf_url,
+        instructorNotes: data.instructor_notes,
+        quizSetId: data.quiz_set_id,
+        order: data.order
+      };
+
+      setCourses(prev => prev.map(course => {
+        if (course.id === courseId) {
+          return {
+            ...course,
+            lessons: [...course.lessons, newLesson]
+          };
+        }
+        return course;
+      }));
+      
+      toast({
+        title: 'Lesson Added',
+        description: `${lesson.title} has been added to the course.`
+      });
+    } catch (error: any) {
+      console.error('Error adding lesson:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add lesson',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const updateLesson = (courseId: string, lessonId: string, updates: Partial<Lesson>) => {
-    setCourses(prev => prev.map(course => {
-      if (course.id === courseId) {
-        return {
-          ...course,
-          lessons: course.lessons.map(lesson =>
-            lesson.id === lessonId ? { ...lesson, ...updates } : lesson
-          )
-        };
-      }
-      return course;
-    }));
-    toast({
-      title: 'Lesson Updated',
-      description: 'Lesson content has been updated successfully.'
-    });
+  const updateLesson = async (courseId: string, lessonId: string, updates: Partial<Lesson>) => {
+    try {
+      const { data, error } = await supabase
+        .from('lessons')
+        .update({
+          title: updates.title,
+          description: updates.description,
+          pdf_url: updates.pdfUrl,
+          instructor_notes: updates.instructorNotes,
+          quiz_set_id: updates.quizSetId,
+          order: updates.order
+        })
+        .eq('id', lessonId)
+        .select();
+
+      if (error) throw error;
+
+      setCourses(prev => prev.map(course => {
+        if (course.id === courseId) {
+          return {
+            ...course,
+            lessons: course.lessons.map(lesson =>
+              lesson.id === lessonId 
+                ? { 
+                    ...lesson, 
+                    title: updates.title ?? lesson.title,
+                    description: updates.description ?? lesson.description,
+                    pdfUrl: updates.pdfUrl ?? lesson.pdfUrl,
+                    instructorNotes: updates.instructorNotes ?? lesson.instructorNotes,
+                    quizSetId: updates.quizSetId ?? lesson.quizSetId,
+                    order: updates.order ?? lesson.order
+                  } 
+                : lesson
+            )
+          };
+        }
+        return course;
+      }));
+      
+      toast({
+        title: 'Lesson Updated',
+        description: 'Lesson content has been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating lesson:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update lesson',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const deleteLesson = (courseId: string, lessonId: string) => {
-    setCourses(prev => prev.map(course => {
-      if (course.id === courseId) {
-        const filteredLessons = course.lessons.filter(lesson => lesson.id !== lessonId);
-        // Re-order remaining lessons
-        const reorderedLessons = filteredLessons.map((lesson, index) => ({
-          ...lesson,
-          order: index + 1
-        }));
-        return { ...course, lessons: reorderedLessons };
-      }
-      return course;
-    }));
-    
-    // Clean up progress data for this lesson
-    setProgress(prev => prev.filter(p => !(p.courseId === courseId && p.lessonId === lessonId)));
-    
-    toast({
-      title: 'Lesson Deleted',
-      description: 'The lesson has been removed from the course.'
-    });
+  const deleteLesson = async (courseId: string, lessonId: string) => {
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', lessonId);
+
+      if (error) throw error;
+
+      // Update courses state
+      setCourses(prev => prev.map(course => {
+        if (course.id === courseId) {
+          const filteredLessons = course.lessons.filter(lesson => lesson.id !== lessonId);
+          // Re-order remaining lessons
+          const reorderedLessons = [...filteredLessons].sort((a, b) => a.order - b.order).map((lesson, index) => ({
+            ...lesson,
+            order: index + 1
+          }));
+          
+          // Update the order in the database
+          reorderedLessons.forEach(async lesson => {
+            if (lesson.order !== course.lessons.find(l => l.id === lesson.id)?.order) {
+              await supabase
+                .from('lessons')
+                .update({ order: lesson.order })
+                .eq('id', lesson.id);
+            }
+          });
+          
+          return { ...course, lessons: reorderedLessons };
+        }
+        return course;
+      }));
+      
+      // Clean up progress data for this lesson
+      setProgress(prev => prev.filter(p => !(p.courseId === courseId && p.lessonId === lessonId)));
+      
+      toast({
+        title: 'Lesson Deleted',
+        description: 'The lesson has been removed from the course.'
+      });
+    } catch (error: any) {
+      console.error('Error deleting lesson:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete lesson',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Student functions
-  const addStudent = (student: Omit<Student, 'id'>) => {
-    const newStudent: Student = {
-      ...student,
-      id: generateId()
-    };
-    setStudents(prev => [...prev, newStudent]);
-    toast({
-      title: 'Student Added',
-      description: `${student.name} has been added successfully.`
-    });
-  };
-
-  const updateStudent = (studentId: string, updates: Partial<Student>) => {
-    setStudents(prev => prev.map(student =>
-      student.id === studentId ? { ...student, ...updates } : student
-    ));
-    toast({
-      title: 'Student Updated',
-      description: 'Student details have been updated successfully.'
-    });
-  };
-
-  const deleteStudent = (studentId: string) => {
-    setStudents(prev => prev.filter(student => student.id !== studentId));
-    
-    // Clean up progress data for this student
-    setProgress(prev => prev.filter(p => p.userId !== studentId));
-    
-    toast({
-      title: 'Student Deleted',
-      description: 'The student and all associated data have been removed.'
-    });
-  };
-
-  const assignCourse = (studentId: string, courseId: string) => {
-    setStudents(prev => prev.map(student => {
-      if (student.id === studentId) {
-        if (student.assignedCourses.includes(courseId)) {
-          return student; // Course already assigned
+  const addStudent = async (student: Omit<Student, 'id' | 'assignedCourses' | 'role'>, password: string, role: string = 'student') => {
+    try {
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: student.email,
+        password: password,
+        options: {
+          data: {
+            name: student.name,
+            role: role
+          }
         }
-        return {
-          ...student,
-          assignedCourses: [...student.assignedCourses, courseId]
-        };
-      }
-      return student;
-    }));
-    
-    // Initialize progress for the first lesson of the course
-    const course = courses.find(c => c.id === courseId);
-    if (course && course.lessons.length > 0) {
-      const firstLesson = course.lessons.find(l => l.order === 1);
-      if (firstLesson) {
-        const newProgress: StudentProgress = {
-          userId: studentId,
-          courseId,
-          lessonId: firstLesson.id,
-          completed: false,
-          timeSpent: 0,
-          pdfViewed: false,
-          quizScore: null,
-          quizAttempts: 0,
-          quizSetId: firstLesson.quizSetId,
-          locked: false
-        };
-        setProgress(prev => [...prev, newProgress]);
-      }
+      });
+
+      if (authError) throw authError;
+      
+      // The profile will be created automatically through the database trigger
+
+      toast({
+        title: 'Student Added',
+        description: `${student.name} has been added successfully.`
+      });
+      
+      // Refresh student list
+      await fetchStudents();
+      
+    } catch (error: any) {
+      console.error('Error adding student:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add student',
+        variant: 'destructive',
+      });
     }
-    
-    toast({
-      title: 'Course Assigned',
-      description: 'Course has been assigned to the student successfully.'
-    });
   };
 
-  const removeCourseAssignment = (studentId: string, courseId: string) => {
-    setStudents(prev => prev.map(student => {
-      if (student.id === studentId) {
-        return {
-          ...student,
-          assignedCourses: student.assignedCourses.filter(id => id !== courseId)
-        };
+  const updateStudent = async (studentId: string, updates: Partial<Student>) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: updates.name,
+          email: updates.email,
+          role: updates.role
+        })
+        .eq('id', studentId);
+
+      if (error) throw error;
+
+      setStudents(prev => prev.map(student =>
+        student.id === studentId ? { ...student, ...updates } : student
+      ));
+      
+      toast({
+        title: 'Student Updated',
+        description: 'Student details have been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating student:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update student',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteStudent = async (studentId: string) => {
+    try {
+      // In a real app, you'd want to confirm with the user before deleting
+      // We can't delete from auth.users directly from client, we'd need a server function
+      // For now, just delete the profile (this won't delete the auth user)
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', studentId);
+
+      if (error) throw error;
+
+      setStudents(prev => prev.filter(student => student.id !== studentId));
+      
+      // Clean up progress data for this student
+      setProgress(prev => prev.filter(p => p.userId !== studentId));
+      
+      toast({
+        title: 'Student Deleted',
+        description: 'The student and all associated data have been removed.'
+      });
+    } catch (error: any) {
+      console.error('Error deleting student:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete student',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const assignCourse = async (studentId: string, courseId: string) => {
+    try {
+      // Check if assignment already exists
+      const { data: existingAssignment, error: checkError } = await supabase
+        .from('user_course_assignments')
+        .select('*')
+        .eq('user_id', studentId)
+        .eq('course_id', courseId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingAssignment) {
+        // Assignment already exists
+        toast({
+          title: 'Info',
+          description: 'Course is already assigned to this student.'
+        });
+        return;
       }
-      return student;
-    }));
-    
-    // Clean up progress for this student-course combination
-    setProgress(prev => prev.filter(p => !(p.userId === studentId && p.courseId === courseId)));
-    
-    toast({
-      title: 'Course Removed',
-      description: 'Course has been removed from the student\'s assignments.'
-    });
+
+      // Create assignment
+      const { error: assignError } = await supabase
+        .from('user_course_assignments')
+        .insert([
+          {
+            user_id: studentId,
+            course_id: courseId,
+            locked: false
+          }
+        ]);
+
+      if (assignError) throw assignError;
+
+      // Initialize progress for the first lesson
+      const course = courses.find(c => c.id === courseId);
+      if (course && course.lessons.length > 0) {
+        const firstLesson = course.lessons.find(l => l.order === 1);
+        if (firstLesson) {
+          await supabase
+            .from('user_progress')
+            .insert([
+              {
+                user_id: studentId,
+                course_id: courseId,
+                lesson_id: firstLesson.id,
+                completed: false,
+                time_spent: 0,
+                pdf_viewed: false,
+                quiz_score: null,
+                quiz_attempts: 0
+              }
+            ]);
+        }
+      }
+
+      // Update local state
+      setStudents(prev => prev.map(student => {
+        if (student.id === studentId) {
+          return {
+            ...student,
+            assignedCourses: [...student.assignedCourses, courseId]
+          };
+        }
+        return student;
+      }));
+      
+      toast({
+        title: 'Course Assigned',
+        description: 'Course has been assigned to the student successfully.'
+      });
+      
+      // Refresh progress data
+      await fetchProgress();
+      
+    } catch (error: any) {
+      console.error('Error assigning course:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to assign course',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const removeCourseAssignment = async (studentId: string, courseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_course_assignments')
+        .delete()
+        .eq('user_id', studentId)
+        .eq('course_id', courseId);
+
+      if (error) throw error;
+
+      // Delete all progress for this course as well
+      await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', studentId)
+        .eq('course_id', courseId);
+
+      // Update local state
+      setStudents(prev => prev.map(student => {
+        if (student.id === studentId) {
+          return {
+            ...student,
+            assignedCourses: student.assignedCourses.filter(id => id !== courseId)
+          };
+        }
+        return student;
+      }));
+      
+      // Clean up progress for this student-course combination
+      setProgress(prev => prev.filter(p => !(p.userId === studentId && p.courseId === courseId)));
+      
+      toast({
+        title: 'Course Removed',
+        description: 'Course has been removed from the student\'s assignments.'
+      });
+    } catch (error: any) {
+      console.error('Error removing course assignment:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to remove course assignment',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Quiz functions
-  const addQuizSet = (quizSet: Omit<QuizSet, 'id' | 'questions'>) => {
-    const newQuizSet: QuizSet = {
-      ...quizSet,
-      id: generateId(),
-      questions: []
-    };
-    setQuizSets(prev => [...prev, newQuizSet]);
-    toast({
-      title: 'Quiz Set Added',
-      description: `${quizSet.title} has been created successfully.`
-    });
-    return newQuizSet;
+  const addQuizSet = async (quizSet: Omit<QuizSet, 'id' | 'questions'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_sets')
+        .insert([
+          {
+            title: quizSet.title
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newQuizSet: QuizSet = {
+        id: data.id,
+        title: data.title,
+        questions: []
+      };
+
+      setQuizSets(prev => [...prev, newQuizSet]);
+      
+      toast({
+        title: 'Quiz Set Added',
+        description: `${quizSet.title} has been created successfully.`
+      });
+      
+      return newQuizSet;
+    } catch (error: any) {
+      console.error('Error adding quiz set:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add quiz set',
+        variant: 'destructive',
+      });
+      return null;
+    }
   };
 
-  const updateQuizSet = (quizSetId: string, updates: Partial<QuizSet>) => {
-    setQuizSets(prev => prev.map(quizSet =>
-      quizSet.id === quizSetId ? { ...quizSet, ...updates } : quizSet
-    ));
-    toast({
-      title: 'Quiz Set Updated',
-      description: 'Quiz set details have been updated successfully.'
-    });
+  const updateQuizSet = async (quizSetId: string, updates: Partial<QuizSet>) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_sets')
+        .update({
+          title: updates.title
+        })
+        .eq('id', quizSetId);
+
+      if (error) throw error;
+
+      setQuizSets(prev => prev.map(quizSet =>
+        quizSet.id === quizSetId ? { ...quizSet, ...updates } : quizSet
+      ));
+      
+      toast({
+        title: 'Quiz Set Updated',
+        description: 'Quiz set details have been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating quiz set:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update quiz set',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const deleteQuizSet = (quizSetId: string) => {
-    setQuizSets(prev => prev.filter(quizSet => quizSet.id !== quizSetId));
-    
-    // Update courses to remove references to this quiz set
-    setCourses(prev => prev.map(course => ({
-      ...course,
-      lessons: course.lessons.map(lesson => {
-        if (lesson.quizSetId === quizSetId) {
-          return { ...lesson, quizSetId: null };
+  const deleteQuizSet = async (quizSetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_sets')
+        .delete()
+        .eq('id', quizSetId);
+
+      if (error) throw error;
+
+      setQuizSets(prev => prev.filter(quizSet => quizSet.id !== quizSetId));
+      
+      // Update courses to remove references to this quiz set
+      setCourses(prev => prev.map(course => ({
+        ...course,
+        lessons: course.lessons.map(lesson => {
+          if (lesson.quizSetId === quizSetId) {
+            return { ...lesson, quizSetId: null };
+          }
+          return lesson;
+        })
+      })));
+      
+      // Update lessons in the database
+      await supabase
+        .from('lessons')
+        .update({ quiz_set_id: null })
+        .eq('quiz_set_id', quizSetId);
+      
+      // Update progress to remove references to this quiz set
+      setProgress(prev => prev.map(p => {
+        if (p.quizSetId === quizSetId) {
+          return { ...p, quizSetId: null, quizScore: null };
         }
-        return lesson;
-      })
-    })));
-    
-    // Update progress to remove references to this quiz set
-    setProgress(prev => prev.map(p => {
-      if (p.quizSetId === quizSetId) {
-        return { ...p, quizSetId: null, quizScore: null };
-      }
-      return p;
-    }));
-    
-    toast({
-      title: 'Quiz Set Deleted',
-      description: 'The quiz set has been removed.'
-    });
+        return p;
+      }));
+      
+      toast({
+        title: 'Quiz Set Deleted',
+        description: 'The quiz set has been removed.'
+      });
+    } catch (error: any) {
+      console.error('Error deleting quiz set:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete quiz set',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const addQuizQuestion = (quizSetId: string, question: Omit<QuizQuestion, 'id'>) => {
-    setQuizSets(prev => prev.map(quizSet => {
-      if (quizSet.id === quizSetId) {
-        return {
-          ...quizSet,
-          questions: [...quizSet.questions, { ...question, id: generateId() }]
-        };
-      }
-      return quizSet;
-    }));
-    toast({
-      title: 'Question Added',
-      description: 'New question has been added to the quiz set.'
-    });
+  const addQuizQuestion = async (quizSetId: string, question: Omit<QuizQuestion, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .insert([
+          {
+            quiz_set_id: quizSetId,
+            question: question.question,
+            options: question.options,
+            correct_answer: question.correctAnswer
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newQuestion: QuizQuestion = {
+        id: data.id,
+        question: data.question,
+        options: data.options,
+        correctAnswer: data.correct_answer
+      };
+
+      setQuizSets(prev => prev.map(quizSet => {
+        if (quizSet.id === quizSetId) {
+          return {
+            ...quizSet,
+            questions: [...quizSet.questions, newQuestion]
+          };
+        }
+        return quizSet;
+      }));
+      
+      toast({
+        title: 'Question Added',
+        description: 'New question has been added to the quiz set.'
+      });
+    } catch (error: any) {
+      console.error('Error adding quiz question:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add quiz question',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const updateQuizQuestion = (quizSetId: string, questionId: string, updates: Partial<QuizQuestion>) => {
-    setQuizSets(prev => prev.map(quizSet => {
-      if (quizSet.id === quizSetId) {
-        return {
-          ...quizSet,
-          questions: quizSet.questions.map(question =>
-            question.id === questionId ? { ...question, ...updates } : question
-          )
-        };
-      }
-      return quizSet;
-    }));
-    toast({
-      title: 'Question Updated',
-      description: 'Quiz question has been updated successfully.'
-    });
+  const updateQuizQuestion = async (quizSetId: string, questionId: string, updates: Partial<QuizQuestion>) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_questions')
+        .update({
+          question: updates.question,
+          options: updates.options,
+          correct_answer: updates.correctAnswer
+        })
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      setQuizSets(prev => prev.map(quizSet => {
+        if (quizSet.id === quizSetId) {
+          return {
+            ...quizSet,
+            questions: quizSet.questions.map(question =>
+              question.id === questionId ? { ...question, ...updates } : question
+            )
+          };
+        }
+        return quizSet;
+      }));
+      
+      toast({
+        title: 'Question Updated',
+        description: 'Quiz question has been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating quiz question:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update quiz question',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const deleteQuizQuestion = (quizSetId: string, questionId: string) => {
-    setQuizSets(prev => prev.map(quizSet => {
-      if (quizSet.id === quizSetId) {
-        return {
-          ...quizSet,
-          questions: quizSet.questions.filter(question => question.id !== questionId)
-        };
-      }
-      return quizSet;
-    }));
-    toast({
-      title: 'Question Deleted',
-      description: 'The question has been removed from the quiz set.'
-    });
+  const deleteQuizQuestion = async (quizSetId: string, questionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      setQuizSets(prev => prev.map(quizSet => {
+        if (quizSet.id === quizSetId) {
+          return {
+            ...quizSet,
+            questions: quizSet.questions.filter(question => question.id !== questionId)
+          };
+        }
+        return quizSet;
+      }));
+      
+      toast({
+        title: 'Question Deleted',
+        description: 'The question has been removed from the quiz set.'
+      });
+    } catch (error: any) {
+      console.error('Error deleting quiz question:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete quiz question',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const updateQuizSettings = (settings: Partial<QuizSettings>) => {
-    setQuizSettings(prev => ({ ...prev, ...settings }));
-    toast({
-      title: 'Quiz Settings Updated',
-      description: 'Quiz settings have been updated successfully.'
-    });
+  const updateQuizSettings = async (settings: Partial<QuizSettings>) => {
+    try {
+      // Get existing quiz settings
+      const { data: existingSettings, error: fetchError } = await supabase
+        .from('quiz_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
+      let updateError;
+      
+      if (existingSettings) {
+        // Update existing settings
+        const { error } = await supabase
+          .from('quiz_settings')
+          .update({
+            pass_mark_percentage: settings.passMarkPercentage,
+            enforce_pass_mark: settings.enforcePassMark
+          })
+          .eq('id', existingSettings.id);
+        
+        updateError = error;
+      } else {
+        // Insert new settings
+        const { error } = await supabase
+          .from('quiz_settings')
+          .insert([{
+            pass_mark_percentage: settings.passMarkPercentage || 70,
+            enforce_pass_mark: settings.enforcePassMark !== undefined ? settings.enforcePassMark : true
+          }]);
+        
+        updateError = error;
+      }
+
+      if (updateError) throw updateError;
+
+      setQuizSettings(prev => ({ ...prev, ...settings }));
+      
+      toast({
+        title: 'Quiz Settings Updated',
+        description: 'Quiz settings have been updated successfully.'
+      });
+    } catch (error: any) {
+      console.error('Error updating quiz settings:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update quiz settings',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Progress tracking functions
-  const toggleCourseLock = (studentId: string, courseId: string) => {
-    setProgress(prev => prev.map(p => {
-      if (p.userId === studentId && p.courseId === courseId) {
-        return { ...p, locked: !p.locked };
-      }
-      return p;
-    }));
-    
-    const isLocked = progress.find(p => p.userId === studentId && p.courseId === courseId)?.locked;
-    toast({
-      title: isLocked ? 'Course Unlocked' : 'Course Locked',
-      description: `Course access has been ${isLocked ? 'enabled' : 'disabled'} for the student.`
-    });
+  const toggleCourseLock = async (studentId: string, courseId: string) => {
+    try {
+      // Get current status
+      const { data: assignment, error: fetchError } = await supabase
+        .from('user_course_assignments')
+        .select('locked')
+        .eq('user_id', studentId)
+        .eq('course_id', courseId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const newLockedStatus = !assignment.locked;
+
+      // Update the lock status
+      const { error: updateError } = await supabase
+        .from('user_course_assignments')
+        .update({ locked: newLockedStatus })
+        .eq('user_id', studentId)
+        .eq('course_id', courseId);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProgress(prev => prev.map(p => {
+        if (p.userId === studentId && p.courseId === courseId) {
+          return { ...p, locked: newLockedStatus };
+        }
+        return p;
+      }));
+      
+      toast({
+        title: newLockedStatus ? 'Course Locked' : 'Course Unlocked',
+        description: `Course access has been ${newLockedStatus ? 'disabled' : 'enabled'} for the student.`
+      });
+    } catch (error: any) {
+      console.error('Error toggling course lock:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update course lock status',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const markLessonComplete = (userId: string, courseId: string, lessonId: string, quizScore?: number) => {
-    // Mark the current lesson as completed
-    let updated = false;
-    
-    setProgress(prev => prev.map(p => {
-      if (p.userId === userId && p.courseId === courseId && p.lessonId === lessonId) {
-        updated = true;
-        return {
-          ...p,
-          completed: true,
-          quizScore: quizScore !== undefined ? quizScore : p.quizScore
-        };
-      }
-      return p;
-    }));
-    
-    if (!updated) {
-      // Create a new progress entry if one doesn't exist
-      const course = courses.find(c => c.id === courseId);
-      if (course) {
-        const lesson = course.lessons.find(l => l.id === lessonId);
-        if (lesson) {
-          const newProgress: StudentProgress = {
-            userId,
-            courseId,
-            lessonId,
+  const markLessonComplete = async (userId: string, courseId: string, lessonId: string, quizScore?: number) => {
+    try {
+      // Check if progress entry exists
+      const { data: existingProgress, error: checkError } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+      if (existingProgress) {
+        // Update existing progress
+        const { error } = await supabase
+          .from('user_progress')
+          .update({
             completed: true,
-            timeSpent: 0,
-            pdfViewed: true,
-            quizScore: quizScore !== undefined ? quizScore : null,
-            quizAttempts: quizScore !== undefined ? 1 : 0,
-            quizSetId: lesson.quizSetId,
-            locked: false
-          };
-          setProgress(prev => [...prev, newProgress]);
-        }
-      }
-    }
-    
-    // Check if there's a next lesson to unlock
-    const course = courses.find(c => c.id === courseId);
-    if (course) {
-      const currentLesson = course.lessons.find(l => l.id === lessonId);
-      if (currentLesson) {
-        const nextLesson = course.lessons.find(l => l.order === currentLesson.order + 1);
-        if (nextLesson) {
-          // Check if a progress entry already exists for the next lesson
-          const nextLessonProgress = progress.find(
-            p => p.userId === userId && p.courseId === courseId && p.lessonId === nextLesson.id
-          );
-          
-          if (!nextLessonProgress) {
-            // Create a new progress entry for the next lesson
-            const newProgress: StudentProgress = {
-              userId,
-              courseId,
-              lessonId: nextLesson.id,
-              completed: false,
-              timeSpent: 0,
-              pdfViewed: false,
-              quizScore: null,
-              quizAttempts: 0,
-              quizSetId: nextLesson.quizSetId,
-              locked: false
-            };
-            setProgress(prev => [...prev, newProgress]);
+            quiz_score: quizScore !== undefined ? quizScore : existingProgress.quiz_score
+          })
+          .eq('id', existingProgress.id);
+
+        if (error) throw error;
+      } else {
+        // Create new progress entry
+        const course = courses.find(c => c.id === courseId);
+        if (course) {
+          const lesson = course.lessons.find(l => l.id === lessonId);
+          if (lesson) {
+            const { error } = await supabase
+              .from('user_progress')
+              .insert([{
+                user_id: userId,
+                course_id: courseId,
+                lesson_id: lessonId,
+                completed: true,
+                time_spent: 0,
+                pdf_viewed: true,
+                quiz_score: quizScore,
+                quiz_attempts: quizScore !== undefined ? 1 : 0
+              }]);
+
+            if (error) throw error;
           }
         }
       }
-    }
-    
-    toast({
-      title: 'Lesson Completed',
-      description: 'Your progress has been saved.'
-    });
-  };
 
-  const updateTimeSpent = (userId: string, courseId: string, lessonId: string, seconds: number) => {
-    let updated = false;
-    
-    setProgress(prev => prev.map(p => {
-      if (p.userId === userId && p.courseId === courseId && p.lessonId === lessonId) {
-        updated = true;
-        return { ...p, timeSpent: p.timeSpent + seconds };
-      }
-      return p;
-    }));
-    
-    if (!updated) {
-      // Create a new progress entry
+      // Check if there's a next lesson to unlock
       const course = courses.find(c => c.id === courseId);
       if (course) {
-        const lesson = course.lessons.find(l => l.id === lessonId);
-        if (lesson) {
-          const newProgress: StudentProgress = {
+        const currentLesson = course.lessons.find(l => l.id === lessonId);
+        if (currentLesson) {
+          const nextLesson = course.lessons.find(l => l.order === currentLesson.order + 1);
+          if (nextLesson) {
+            // Check if a progress entry already exists for the next lesson
+            const { data: nextLessonProgress, error: nextCheckError } = await supabase
+              .from('user_progress')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('course_id', courseId)
+              .eq('lesson_id', nextLesson.id)
+              .maybeSingle();
+
+            if (nextCheckError && nextCheckError.code !== 'PGRST116') throw nextCheckError;
+
+            if (!nextLessonProgress) {
+              // Create a new progress entry for the next lesson
+              const { error } = await supabase
+                .from('user_progress')
+                .insert([{
+                  user_id: userId,
+                  course_id: courseId,
+                  lesson_id: nextLesson.id,
+                  completed: false,
+                  time_spent: 0,
+                  pdf_viewed: false,
+                  quiz_score: null,
+                  quiz_attempts: 0
+                }]);
+
+              if (error) throw error;
+            }
+          }
+        }
+      }
+
+      // Update local state
+      await fetchProgress();
+      
+      toast({
+        title: 'Lesson Completed',
+        description: 'Your progress has been saved.'
+      });
+    } catch (error: any) {
+      console.error('Error marking lesson complete:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update lesson progress',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateTimeSpent = async (userId: string, courseId: string, lessonId: string, seconds: number) => {
+    try {
+      // Check if progress entry exists
+      const { data: existingProgress, error: checkError } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+      if (existingProgress) {
+        // Update existing progress
+        const { error } = await supabase
+          .from('user_progress')
+          .update({
+            time_spent: existingProgress.time_spent + seconds
+          })
+          .eq('id', existingProgress.id);
+
+        if (error) throw error;
+      } else {
+        // Create new progress entry
+        const course = courses.find(c => c.id === courseId);
+        if (course) {
+          const lesson = course.lessons.find(l => l.id === lessonId);
+          if (lesson) {
+            const { error } = await supabase
+              .from('user_progress')
+              .insert([{
+                user_id: userId,
+                course_id: courseId,
+                lesson_id: lessonId,
+                completed: false,
+                time_spent: seconds,
+                pdf_viewed: false,
+                quiz_score: null,
+                quiz_attempts: 0
+              }]);
+
+            if (error) throw error;
+          }
+        }
+      }
+
+      // Update local state
+      setProgress(prev => {
+        const existingIndex = prev.findIndex(
+          p => p.userId === userId && p.courseId === courseId && p.lessonId === lessonId
+        );
+
+        if (existingIndex >= 0) {
+          // Update existing progress
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            timeSpent: updated[existingIndex].timeSpent + seconds
+          };
+          return updated;
+        } else {
+          // Add new progress
+          return [...prev, {
             userId,
             courseId,
             lessonId,
@@ -743,33 +1375,81 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pdfViewed: false,
             quizScore: null,
             quizAttempts: 0,
-            quizSetId: lesson.quizSetId,
+            quizSetId: null,
             locked: false
-          };
-          setProgress(prev => [...prev, newProgress]);
+          }];
         }
-      }
+      });
+    } catch (error: any) {
+      console.error('Error updating time spent:', error);
+      // Don't show toast for this one as it might be distracting
     }
   };
 
-  const updatePdfViewed = (userId: string, courseId: string, lessonId: string) => {
-    let updated = false;
-    
-    setProgress(prev => prev.map(p => {
-      if (p.userId === userId && p.courseId === courseId && p.lessonId === lessonId) {
-        updated = true;
-        return { ...p, pdfViewed: true };
+  const updatePdfViewed = async (userId: string, courseId: string, lessonId: string) => {
+    try {
+      // Check if progress entry exists
+      const { data: existingProgress, error: checkError } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+      if (existingProgress) {
+        // Update existing progress
+        const { error } = await supabase
+          .from('user_progress')
+          .update({
+            pdf_viewed: true
+          })
+          .eq('id', existingProgress.id);
+
+        if (error) throw error;
+      } else {
+        // Create new progress entry
+        const course = courses.find(c => c.id === courseId);
+        if (course) {
+          const lesson = course.lessons.find(l => l.id === lessonId);
+          if (lesson) {
+            const { error } = await supabase
+              .from('user_progress')
+              .insert([{
+                user_id: userId,
+                course_id: courseId,
+                lesson_id: lessonId,
+                completed: false,
+                time_spent: 0,
+                pdf_viewed: true,
+                quiz_score: null,
+                quiz_attempts: 0
+              }]);
+
+            if (error) throw error;
+          }
+        }
       }
-      return p;
-    }));
-    
-    if (!updated) {
-      // Create a new progress entry
-      const course = courses.find(c => c.id === courseId);
-      if (course) {
-        const lesson = course.lessons.find(l => l.id === lessonId);
-        if (lesson) {
-          const newProgress: StudentProgress = {
+
+      // Update local state
+      setProgress(prev => {
+        const existingIndex = prev.findIndex(
+          p => p.userId === userId && p.courseId === courseId && p.lessonId === lessonId
+        );
+
+        if (existingIndex >= 0) {
+          // Update existing progress
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            pdfViewed: true
+          };
+          return updated;
+        } else {
+          // Add new progress
+          return [...prev, {
             userId,
             courseId,
             lessonId,
@@ -778,12 +1458,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pdfViewed: true,
             quizScore: null,
             quizAttempts: 0,
-            quizSetId: lesson.quizSetId,
+            quizSetId: null,
             locked: false
-          };
-          setProgress(prev => [...prev, newProgress]);
+          }];
         }
-      }
+      });
+    } catch (error: any) {
+      console.error('Error updating PDF viewed status:', error);
+      // Don't show toast for this one as it might be distracting
     }
   };
 
@@ -870,7 +1552,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getStudentProgress,
       getCompletedLessonsCount,
       isLessonAccessible,
-      getTotalQuizScore
+      getTotalQuizScore,
+      isLoading,
+      refreshData
     }}>
       {children}
     </DataContext.Provider>
@@ -884,3 +1568,4 @@ export const useData = () => {
   }
   return context;
 };
+

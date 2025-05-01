@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useData, Course, Lesson, QuizSet, Student } from '@/contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import AppLayout from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, Check, Lock, Plus, Pencil, Trash, Upload, Clock } from 'lucide-react';
+import AdminStudentManagement from '@/components/AdminStudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 // Course Management Components
@@ -1076,15 +1068,27 @@ const StudentManagement: React.FC = () => {
 
 // Main Admin Dashboard
 const AdminDashboard: React.FC = () => {
-  const {
-    user
-  } = useAuth();
+  const { user, isLoading } = useAuth();
+  const { isLoading: dataLoading } = useData();
   const [activeTab, setActiveTab] = useState("courses");
   const isMobile = useIsMobile();
+  
+  if (isLoading || dataLoading) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
+  
   if (!user) {
     return <div>Loading...</div>;
   }
-  return <AppLayout>
+  
+  return (
+    <AppLayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
@@ -1100,7 +1104,7 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="students">
-            <StudentManagement />
+            <AdminStudentManagement />
           </TabsContent>
           
           <TabsContent value="quizzes">
@@ -1108,6 +1112,8 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>;
+    </AppLayout>
+  );
 };
+
 export default AdminDashboard;

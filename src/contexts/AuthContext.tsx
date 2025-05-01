@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
 export type UserType = 'admin' | 'student' | null;
 
@@ -22,65 +24,93 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo users for testing
-const demoUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'admin123',
-    type: 'admin' as UserType,
-  },
-  {
-    id: '2',
-    name: 'John Student',
-    email: 'student@example.com',
-    password: 'student123',
-    type: 'student' as UserType,
-  },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Set up authentication state management
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          // Get user profile with role information
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Then check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, role')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      if (profile) {
+        setUser({
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          type: profile.role as UserType
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // This is a mock authentication - in a real app, this would be an API call
-      const foundUser = demoUsers.find(
-        (u) => u.email === email && u.password === password
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      if (!foundUser) {
-        throw new Error('Invalid email or password');
-      }
-
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      if (error) throw error;
 
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${userWithoutPassword.name}!`,
+        description: `Welcome back!`,
       });
 
-      // Redirect based on user type
-      if (userWithoutPassword.type === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      // Redirect will happen automatically via onAuthStateChange
     } catch (error: any) {
       toast({
         title: 'Login failed',
@@ -92,14 +122,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    navigate('/');
-    toast({
-      title: 'Logged out',
-      description: 'You have been successfully logged out.',
-    });
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      navigate('/');
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Logout failed',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -125,8 +163,4 @@ export const useAuth = () => {
   return context;
 };
 
-export const demoUserCredentials = demoUsers.map(user => ({
-  email: user.email,
-  password: user.password,
-  type: user.type
-}));
+// Remove demo users export as we're now using real authentication

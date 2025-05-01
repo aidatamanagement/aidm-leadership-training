@@ -17,7 +17,14 @@ import CourseCompletion from "./pages/CourseCompletion";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,7 +36,7 @@ const App = () => (
             <Sonner />
             <Routes>
               {/* Public route */}
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<RedirectIfAuthenticated />} />
               
               {/* Student routes */}
               <Route 
@@ -75,12 +82,6 @@ const App = () => (
                 } 
               />
               
-              {/* Redirect to dashboard if logged in */}
-              <Route 
-                path="/" 
-                element={<RedirectIfAuthenticated />} 
-              />
-              
               {/* Not found route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -93,7 +94,15 @@ const App = () => (
 
 // Helper component to redirect if already logged in
 const RedirectIfAuthenticated = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   
   if (isAuthenticated && user) {
     return <Navigate to={user.type === 'admin' ? '/admin' : '/dashboard'} replace />;
