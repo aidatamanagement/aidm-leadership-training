@@ -17,17 +17,45 @@ const Login: React.FC = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
+  
+  // New state for password reset functionality
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  
   const { login, isLoading, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
+  // Check if the URL has a password reset token
   useEffect(() => {
-    // Redirect if user is already logged in
-    if (isAuthenticated && user) {
+    const checkForResetToken = async () => {
+      // Check URL hash for "#access_token=" which indicates a password reset link
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      if (accessToken && type === 'recovery') {
+        // Show the update password form rather than automatically logging in
+        setShowUpdatePassword(true);
+        
+        // Remove the hash from URL to avoid issues if the user refreshes
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+    
+    checkForResetToken();
+  }, []);
+
+  useEffect(() => {
+    // Redirect if user is already logged in and not in password reset mode
+    if (isAuthenticated && user && !showUpdatePassword) {
       // Set timeout to prevent flash of login page
       const redirectPath = user.type === 'admin' ? '/admin' : '/dashboard';
       navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, showUpdatePassword]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +100,60 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure both passwords match',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({
+        title: 'Password too short',
+        description: 'Password must be at least 6 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Password updated successfully',
+        description: 'You can now login with your new password',
+      });
+      
+      // Reset the form and show the login form
+      setShowUpdatePassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Log user out to force a fresh login with new password
+      await supabase.auth.signOut();
+      
+    } catch (err: any) {
+      toast({
+        title: 'Failed to update password',
+        description: err.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="mb-8 text-center">
@@ -79,7 +161,50 @@ const Login: React.FC = () => {
         <p className="text-gray-600">Sign in to access your training materials</p>
       </div>
       
-      {!showForgotPassword ? (
+      {showUpdatePassword ? (
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Reset Password</CardTitle>
+            <CardDescription>Create a new secure password for your account</CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input 
+                  id="newPassword" 
+                  type="password" 
+                  placeholder="Enter new password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  placeholder="Confirm new password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isUpdatingPassword}
+              >
+                {isUpdatingPassword ? 'Updating Password...' : 'Update Password'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : !showForgotPassword ? (
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl">Login</CardTitle>

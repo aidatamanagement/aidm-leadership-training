@@ -13,7 +13,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type as any) && user.type !== 'admin') {
+    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type as 'admin' | 'student') && user.type !== 'admin') {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to view this page.',
@@ -41,7 +41,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
 
   // Check if the user's role is in the allowed roles
   if (!allowedRoles.includes(user.type as 'admin' | 'student')) {
-    // Redirect based on user type
+    // Redirect to dashboard for non-admin users
     return <Navigate to="/dashboard" replace />;
   }
 
