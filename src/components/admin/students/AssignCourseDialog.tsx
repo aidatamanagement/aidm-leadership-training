@@ -24,8 +24,10 @@ const AssignCourseDialog: React.FC<AssignCourseDialogProps> = ({
   const [selectedCourseId, setSelectedCourseId] = useState('');
   
   const handleAssignCourse = () => {
-    onAssignCourse(selectedCourseId);
-    setSelectedCourseId('');
+    if (selectedCourseId) {
+      onAssignCourse(selectedCourseId);
+      setSelectedCourseId('');
+    }
   };
   
   const filteredCourses = student 
