@@ -2,7 +2,7 @@
 import React from 'react';
 import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
-import { Lock, Trash, Clock, Eye } from 'lucide-react';
+import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
 
 interface CourseCardProps {
   course: Course;
@@ -41,17 +41,22 @@ const CourseCard: React.FC<CourseCardProps> = ({
         <div className="flex space-x-1">
           <Button 
             size="sm" 
-            variant={isLocked ? "default" : "outline"} 
-            className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
-            onClick={onToggleLock}
+            variant={isLocked ? "destructive" : "outline"} 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleLock();
+            }}
             title={isLocked ? "Unlock Course" : "Lock Course"}
           >
-            <Lock className="h-3 w-3" />
+            {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
           <Button 
             size="sm" 
             variant="ghost" 
-            onClick={onRemoveCourse}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemoveCourse();
+            }}
           >
             <Trash className="h-3 w-3" />
           </Button>

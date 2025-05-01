@@ -1,19 +1,23 @@
 
 import React, { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { UserType } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  allowedRoles: ('admin' | 'student')[];
+  allowedRoles: UserType[];
 }
 
 const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { courseId } = useParams<{ courseId: string }>();
+  const { isCourseLockedForUser } = useData();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type as 'admin' | 'student') && user.type !== 'admin') {
+    if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to view this page.',
@@ -40,8 +44,18 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   }
 
   // Check if the user's role is in the allowed roles
-  if (!allowedRoles.includes(user.type as 'admin' | 'student')) {
-    // Redirect to dashboard for non-admin users
+  if (!allowedRoles.includes(user.type)) {
+    // Redirect based on user type
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check if the course is locked for students
+  if (user.type === 'student' && courseId && isCourseLockedForUser && isCourseLockedForUser(user.id, courseId)) {
+    toast({
+      title: 'Course Locked',
+      description: 'This course has been locked by your administrator.',
+      variant: 'destructive',
+    });
     return <Navigate to="/dashboard" replace />;
   }
 
