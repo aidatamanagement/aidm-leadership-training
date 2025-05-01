@@ -10,6 +10,7 @@ import RouteGuard from "@/components/RouteGuard";
 
 // Pages
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetails from "./pages/CourseDetails";
 import LessonPage from "./pages/LessonPage";
@@ -28,8 +29,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public route */}
+              {/* Public routes */}
               <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               
               {/* Student routes */}
               <Route 
