@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Student } from '../types/DataTypes';
@@ -49,17 +48,14 @@ export const addStudent = async (
   role: string = 'student'
 ): Promise<void> => {
   try {
-    // Create auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Create user with admin API to prevent automatic session creation/login
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: student.email,
       password: password,
-      options: {
-        data: {
-          name: student.name,
-          role: role
-        },
-        // Disable auto session management to prevent automatic login after signup
-        emailRedirectTo: undefined
+      email_confirm: true, // Auto-confirm the email
+      user_metadata: {
+        name: student.name,
+        role: role
       }
     });
 
