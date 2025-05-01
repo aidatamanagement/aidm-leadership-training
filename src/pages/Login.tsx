@@ -18,7 +18,7 @@ const Login: React.FC = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
   
-  // New state for password reset functionality
+  // State for password reset functionality
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,12 +33,18 @@ const Login: React.FC = () => {
       // Check URL hash for "#access_token=" which indicates a password reset link
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
       const type = hashParams.get('type');
 
+      console.log("URL hash params:", { accessToken, type });
+      
       if (accessToken && type === 'recovery') {
-        // Show the update password form rather than automatically logging in
+        console.log("Password reset token detected");
+        // Prevent auto-login and explicitly show the password reset form
         setShowUpdatePassword(true);
+        
+        // This is critical: store the session but don't trigger a full login
+        // Supabase sets the session automatically, but we need to prevent redirection
+        await supabase.auth.getSession();
         
         // Remove the hash from URL to avoid issues if the user refreshes
         window.history.replaceState(null, '', window.location.pathname);
@@ -49,8 +55,9 @@ const Login: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Redirect if user is already logged in and not in password reset mode
+    // Only redirect if user is authenticated AND not in password reset mode
     if (isAuthenticated && user && !showUpdatePassword) {
+      console.log("User authenticated and not in password reset mode, redirecting");
       // Set timeout to prevent flash of login page
       const redirectPath = user.type === 'admin' ? '/admin' : '/dashboard';
       navigate(redirectPath, { replace: true });
