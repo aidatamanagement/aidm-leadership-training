@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Check, Eye } from 'lucide-react';
+import { ArrowRight, Check, Eye, Lock } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +16,8 @@ const StudentDashboard: React.FC = () => {
     students, 
     getCompletedLessonsCount,
     getStudentProgress,
-    getTotalQuizScore
+    getTotalQuizScore,
+    isCourseLockedForUser
   } = useData();
 
   if (!user) {
@@ -98,11 +99,17 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full sm:w-auto">
-                  <Link to={`/courses/${lastActiveCourse.id}`}>
-                    Continue Learning <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                {isCourseLockedForUser(user.id, lastActiveCourse.id) ? (
+                  <Button disabled className="w-full sm:w-auto">
+                    <Lock className="mr-2 h-4 w-4" /> Course Locked
+                  </Button>
+                ) : (
+                  <Button asChild className="w-full sm:w-auto">
+                    <Link to={`/courses/${lastActiveCourse.id}`}>
+                      Continue Learning <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           </div>
@@ -122,6 +129,7 @@ const StudentDashboard: React.FC = () => {
                 const completedLessons = getCompletedLessonsCount(user.id, course.id);
                 const progress = (completedLessons / course.lessons.length) * 100;
                 const quizScore = getTotalQuizScore(user.id, course.id);
+                const isLocked = isCourseLockedForUser(user.id, course.id);
                 
                 return (
                   <Card key={course.id} className="h-full flex flex-col">
@@ -159,11 +167,17 @@ const StudentDashboard: React.FC = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button asChild className="w-full" variant={completedLessons > 0 ? "outline" : "default"}>
-                        <Link to={`/courses/${course.id}`}>
-                          {completedLessons > 0 ? 'View Course' : 'Start Course'}
-                        </Link>
-                      </Button>
+                      {isLocked ? (
+                        <Button disabled className="w-full">
+                          <Lock className="mr-2 h-4 w-4" /> Course Locked
+                        </Button>
+                      ) : (
+                        <Button asChild className="w-full" variant={completedLessons > 0 ? "outline" : "default"}>
+                          <Link to={`/courses/${course.id}`}>
+                            {completedLessons > 0 ? 'View Course' : 'Start Course'}
+                          </Link>
+                        </Button>
+                      )}
                     </CardFooter>
                   </Card>
                 );
