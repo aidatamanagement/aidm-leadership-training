@@ -10,7 +10,6 @@ import RouteGuard from "@/components/RouteGuard";
 
 // Pages
 import Login from "./pages/Login";
-import PasswordReset from "./pages/PasswordReset";
 import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetails from "./pages/CourseDetails";
 import LessonPage from "./pages/LessonPage";
@@ -36,9 +35,8 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public routes */}
+              {/* Public route */}
               <Route path="/" element={<RedirectIfAuthenticated />} />
-              <Route path="/password-reset" element={<PasswordReset />} />
               
               {/* Student routes */}
               <Route 

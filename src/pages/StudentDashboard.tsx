@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course } from '@/contexts/DataContext';
@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Check, Eye, Lock } from 'lucide-react';
+import { ArrowRight, Check, Eye } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -16,29 +16,20 @@ const StudentDashboard: React.FC = () => {
     students, 
     getCompletedLessonsCount,
     getStudentProgress,
-    getTotalQuizScore,
-    isCourseLockedForUser,
-    isLoading
+    getTotalQuizScore
   } = useData();
 
-  if (isLoading || !user) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
+  if (!user) {
+    return <div>Loading...</div>;
   }
 
   const currentStudent = students.find(s => s.id === user.id);
   if (!currentStudent) {
-    // Instead of showing an error message, render a loading state
-    // This prevents the flash of "Student Not Found" message
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-screen py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-center py-8">
+          <h1 className="text-2xl font-bold mb-4">Student Not Found</h1>
+          <p>Your account is not set up properly. Please contact an administrator.</p>
         </div>
       </AppLayout>
     );
@@ -107,17 +98,11 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                {isCourseLockedForUser(user.id, lastActiveCourse.id) ? (
-                  <Button disabled className="w-full sm:w-auto">
-                    <Lock className="mr-2 h-4 w-4" /> Course Locked
-                  </Button>
-                ) : (
-                  <Button asChild className="w-full sm:w-auto">
-                    <Link to={`/courses/${lastActiveCourse.id}`}>
-                      Continue Learning <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild className="w-full sm:w-auto">
+                  <Link to={`/courses/${lastActiveCourse.id}`}>
+                    Continue Learning <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </CardFooter>
             </Card>
           </div>
@@ -137,7 +122,6 @@ const StudentDashboard: React.FC = () => {
                 const completedLessons = getCompletedLessonsCount(user.id, course.id);
                 const progress = (completedLessons / course.lessons.length) * 100;
                 const quizScore = getTotalQuizScore(user.id, course.id);
-                const isLocked = isCourseLockedForUser(user.id, course.id);
                 
                 return (
                   <Card key={course.id} className="h-full flex flex-col">
@@ -175,17 +159,11 @@ const StudentDashboard: React.FC = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      {isLocked ? (
-                        <Button disabled className="w-full">
-                          <Lock className="mr-2 h-4 w-4" /> Course Locked
-                        </Button>
-                      ) : (
-                        <Button asChild className="w-full" variant={completedLessons > 0 ? "outline" : "default"}>
-                          <Link to={`/courses/${course.id}`}>
-                            {completedLessons > 0 ? 'View Course' : 'Start Course'}
-                          </Link>
-                        </Button>
-                      )}
+                      <Button asChild className="w-full" variant={completedLessons > 0 ? "outline" : "default"}>
+                        <Link to={`/courses/${course.id}`}>
+                          {completedLessons > 0 ? 'View Course' : 'Start Course'}
+                        </Link>
+                      </Button>
                     </CardFooter>
                   </Card>
                 );
