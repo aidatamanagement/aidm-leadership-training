@@ -41,8 +41,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         <div className="flex space-x-1">
           <Button 
             size="sm" 
-            variant={isLocked ? "default" : "outline"} 
-            className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
+            variant={isLocked ? "destructive" : "outline"} 
             onClick={(e) => {
               e.stopPropagation();
               onToggleLock();
