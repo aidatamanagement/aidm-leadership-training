@@ -18,23 +18,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
   const handleError = () => {
     setIsLoading(false);
-    setError('Failed to load PDF. Please check the URL.');
+    setError('Failed to load PDF. Please check the file URL.');
     toast({
       title: 'PDF Error',
       description: 'Could not load the PDF file.',
       variant: 'destructive',
     });
-  };
-
-  // Check if the URL is valid
-  const isValidUrl = (url: string) => {
-    if (!url) return false;
-    try {
-      new URL(url);
-      return url.toLowerCase().endsWith('.pdf');
-    } catch (e) {
-      return false;
-    }
   };
 
   return (
@@ -53,7 +42,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           </div>
         )}
         
-        {pdfUrl && isValidUrl(pdfUrl) ? (
+        {pdfUrl ? (
           <iframe 
             src={pdfUrl}
             className="w-full min-h-[600px] border-0"
@@ -64,9 +53,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         ) : (
           <div className="bg-gray-100 rounded-lg p-6 min-h-[400px] flex flex-col items-center justify-center">
             <p className="text-gray-500">No PDF available for this lesson.</p>
-            {pdfUrl && !isValidUrl(pdfUrl) && (
-              <p className="text-red-500 text-sm mt-2">Invalid PDF URL format.</p>
-            )}
           </div>
         )}
       </CardContent>
