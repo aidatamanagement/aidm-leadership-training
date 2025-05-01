@@ -6,26 +6,30 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/use-toast';
-import { FileIcon, UploadIcon } from 'lucide-react';
+import { FileIcon, UploadIcon, AlertCircle } from 'lucide-react';
 
 interface PDFUploaderProps {
   lessonId?: string;
   onUploadComplete: (url: string) => void;
   currentPdfUrl?: string;
+  required?: boolean;
 }
 
 const PDFUploader: React.FC<PDFUploaderProps> = ({ 
   lessonId = 'new-lesson', 
   onUploadComplete,
-  currentPdfUrl
+  currentPdfUrl,
+  required = true
 }) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { uploadPdf } = useData();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setError(null);
     
     if (!file) return;
     
@@ -36,6 +40,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         description: 'Please select a PDF file.',
         variant: 'destructive',
       });
+      setError('Please select a PDF file.');
       return;
     }
     
@@ -46,6 +51,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         description: 'PDF files must be less than 10MB.',
         variant: 'destructive',
       });
+      setError('PDF files must be less than 10MB.');
       return;
     }
     
@@ -59,6 +65,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         description: 'Please select a PDF file to upload.',
         variant: 'destructive',
       });
+      setError('Please select a PDF file to upload.');
       return;
     }
     
@@ -84,8 +91,10 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
           title: 'Upload Complete',
           description: 'PDF file has been uploaded successfully.'
         });
+        setError(null);
       }
     } catch (error: any) {
+      setError(error.message || 'Failed to upload PDF file.');
       toast({
         title: 'Upload Failed',
         description: error.message || 'Failed to upload PDF file.',
@@ -104,9 +113,36 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
     return parts[parts.length - 1].split('?')[0];
   };
 
+  const validateForm = () => {
+    if (required && !currentPdfUrl && !selectedFile) {
+      setError('A PDF document is required for this lesson.');
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  // Expose validation method to parent components
+  React.useEffect(() => {
+    if (required && !currentPdfUrl && !selectedFile) {
+      setError('A PDF document is required for this lesson.');
+    } else {
+      setError(null);
+    }
+  }, [required, currentPdfUrl, selectedFile]);
+
   return (
     <div className="space-y-4">
-      <Label htmlFor="pdf-upload">PDF Document</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor="pdf-upload" className="flex items-center">
+          PDF Document {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+        {error && (
+          <div className="text-sm text-red-500 flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" /> {error}
+          </div>
+        )}
+      </div>
       
       {!uploading && progress === 0 && (
         <div className="flex items-start gap-4">
@@ -146,14 +182,24 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
               {getPdfFilename(currentPdfUrl)}
             </span>
           </div>
-          <a 
-            href={currentPdfUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            View
-          </a>
+          <div className="flex space-x-2">
+            <a 
+              href={currentPdfUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View
+            </a>
+            {!required && (
+              <button
+                onClick={() => onUploadComplete('')}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Remove
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
