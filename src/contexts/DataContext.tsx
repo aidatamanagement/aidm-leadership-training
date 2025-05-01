@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -243,7 +242,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .map(question => ({
             id: question.id,
             question: question.question,
-            options: question.options, // This should be an array in the database
+            // Convert options from JSON to string array
+            options: Array.isArray(question.options) ? question.options : JSON.parse(question.options as string),
             correctAnswer: question.correct_answer
           }));
 
@@ -987,7 +987,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           {
             quiz_set_id: quizSetId,
             question: question.question,
-            options: question.options,
+            options: JSON.stringify(question.options),
             correct_answer: question.correctAnswer
           }
         ])
@@ -999,7 +999,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newQuestion: QuizQuestion = {
         id: data.id,
         question: data.question,
-        options: data.options,
+        options: question.options,
         correctAnswer: data.correct_answer
       };
 
@@ -1029,13 +1029,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateQuizQuestion = async (quizSetId: string, questionId: string, updates: Partial<QuizQuestion>) => {
     try {
+      const updateData: any = {};
+      if (updates.question !== undefined) updateData.question = updates.question;
+      if (updates.options !== undefined) updateData.options = JSON.stringify(updates.options);
+      if (updates.correctAnswer !== undefined) updateData.correct_answer = updates.correctAnswer;
+
       const { error } = await supabase
         .from('quiz_questions')
-        .update({
-          question: updates.question,
-          options: updates.options,
-          correct_answer: updates.correctAnswer
-        })
+        .update(updateData)
         .eq('id', questionId);
 
       if (error) throw error;
@@ -1568,4 +1569,3 @@ export const useData = () => {
   }
   return context;
 };
-
