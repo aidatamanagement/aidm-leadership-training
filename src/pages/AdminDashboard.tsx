@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -38,12 +39,13 @@ import {
   Plus, 
   Pencil, 
   Trash, 
-  Upload, 
+  LinkIcon, 
   Check, 
   LockIcon, 
   ClockIcon, 
   Eye 
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 // Import types needed from DataContext
 import type { Student, Course, Lesson, QuizSet, QuizQuestion } from '@/contexts/DataContext';
@@ -73,22 +75,36 @@ const CourseManagement: React.FC = () => {
   const [lessonDescription, setLessonDescription] = useState('');
   const [instructorNotes, setInstructorNotes] = useState('');
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [editPdfFile, setEditPdfFile] = useState<File | null>(null);
+  const [pdfUrl, setPdfUrl] = useState('');
   const {
     quizSets
   } = useData();
 
-  // Handle file selection
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      if (isEdit) {
-        setEditPdfFile(files[0]);
-      } else {
-        setPdfFile(files[0]);
-      }
+  // Validate PDF URL
+  const validatePdfUrl = (url: string): boolean => {
+    if (!url) return false;
+    
+    try {
+      new URL(url);
+    } catch (e) {
+      toast({
+        title: 'Invalid URL',
+        description: 'Please enter a valid URL.',
+        variant: 'destructive',
+      });
+      return false;
     }
+    
+    if (!url.toLowerCase().endsWith('.pdf') && !url.toLowerCase().includes('.pdf?')) {
+      toast({
+        title: 'Invalid PDF URL',
+        description: 'The URL should point to a PDF file.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    return true;
   };
 
   // Handle add course
@@ -131,11 +147,14 @@ const CourseManagement: React.FC = () => {
   // Handle add lesson
   const handleAddLesson = () => {
     if (currentCourse) {
+      if (pdfUrl && !validatePdfUrl(pdfUrl)) {
+        return;
+      }
+      
       addLesson(currentCourse.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: '/placeholder.pdf',
-        // In a real app, this would be the uploaded PDF URL
+        pdfUrl: pdfUrl || '',
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -147,11 +166,16 @@ const CourseManagement: React.FC = () => {
   // Handle update lesson
   const handleUpdateLesson = () => {
     if (currentCourse && currentLesson) {
+      if (pdfUrl && !validatePdfUrl(pdfUrl)) {
+        return;
+      }
+      
       updateLesson(currentCourse.id, currentLesson.id, {
         title: lessonTitle,
         description: lessonDescription,
         instructorNotes: instructorNotes,
-        quizSetId: selectedQuizSetId
+        quizSetId: selectedQuizSetId,
+        pdfUrl: pdfUrl || currentLesson.pdfUrl
       });
       resetLessonForm();
       setIsEditLessonOpen(false);
@@ -180,6 +204,7 @@ const CourseManagement: React.FC = () => {
     setLessonDescription(lesson.description);
     setInstructorNotes(lesson.instructorNotes);
     setSelectedQuizSetId(lesson.quizSetId);
+    setPdfUrl(lesson.pdfUrl || '');
     setIsEditLessonOpen(true);
   };
 
@@ -189,8 +214,7 @@ const CourseManagement: React.FC = () => {
     setLessonDescription('');
     setInstructorNotes('');
     setSelectedQuizSetId(null);
-    setPdfFile(null);
-    setEditPdfFile(null);
+    setPdfUrl('');
   };
   return <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -319,19 +343,18 @@ const CourseManagement: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="pdfUpload">Upload PDF Slides</Label>
-                          <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
-                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">
-                              Drag and drop your PDF here, or click to select a file
+                          <Label htmlFor="pdfUrlInput">PDF Document URL</Label>
+                          <div className="flex flex-col gap-2">
+                            <Input 
+                              id="pdfUrlInput"
+                              type="url"
+                              placeholder="Enter PDF URL (e.g., https://example.com/document.pdf)"
+                              value={pdfUrl}
+                              onChange={e => setPdfUrl(e.target.value)}
+                            />
+                            <p className="text-xs text-gray-500">
+                              Enter the URL of a PDF document from an internal source
                             </p>
-                            <Input id="pdfUpload" type="file" accept=".pdf" onChange={e => handleFileChange(e, false)} className="hidden" />
-                            <Button variant="outline" size="sm" className="mt-2" onClick={() => document.getElementById('pdfUpload')?.click()}>
-                              Choose File
-                            </Button>
-                            {pdfFile && <p className="mt-2 text-sm text-green-600">
-                                Selected: {pdfFile.name}
-                              </p>}
                           </div>
                         </div>
                         
@@ -384,19 +407,23 @@ const CourseManagement: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="editPdfUpload">Update PDF Slides (Optional)</Label>
-                          <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
-                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">
-                              {currentLesson?.pdfUrl ? "Current PDF will be kept unless you select a new one" : "No PDF currently, upload one"}
+                          <Label htmlFor="editPdfUrl">PDF Document URL</Label>
+                          <div className="flex flex-col gap-2">
+                            <Input 
+                              id="editPdfUrl"
+                              type="url"
+                              placeholder="Enter PDF URL (e.g., https://example.com/document.pdf)"
+                              value={pdfUrl}
+                              onChange={e => setPdfUrl(e.target.value)}
+                            />
+                            {currentLesson?.pdfUrl && (
+                              <p className="text-xs text-gray-500">
+                                Current PDF: {currentLesson.pdfUrl}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500">
+                              Enter the URL of a PDF document from an internal source
                             </p>
-                            <Input id="editPdfUpload" type="file" accept=".pdf" onChange={e => handleFileChange(e, true)} className="hidden" />
-                            <Button variant="outline" size="sm" className="mt-2" onClick={() => document.getElementById('editPdfUpload')?.click()}>
-                              Choose File
-                            </Button>
-                            {editPdfFile && <p className="mt-2 text-sm text-green-600">
-                                Selected: {editPdfFile.name}
-                              </p>}
                           </div>
                         </div>
                         
