@@ -94,17 +94,7 @@ const Login: React.FC = () => {
           </form>
         </CardContent>
         
-        <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-          <div className="text-sm text-gray-600 text-center">
-            <p>Don't have an account? Contact your administrator.</p>
-          </div>
-          <div className="grid grid-cols-1 gap-2 w-full text-sm">
-            <div className="bg-gray-100 p-2 rounded">
-              <p className="text-center text-gray-600">Demo Accounts:</p>
-              <p className="text-xs text-gray-500 mt-1">Please set up accounts in the Supabase dashboard.</p>
-            </div>
-          </div>
-        </CardFooter>
+        
       </Card>
     </div>
   );
