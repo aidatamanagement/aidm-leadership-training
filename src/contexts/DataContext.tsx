@@ -665,7 +665,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Student functions
+  // Add Student function
   const addStudent = async (
     userData: { name: string; email: string }, 
     password: string, 
@@ -674,47 +674,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: userData.email,
-        password: password,
+        password,
         options: {
           data: {
-            name: userData.name,
-            role: role
+            role,
+            name: userData.name
           }
         }
       });
-
-      if (authError) throw authError;
       
-      // The profile will be created automatically through the database trigger
-
-      toast({
-        title: 'Student Added',
-        description: `${userData.name} has been added successfully.`
-      });
-      
-      // Skip signing in if skipSignIn option is provided
-      if (!(options && options.skipSignIn)) {
-        // Sign in with the new credentials
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: userData.email,
-          password: password,
-        });
-
-        if (signInError) throw signInError;
+      if (signUpError) {
+        throw signUpError;
       }
-
+      
+      // Get the new user ID
+      const userId = signUpData.user?.id;
+      
+      if (!userId) {
+        throw new Error('Failed to create user account');
+      }
+      
+      // Force refresh students list
+      await fetchStudents();
+      
+      // Always skip signing in when adding a student from admin dashboard
+      // This ensures we don't redirect away from the admin dashboard
+      
       return { success: true };
     } catch (error: any) {
-      console.error("Error adding student:", error);
-      return { 
-        success: false, 
-        error: error.message || 'An error occurred while creating the account' 
-      };
+      console.error('Error adding student:', error);
+      return { success: false, error: error.message };
     }
   };
 
+  // Student functions
   const updateStudent = async (studentId: string, updates: Partial<Student>) => {
     try {
       const { error } = await supabase

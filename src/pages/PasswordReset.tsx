@@ -15,6 +15,7 @@ const PasswordReset: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isValidToken, setIsValidToken] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -72,6 +73,11 @@ const PasswordReset: React.FC = () => {
         throw error;
       }
 
+      // Sign out the user to prevent automatic login
+      await supabase.auth.signOut();
+      
+      setIsSuccess(true);
+      
       toast({
         title: 'Password updated successfully',
         description: 'You can now login with your new password',
@@ -110,7 +116,16 @@ const PasswordReset: React.FC = () => {
             </Alert>
           ) : null}
           
-          {!isValidToken ? (
+          {isSuccess ? (
+            <div className="text-center py-4">
+              <p className="text-green-600 mb-4">
+                Password updated successfully! Redirecting to login page...
+              </p>
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            </div>
+          ) : !isValidToken ? (
             <div className="text-center py-4">
               <p className="text-gray-600 mb-4">
                 {error || 'Verifying your reset token...'}

@@ -47,10 +47,15 @@ const AdminStudentManagement: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const result = await addStudent({
-        name: studentName,
-        email: studentEmail,
-      }, studentPassword, 'student', { skipSignIn: true }); // Add skipSignIn option
+      const result = await addStudent(
+        {
+          name: studentName,
+          email: studentEmail,
+        }, 
+        studentPassword, 
+        'student',
+        { skipSignIn: true }
+      );
       
       if (result.success) {
         toast({
