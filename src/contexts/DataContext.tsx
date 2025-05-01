@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import {
@@ -475,7 +474,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Helper function to check if a course is locked for a user
   const isCourseLockedForUser = (userId: string, courseId: string) => {
-    return progressService.isCourseLockedForUser(userId, courseId, progress);
+    if (!userId || !courseId) return false;
+    
+    // Find all progress entries for this user and course
+    const userCourseAssignments = progress.filter(
+      p => p.userId === userId && p.courseId === courseId
+    );
+    
+    // First check from assignments if course is locked
+    const assignmentMatch = progress.find(
+      p => p.userId === userId && p.courseId === courseId && p.locked === true
+    );
+    
+    if (assignmentMatch) {
+      return true;
+    }
+    
+    // If no specific lock found, check if the course is assigned to the user at all
+    const student = students.find(s => s.id === userId);
+    if (!student || !student.assignedCourses.includes(courseId)) {
+      // No assignment means no access
+      return false;
+    }
+    
+    return false;
   };
 
   return (
