@@ -62,6 +62,9 @@ const LessonPage: React.FC = () => {
       setLesson(currentLesson);
       
       if (currentLesson) {
+        console.log("Current lesson data:", currentLesson);
+        console.log("PDF URL from lesson:", currentLesson.pdfUrl);
+        
         // Find quiz set if it exists
         setQuizSet(
           currentLesson.quizSetId 
@@ -196,6 +199,8 @@ const LessonPage: React.FC = () => {
           timeSpent={timeTracker + (progress?.timeSpent || 0)}
         />
         
+        {/* Pass the PDF URL explicitly and log it */}
+        {console.log("Rendering PDFViewer with URL:", lesson.pdfUrl)}
         <PDFViewer pdfUrl={lesson.pdfUrl} />
         
         <InstructorNotes notes={lesson.instructorNotes} />
