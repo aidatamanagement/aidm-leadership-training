@@ -40,9 +40,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   }
 
   // Check if the user's role is in the allowed roles
-  if (!allowedRoles.includes(user.type as any)) {
+  if (!allowedRoles.includes(user.type as 'admin' | 'student')) {
     // Redirect based on user type
-    return <Navigate to={user.type === 'admin' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
