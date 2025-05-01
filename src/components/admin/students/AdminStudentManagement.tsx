@@ -15,7 +15,6 @@ const AdminStudentManagement: React.FC = () => {
     addStudent,
     updateStudent,
     deleteStudent,
-    assignCourse,
   } = useData();
   
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
@@ -61,7 +60,7 @@ const AdminStudentManagement: React.FC = () => {
   // Handle assign course
   const handleAssignCourse = (courseId: string) => {
     if (currentStudent && courseId) {
-      assignCourse(currentStudent.id, courseId);
+      useData().assignCourse(currentStudent.id, courseId);
       setIsAssignCourseOpen(false);
     }
   };
