@@ -41,15 +41,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
         <div className="flex space-x-1">
           <Button 
             size="sm" 
-            variant={isLocked ? "destructive" : "outline"} 
+            variant={isLocked ? "default" : "outline"} 
+            className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
             onClick={(e) => {
               e.stopPropagation();
               onToggleLock();
             }}
             title={isLocked ? "Unlock Course" : "Lock Course"}
-            className={isLocked ? "bg-red-500 hover:bg-red-600" : ""}
           >
-            {isLocked ? <Lock className="h-3 w-3 text-white" /> : <LockOpen className="h-3 w-3" />}
+            {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
           <Button 
             size="sm" 

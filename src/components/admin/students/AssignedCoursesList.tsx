@@ -11,7 +11,7 @@ interface AssignedCoursesListProps {
 }
 
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
-  const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment, isCourseLockedForUser } = useData();
+  const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment } = useData();
 
   // Format time spent
   const formatTimeSpent = (seconds: number) => {
@@ -47,7 +47,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
             const totalLessons = course.lessons.length;
             const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
             const quizScore = getTotalQuizScore(student.id, courseId);
-            const isLocked = isCourseLockedForUser(student.id, courseId);
+            const isLocked = studentProgress.some(p => p.locked);
             const viewedLessonsCount = studentProgress.filter(p => p.pdfViewed).length;
             
             return (
