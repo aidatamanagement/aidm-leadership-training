@@ -18,8 +18,10 @@ const PasswordReset: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Get the token from URL parameters
   const token = searchParams.get('token');
-
+  
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
@@ -28,11 +30,14 @@ const PasswordReset: React.FC = () => {
       }
 
       try {
-        // Check if the token is valid by getting the user
-        const { data, error } = await supabase.auth.getUser(token);
+        // Use the password recovery method which will verify if the token is valid
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'recovery'
+        });
         
-        if (error || !data.user) {
-          throw new Error('Invalid or expired reset token');
+        if (error) {
+          throw error;
         }
         
         setIsValidToken(true);
