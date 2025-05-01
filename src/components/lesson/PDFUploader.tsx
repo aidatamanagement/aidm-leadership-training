@@ -71,21 +71,18 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
     
     try {
       setUploading(true);
+      setProgress(10); // Start with some initial progress
       
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          const newProgress = prev + 10;
-          return newProgress > 90 ? 90 : newProgress;
-        });
-      }, 300);
+      // First check if the "pdfs" bucket exists
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
       
-      // Check if the "pdfs" bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        throw bucketsError;
+      }
+      
       const pdfsBucketExists = buckets?.some(bucket => bucket.name === 'pdfs');
       
       if (!pdfsBucketExists) {
-        clearInterval(progressInterval);
         throw new Error('Storage bucket "pdfs" not found. Please contact administrator.');
       }
       
@@ -94,21 +91,27 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
       const fileName = `${lessonId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
+      setProgress(30); // Update progress after bucket check
+      
       // Upload file to Supabase storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('pdfs')
-        .upload(filePath, selectedFile);
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) {
         throw uploadError;
       }
       
+      setProgress(70); // Update progress after upload
+      
       // Get the public URL
       const { data } = supabase.storage.from('pdfs').getPublicUrl(filePath);
       const url = data.publicUrl;
       
-      clearInterval(progressInterval);
-      setProgress(100);
+      setProgress(100); // Complete progress
       
       setPdfUrl(url);
       onUploadComplete(url);
@@ -118,6 +121,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({
         description: 'PDF file has been uploaded successfully.'
       });
     } catch (error: any) {
+      console.error('PDF Upload Error:', error);
       toast({
         title: 'Upload Failed',
         description: error.message || 'Failed to upload PDF file.',
