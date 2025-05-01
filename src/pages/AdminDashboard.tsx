@@ -483,7 +483,7 @@ const QuizManagement: React.FC = () => {
       updateQuizSet(currentQuizSet.id, {
         title: quizSetTitle
       });
-      setIsEditQuizSetOpen(false);
+      setIsEditQuizSetOpen(true);
     }
   };
 
