@@ -834,7 +834,6 @@ const StudentManagement: React.FC = () => {
     addStudent({
       name: studentName,
       email: studentEmail,
-      assignedCourses: []
     }, '', 'student');  // Add empty password and default role 'student'
     resetStudentForm();
     setIsAddStudentOpen(false);
