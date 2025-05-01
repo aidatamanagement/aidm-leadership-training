@@ -196,7 +196,7 @@ const LessonPage: React.FC = () => {
           timeSpent={timeTracker + (progress?.timeSpent || 0)}
         />
         
-        <PDFViewer pdfUrl={lesson.pdfUrl} />
+        <PDFViewer lessonId={lessonId} />
         
         <InstructorNotes notes={lesson.instructorNotes} />
         

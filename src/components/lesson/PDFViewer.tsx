@@ -1,18 +1,51 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PDFViewerProps {
-  pdfUrl: string;
+  pdfUrl?: string;
+  lessonId?: string;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, lessonId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lessonPdfUrl, setLessonPdfUrl] = useState<string | null>(pdfUrl || null);
+
+  // Fetch the lesson PDF URL if lessonId is provided but pdfUrl is not
+  useEffect(() => {
+    const fetchLessonPdf = async () => {
+      if (!pdfUrl && lessonId) {
+        try {
+          const { data, error } = await supabase
+            .from('lessons')
+            .select('pdf_url')
+            .eq('id', lessonId)
+            .single();
+
+          if (error) throw error;
+          if (data && data.pdf_url) {
+            setLessonPdfUrl(data.pdf_url);
+          }
+        } catch (err: any) {
+          console.error('Error fetching PDF URL:', err);
+          setError(`Could not load PDF: ${err.message}`);
+          toast({
+            title: 'Error',
+            description: 'Failed to fetch the PDF for this lesson.',
+            variant: 'destructive',
+          });
+        }
+      }
+    };
+
+    fetchLessonPdf();
+  }, [lessonId, pdfUrl]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -29,7 +62,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   };
 
   const openInNewTab = () => {
-    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    if (lessonPdfUrl) {
+      window.open(lessonPdfUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -48,7 +83,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           </div>
         )}
         
-        {pdfUrl ? (
+        {lessonPdfUrl ? (
           <div className="flex flex-col">
             <div className="flex justify-end mb-2">
               <Button 
@@ -62,7 +97,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
               </Button>
             </div>
             <iframe 
-              src={pdfUrl}
+              src={lessonPdfUrl}
               className="w-full min-h-[600px] border-0"
               onLoad={handleLoad}
               onError={handleError}
