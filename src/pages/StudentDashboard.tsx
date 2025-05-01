@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData, Course } from '@/contexts/DataContext';
@@ -17,11 +17,37 @@ const StudentDashboard: React.FC = () => {
     getCompletedLessonsCount,
     getStudentProgress,
     getTotalQuizScore,
-    isCourseLockedForUser
+    isCourseLockedForUser,
+    isLoading
   } = useData();
+  const [dataReady, setDataReady] = useState(false);
+  
+  useEffect(() => {
+    // Only set data as ready when both user and student data are loaded
+    if (user && !isLoading && students.length > 0) {
+      setDataReady(true);
+    }
+  }, [user, students, isLoading]);
+
+  // Show a loading spinner while we're fetching data
+  if (isLoading || !dataReady) {
+    return (
+      <AppLayout>
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <AppLayout>
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
   }
 
   const currentStudent = students.find(s => s.id === user.id);
