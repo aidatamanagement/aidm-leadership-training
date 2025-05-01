@@ -1,0 +1,86 @@
+
+import React from 'react';
+import { Course } from '@/contexts/DataContext';
+import { Button } from '@/components/ui/button';
+import { Lock, Trash, Clock, Eye } from 'lucide-react';
+
+interface CourseCardProps {
+  course: Course;
+  completedLessons: number;
+  totalLessons: number;
+  totalTimeSpent: number;
+  viewedLessonsCount: number;
+  quizScore: { score: number; total: number };
+  isLocked: boolean;
+  onToggleLock: () => void;
+  onRemoveCourse: () => void;
+  formatTimeSpent: (seconds: number) => string;
+}
+
+const CourseCard: React.FC<CourseCardProps> = ({
+  course, 
+  completedLessons,
+  totalLessons,
+  totalTimeSpent,
+  viewedLessonsCount,
+  quizScore,
+  isLocked,
+  onToggleLock,
+  onRemoveCourse,
+  formatTimeSpent
+}) => {
+  return (
+    <div className="border rounded-md p-4 bg-white">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h5 className="font-semibold">{course.title}</h5>
+          <p className="text-sm text-gray-600">
+            Progress: {completedLessons} / {totalLessons} lessons
+          </p>
+        </div>
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant={isLocked ? "default" : "outline"} 
+            className={isLocked ? "bg-red-600 hover:bg-red-700" : ""}
+            onClick={onToggleLock}
+            title={isLocked ? "Unlock Course" : "Lock Course"}
+          >
+            <Lock className="h-3 w-3" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={onRemoveCourse}
+          >
+            <Trash className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+        <div className="flex items-center">
+          <Clock className="mr-1 h-3 w-3" />
+          <span>
+            Time spent: {formatTimeSpent(totalTimeSpent)}
+          </span>
+        </div>
+        
+        <div className="flex items-center">
+          <Eye className="mr-1 h-3 w-3" />
+          <span>
+            {viewedLessonsCount} / {totalLessons} viewed
+          </span>
+        </div>
+      </div>
+      
+      {quizScore.total > 0 && (
+        <div className="mt-2 text-xs text-gray-600">
+          Quiz Score: {quizScore.score} / {quizScore.total}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CourseCard;
