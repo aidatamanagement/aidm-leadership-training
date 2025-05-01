@@ -47,8 +47,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
               onToggleLock();
             }}
             title={isLocked ? "Unlock Course" : "Lock Course"}
+            className={isLocked ? "bg-red-500 hover:bg-red-600" : ""}
           >
-            {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
+            {isLocked ? <Lock className="h-3 w-3 text-white" /> : <LockOpen className="h-3 w-3" />}
           </Button>
           <Button 
             size="sm" 

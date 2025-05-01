@@ -30,7 +30,8 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   useEffect(() => {
     // Check if trying to access a course page
     if (courseId && isAuthenticated && user && user.type === 'student') {
-      if (isCourseLockedForUser(user.id, courseId)) {
+      const isLocked = isCourseLockedForUser(user.id, courseId);
+      if (isLocked) {
         toast({
           title: 'Course Locked',
           description: 'This course has been locked by your instructor.',
