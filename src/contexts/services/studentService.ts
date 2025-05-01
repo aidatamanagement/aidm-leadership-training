@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Student } from '../types/DataTypes';
@@ -227,14 +228,9 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('course_id', courseId)
       .single();
 
-    if (fetchError) {
-      console.error('Error fetching lock status:', fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
-    // Determine the new locked status (toggle the current value)
     const newLockedStatus = !assignment.locked;
-    console.log(`Toggling course lock for student ${studentId}, course ${courseId} to ${newLockedStatus}`);
 
     // Update the lock status
     const { error: updateError } = await supabase
@@ -243,10 +239,7 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
       .eq('user_id', studentId)
       .eq('course_id', courseId);
 
-    if (updateError) {
-      console.error('Error updating lock status:', updateError);
-      throw updateError;
-    }
+    if (updateError) throw updateError;
     
     toast({
       title: newLockedStatus ? 'Course Locked' : 'Course Unlocked',
