@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useData, Course, Lesson } from '@/contexts/DataContext';
+import { useData, Course, Lesson, QuizSet, Student, QuizQuestion } from '@/contexts/DataContext';
 import AppLayout from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminStudentManagement from '@/components/AdminStudentManagement';
@@ -34,7 +34,16 @@ import {
   RadioGroup,
   RadioGroupItem
 } from '@/components/ui/radio-group';
-import { Plus, Pencil, Trash, Upload, Check } from 'lucide-react';
+import { 
+  Plus, 
+  Pencil, 
+  Trash, 
+  Upload, 
+  Check, 
+  LockIcon, 
+  ClockIcon, 
+  Eye 
+} from 'lucide-react';
 
 // Course Management Components
 const CourseManagement: React.FC = () => {
@@ -815,7 +824,6 @@ const StudentManagement: React.FC = () => {
   // Form states
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
-  const [studentPassword, setStudentPassword] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
 
   // Handle add student
@@ -823,7 +831,6 @@ const StudentManagement: React.FC = () => {
     addStudent({
       name: studentName,
       email: studentEmail,
-      password: studentPassword,
       assignedCourses: []
     });
     resetStudentForm();
@@ -835,8 +842,7 @@ const StudentManagement: React.FC = () => {
     if (currentStudent) {
       updateStudent(currentStudent.id, {
         name: studentName,
-        email: studentEmail,
-        password: studentPassword
+        email: studentEmail
       });
       setIsEditStudentOpen(false);
     }
@@ -854,7 +860,6 @@ const StudentManagement: React.FC = () => {
     setCurrentStudent(student);
     setStudentName(student.name);
     setStudentEmail(student.email);
-    setStudentPassword(student.password);
     setIsEditStudentOpen(true);
   };
 
@@ -885,7 +890,6 @@ const StudentManagement: React.FC = () => {
   const resetStudentForm = () => {
     setStudentName('');
     setStudentEmail('');
-    setStudentPassword('');
   };
   return <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -919,14 +923,9 @@ const StudentManagement: React.FC = () => {
                 <Label htmlFor="studentEmail">Email</Label>
                 <Input id="studentEmail" type="email" placeholder="Enter student email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="studentPassword">Password</Label>
-                <Input id="studentPassword" type="password" placeholder="Enter password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
-              </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail || !studentPassword}>
+              <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail}>
                 Add Student
               </Button>
             </div>
@@ -951,14 +950,9 @@ const StudentManagement: React.FC = () => {
                 <Label htmlFor="editStudentEmail">Email</Label>
                 <Input id="editStudentEmail" type="email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="editStudentPassword">Password</Label>
-                <Input id="editStudentPassword" type="password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
-              </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleUpdateStudent} disabled={!studentName || !studentEmail || !studentPassword}>
+              <Button onClick={handleUpdateStudent} disabled={!studentName || !studentEmail}>
                 Update Student
               </Button>
             </div>
@@ -1042,54 +1036,54 @@ const StudentManagement: React.FC = () => {
                     </Button>
                   </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {student.assignedCourses.map(courseId => {
-              const course = courses.find(c => c.id === courseId);
-              if (!course) return null;
-              const studentProgress = getStudentProgress(student.id, courseId);
-              const completedLessons = studentProgress.filter(p => p.completed).length;
-              const totalLessons = course.lessons.length;
-              const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
-              const quizScore = getTotalQuizScore(student.id, courseId);
-              const isLocked = studentProgress.some(p => p.locked);
-              return <div key={courseId} className="border rounded-md p-4 bg-white">
+                      const course = courses.find(c => c.id === courseId);
+                      if (!course) return null;
+                      const studentProgress = getStudentProgress(student.id, courseId);
+                      const completedLessons = studentProgress.filter(p => p.completed).length;
+                      const totalLessons = course.lessons.length;
+                      const totalTimeSpent = studentProgress.reduce((total, p) => total + p.timeSpent, 0);
+                      const quizScore = getTotalQuizScore(student.id, courseId);
+                      const isLocked = studentProgress.some(p => p.locked);
+                      return <div key={courseId} className="border rounded-md p-4 bg-white">
                           <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h5 className="font-semibold">{course.title}</h5>
-                              <p className="text-sm text-gray-600">
-                                Progress: {completedLessons} / {totalLessons} lessons
-                              </p>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button size="sm" variant={isLocked ? "default" : "outline"} className={isLocked ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => toggleCourseLock(student.id, courseId)}>
-                                <Lock className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => removeCourseAssignment(student.id, courseId)}>
-                                <Trash className="h-3 w-3" />
-                              </Button>
-                            </div>
+                              <div>
+                                  <h5 className="font-semibold">{course.title}</h5>
+                                  <p className="text-sm text-gray-600">
+                                    Progress: {completedLessons} / {totalLessons} lessons
+                                  </p>
+                              </div>
+                              <div className="flex space-x-1">
+                                  <Button size="sm" variant={isLocked ? "default" : "outline"} className={isLocked ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => toggleCourseLock(student.id, courseId)}>
+                                      <LockIcon className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => removeCourseAssignment(student.id, courseId)}>
+                                      <Trash className="h-3 w-3" />
+                                  </Button>
+                              </div>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                            <div className="flex items-center">
-                              <Clock className="mr-1 h-3 w-3" />
-                              <span>
-                                Time spent: {formatTimeSpent(totalTimeSpent)}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center">
-                              <Eye className="mr-1 h-3 w-3" />
-                              <span>
-                                {studentProgress.filter(p => p.pdfViewed).length} / {totalLessons} viewed
-                              </span>
-                            </div>
+                              <div className="flex items-center">
+                                  <ClockIcon className="mr-1 h-3 w-3" />
+                                  <span>
+                                      Time spent: {formatTimeSpent(totalTimeSpent)}
+                                  </span>
+                              </div>
+                              
+                              <div className="flex items-center">
+                                  <Eye className="mr-1 h-3 w-3" />
+                                  <span>
+                                      {studentProgress.filter(p => p.pdfViewed).length} / {totalLessons} viewed
+                                  </span>
+                              </div>
                           </div>
                           
                           {quizScore.total > 0 && <div className="mt-2 text-xs text-gray-600">
                               Quiz Score: {quizScore.score} / {quizScore.total}
                             </div>}
-                        </div>;
-            })}
-                  </div>}
+                      </div>;
+                  })}
+                </div>}
               </AccordionContent>
             </AccordionItem>)}
         </Accordion>}
