@@ -33,8 +33,6 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <DataProvider>
-            <Toaster />
-            <Sonner />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<RedirectIfAuthenticated />} />
@@ -87,6 +85,8 @@ const App = () => (
               {/* Not found route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Toaster />
+            <Sonner />
           </DataProvider>
         </AuthProvider>
       </BrowserRouter>
