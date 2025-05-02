@@ -45,6 +45,7 @@ import {
   Eye 
 } from 'lucide-react';
 import PDFUploader from '@/components/lesson/PDFUploader';
+import RichTextEditor from '@/components/RichTextEditor';
 
 // Import types needed from DataContext
 import type { Student, Course, Lesson, QuizSet, QuizQuestion } from '@/contexts/DataContext';
@@ -322,7 +323,12 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes">Instructor Notes</Label>
-                          <Textarea id="instructorNotes" placeholder="Add instructor notes (supports HTML)" value={instructorNotes} onChange={e => setInstructorNotes(e.target.value)} rows={6} />
+                          <RichTextEditor 
+                            value={instructorNotes} 
+                            onChange={setInstructorNotes}
+                            placeholder="Add instructor notes (supports HTML)"
+                            rows={6}
+                          />
                         </div>
                         
                         <div className="space-y-2">
@@ -379,7 +385,12 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes">Instructor Notes</Label>
-                          <Textarea id="editInstructorNotes" value={instructorNotes} onChange={e => setInstructorNotes(e.target.value)} rows={6} />
+                          <RichTextEditor 
+                            value={instructorNotes} 
+                            onChange={setInstructorNotes}
+                            placeholder="Add instructor notes (supports HTML)"
+                            rows={6}
+                          />
                         </div>
                         
                         <div className="space-y-2">
