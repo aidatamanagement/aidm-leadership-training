@@ -7,7 +7,7 @@ import CourseCard from './CourseCard';
 
 interface AssignedCoursesListProps {
   student: Student;
-  onAssignCourse: () => void; // Add this property to match StudentList's usage
+  onAssignCourse: () => void;
 }
 
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
@@ -63,7 +63,6 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 onToggleLock={() => toggleCourseLock(student.id, courseId)}
                 onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
                 formatTimeSpent={formatTimeSpent}
-                showPreviewButton={true}
               />
             );
           })}
