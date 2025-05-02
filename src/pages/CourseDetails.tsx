@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +20,7 @@ const CourseDetails: React.FC = () => {
   } = useData();
 
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
+  const isAdmin = user?.type === 'admin';
 
   useEffect(() => {
     setCourse(courses.find(c => c.id === courseId));
@@ -48,14 +50,22 @@ const CourseDetails: React.FC = () => {
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link to="/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <Link to={isAdmin ? "/admin" : "/dashboard"}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> 
+              {isAdmin ? "Back to Admin Dashboard" : "Back to Dashboard"}
             </Link>
           </Button>
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {course.title}
+                {isAdmin && (
+                  <Badge variant="outline" className="ml-2 bg-orange-100 text-orange-700">
+                    Preview Mode
+                  </Badge>
+                )}
+              </h1>
               <p className="text-gray-600 max-w-2xl">{course.description}</p>
             </div>
             
@@ -74,7 +84,8 @@ const CourseDetails: React.FC = () => {
         <h2 className="text-xl font-bold mb-4">Course Content</h2>
         <div className="space-y-4">
           {sortedLessons.map((lesson) => {
-            const isAccessible = isLessonAccessible(user.id, course.id, lesson.order);
+            // For admins, all lessons are accessible in preview mode
+            const isAccessible = isAdmin || isLessonAccessible(user.id, course.id, lesson.order);
             const progress = getStudentProgress(user.id, course.id).find(p => p.lessonId === lesson.id);
             const isCompleted = progress?.completed || false;
             

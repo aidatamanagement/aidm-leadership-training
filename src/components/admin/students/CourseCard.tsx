@@ -3,6 +3,7 @@ import React from 'react';
 import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CourseCardProps {
   course: Course;
@@ -39,6 +40,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </p>
         </div>
         <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            asChild
+            title="Preview Course"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Link to={`/courses/${course.id}`}>
+              <Eye className="h-3 w-3" />
+            </Link>
+          </Button>
           <Button 
             size="sm" 
             variant={isLocked ? "destructive" : "outline"} 
