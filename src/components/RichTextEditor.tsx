@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Underline, List, Link, Heading, IndentIncrease, IndentDecrease } from 'lucide-react';
-import Link2 from '@tiptap/extension-link';
-import Underline2 from '@tiptap/extension-underline';
+import LinkExtension from '@tiptap/extension-link';
+import UnderlineExtension from '@tiptap/extension-underline';
 
 interface RichTextEditorProps {
   value: string;
@@ -27,14 +27,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Link2.configure({
+      LinkExtension.configure({
         openOnClick: false,
         linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary underline',
         }
       }),
-      Underline2,
+      UnderlineExtension,
     ],
     content: value,
     editorProps: {
