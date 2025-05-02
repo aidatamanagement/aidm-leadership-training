@@ -14,6 +14,7 @@ interface CourseCardProps {
   isLocked: boolean;
   onToggleLock: () => void;
   onRemoveCourse: () => void;
+  onPreviewCourse?: () => void;
   formatTimeSpent: (seconds: number) => string;
 }
 
@@ -27,6 +28,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   isLocked,
   onToggleLock,
   onRemoveCourse,
+  onPreviewCourse,
   formatTimeSpent
 }) => {
   return (
@@ -39,6 +41,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </p>
         </div>
         <div className="flex space-x-1">
+          {onPreviewCourse && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreviewCourse();
+              }}
+              title="Preview Course"
+            >
+              <Eye className="h-3 w-3" />
+            </Button>
+          )}
           <Button 
             size="sm" 
             variant={isLocked ? "destructive" : "outline"} 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -6,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminStudentManagement from '@/components/admin/students/AdminStudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import PreviewModeToggle from '@/components/admin/preview/PreviewModeToggle';
 import {
   Dialog,
   DialogContent,
@@ -1113,6 +1115,9 @@ const AdminDashboard: React.FC = () => {
     <AppLayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        
+        {/* Preview mode toggle control */}
+        <PreviewModeToggle />
         
         <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-8 w-fit inline-block">
