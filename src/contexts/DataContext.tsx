@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import {
@@ -30,6 +29,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [quizSettings, setQuizSettings] = useState<QuizSettings>({ passMarkPercentage: 70, enforcePassMark: true });
   const [isLoading, setIsLoading] = useState(true);
+  const [lessonLocks, setLessonLocks] = useState<Record<string, Record<string, boolean>>>({});
   
   const { user } = useAuth();
 
@@ -373,6 +373,55 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
+  // New functions for lesson-level locking
+  const isLessonLocked = async (studentId: string, courseId: string, lessonId: string): Promise<boolean> => {
+    // Check in local state first
+    if (lessonLocks[studentId]?.[lessonId] !== undefined) {
+      return lessonLocks[studentId][lessonId];
+    }
+
+    // Otherwise fetch from database
+    const isLocked = await studentService.isLessonLocked(studentId, courseId, lessonId);
+    
+    // Update local state
+    setLessonLocks(prev => ({
+      ...prev,
+      [studentId]: {
+        ...(prev[studentId] || {}),
+        [lessonId]: isLocked
+      }
+    }));
+    
+    return isLocked;
+  };
+
+  const toggleLessonLock = async (studentId: string, courseId: string, lessonId: string): Promise<boolean> => {
+    const newLockStatus = await studentService.toggleLessonLock(studentId, courseId, lessonId);
+    
+    // Update local state
+    setLessonLocks(prev => ({
+      ...prev,
+      [studentId]: {
+        ...(prev[studentId] || {}),
+        [lessonId]: newLockStatus
+      }
+    }));
+    
+    return newLockStatus;
+  };
+
+  const fetchLessonLocks = async (studentId: string, courseId: string) => {
+    const locks = await studentService.getLessonLocks(studentId, courseId);
+    
+    // Update local state
+    setLessonLocks(prev => ({
+      ...prev,
+      [studentId]: locks
+    }));
+    
+    return locks;
+  };
+
   const markLessonComplete = async (userId: string, courseId: string, lessonId: string, quizScore?: number) => {
     const course = courses.find(c => c.id === courseId);
     if (!course) return;
@@ -514,7 +563,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLoading,
       refreshData,
       uploadPdf,
-      isCourseLockedForUser
+      isCourseLockedForUser,
+      // New functions for lesson-level locking
+      isLessonLocked,
+      toggleLessonLock,
+      fetchLessonLocks
     }}>
       {children}
     </DataContext.Provider>

@@ -257,3 +257,107 @@ export const toggleCourseLock = async (studentId: string, courseId: string): Pro
     throw error;
   }
 };
+
+// Get lesson lock status
+export const isLessonLocked = async (studentId: string, courseId: string, lessonId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_lesson_locks')
+      .select('locked')
+      .eq('user_id', studentId)
+      .eq('course_id', courseId)
+      .eq('lesson_id', lessonId)
+      .maybeSingle();
+    
+    if (error) throw error;
+    
+    // If no record exists, lesson is not locked
+    return data?.locked || false;
+  } catch (error) {
+    console.error('Error checking lesson lock status:', error);
+    return false;
+  }
+};
+
+// Toggle lesson lock status
+export const toggleLessonLock = async (studentId: string, courseId: string, lessonId: string): Promise<boolean> => {
+  try {
+    // Check if a lock record exists
+    const { data: existingLock, error: checkError } = await supabase
+      .from('user_lesson_locks')
+      .select('*')
+      .eq('user_id', studentId)
+      .eq('course_id', courseId)
+      .eq('lesson_id', lessonId)
+      .maybeSingle();
+    
+    if (checkError && checkError.code !== 'PGRST116') throw checkError;
+    
+    let newLockStatus: boolean;
+    
+    if (existingLock) {
+      // Toggle existing lock
+      newLockStatus = !existingLock.locked;
+      
+      const { error: updateError } = await supabase
+        .from('user_lesson_locks')
+        .update({ locked: newLockStatus })
+        .eq('id', existingLock.id);
+        
+      if (updateError) throw updateError;
+    } else {
+      // Create new lock record (default to locked=true)
+      newLockStatus = true;
+      
+      const { error: insertError } = await supabase
+        .from('user_lesson_locks')
+        .insert([{
+          user_id: studentId,
+          course_id: courseId,
+          lesson_id: lessonId,
+          locked: true
+        }]);
+        
+      if (insertError) throw insertError;
+    }
+    
+    toast({
+      title: newLockStatus ? 'Lesson Locked' : 'Lesson Unlocked',
+      description: `Lesson access has been ${newLockStatus ? 'disabled' : 'enabled'} for the student.`
+    });
+    
+    return newLockStatus;
+  } catch (error: any) {
+    console.error('Error toggling lesson lock:', error);
+    toast({
+      title: 'Error',
+      description: error.message || 'Failed to update lesson lock status',
+      variant: 'destructive',
+    });
+    throw error;
+  }
+};
+
+// Get all lesson locks for a student course
+export const getLessonLocks = async (studentId: string, courseId: string): Promise<Record<string, boolean>> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_lesson_locks')
+      .select('lesson_id, locked')
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+      
+    if (error) throw error;
+    
+    // Convert to record format for easy lookup
+    const lockMap: Record<string, boolean> = {};
+    data.forEach(lock => {
+      lockMap[lock.lesson_id] = lock.locked;
+    });
+    
+    return lockMap;
+  } catch (error) {
+    console.error('Error fetching lesson locks:', error);
+    return {};
+  }
+};

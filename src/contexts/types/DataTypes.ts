@@ -91,4 +91,8 @@ export interface DataContextType {
   refreshData: () => Promise<void>;
   uploadPdf: (file: File, lessonId: string) => Promise<string>;
   isCourseLockedForUser: (userId: string, courseId: string) => boolean;
+  // New functions for lesson-level locking
+  isLessonLocked: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
+  toggleLessonLock: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
+  fetchLessonLocks: (studentId: string, courseId: string) => Promise<Record<string, boolean>>;
 }
