@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Underline as UnderlineIcon, List, Link as LinkIcon, Heading, IndentIncrease, IndentDecrease } from 'lucide-react';
-import LinkExtension from '@tiptap/extension-link';
-import UnderlineExtension from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
 
 interface RichTextEditorProps {
   value: string;
@@ -27,14 +27,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      LinkExtension.configure({
+      Link.configure({
         openOnClick: false,
         linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary underline',
         }
       }),
-      UnderlineExtension,
+      Underline,
     ],
     content: value,
     editorProps: {
@@ -58,7 +58,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const setLink = () => {
     if (!linkUrl) {
-      // Remove the link
+      // Remove the link - fixed method name to match TipTap API
       editor?.chain().focus().extendMarkRange('link').unsetLink().run();
       setShowLinkInput(false);
       return;
@@ -70,7 +70,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       url = 'https://' + url;
     }
 
-    // Set the link with the proper API
+    // Set the link with the correct API
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     setLinkUrl('');
     setShowLinkInput(false);
