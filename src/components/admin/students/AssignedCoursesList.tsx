@@ -54,6 +54,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
               <CourseCard 
                 key={courseId}
                 course={course}
+                studentId={student.id}
                 completedLessons={completedLessons}
                 totalLessons={totalLessons}
                 totalTimeSpent={totalTimeSpent}

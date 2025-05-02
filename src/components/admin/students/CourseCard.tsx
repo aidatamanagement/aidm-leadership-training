@@ -4,9 +4,11 @@ import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import LessonLockAccordion from './LessonLockAccordion';
 
 interface CourseCardProps {
   course: Course;
+  studentId: string;
   completedLessons: number;
   totalLessons: number;
   totalTimeSpent: number;
@@ -20,6 +22,7 @@ interface CourseCardProps {
 
 const CourseCard: React.FC<CourseCardProps> = ({
   course, 
+  studentId,
   completedLessons,
   totalLessons,
   totalTimeSpent,
@@ -96,6 +99,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
           Quiz Score: {quizScore.score} / {quizScore.total}
         </div>
       )}
+      
+      {/* Add the new lesson lock accordion */}
+      <LessonLockAccordion course={course} studentId={studentId} />
     </div>
   );
 };
