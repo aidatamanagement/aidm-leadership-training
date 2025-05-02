@@ -58,7 +58,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const setLink = () => {
     if (!linkUrl) {
-      // Use the unlink command instead of unsetLink
+      // Fix: use unlink() instead of unsetLink()
       editor?.chain().focus().extendMarkRange('link').unlink().run();
       setShowLinkInput(false);
       return;
@@ -70,7 +70,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       url = 'https://' + url;
     }
 
-    // Use setLink with the proper signature
+    // Fix: use the correct setLink syntax
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     setLinkUrl('');
     setShowLinkInput(false);
