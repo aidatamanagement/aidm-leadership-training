@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { UserType } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { usePreviewMode } from '@/contexts/PreviewModeContext';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { courseId } = useParams<{ courseId: string }>();
   const { isCourseLockedForUser } = useData();
+  const { isPreviewMode, previewAsUserId } = usePreviewMode();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
@@ -40,6 +42,12 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
 
   // Always allow admin users to access any page
   if (user.type === 'admin') {
+    // If admin is in preview mode and trying to access student routes, allow it
+    if (isPreviewMode && allowedRoles.includes('student') && previewAsUserId) {
+      return <>{children}</>;
+    }
+    
+    // Regular admin access
     return <>{children}</>;
   }
 
