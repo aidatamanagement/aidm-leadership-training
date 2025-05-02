@@ -48,7 +48,7 @@ const CourseDetails: React.FC = () => {
     <AppLayout>
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          {user.role === 'admin' ? (
+          {user.type === 'admin' ? (
             <Button variant="ghost" size="sm" asChild className="mb-4">
               <Link to="/admin">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
@@ -65,7 +65,7 @@ const CourseDetails: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
-              {user.role === 'admin' && (
+              {user.type === 'admin' && (
                 <Badge variant="outline" className="mb-2">
                   Preview Mode
                 </Badge>
@@ -111,7 +111,7 @@ const CourseDetails: React.FC = () => {
                     )}
                   </CardTitle>
                   <div className="flex-shrink-0">
-                    {isAccessible || user.role === 'admin' ? (
+                    {isAccessible || user.type === 'admin' ? (
                       <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
                         <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
                           {isCompleted ? (
