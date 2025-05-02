@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -6,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminStudentManagement from '@/components/admin/students/AdminStudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PreviewModeToggle from '@/components/admin/preview/PreviewModeToggle';
+import { Button } from '@/components/ui/button'; // Add Button import
 import {
   Dialog,
   DialogContent,
