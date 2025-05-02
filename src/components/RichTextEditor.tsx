@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Underline, List, Link, Heading, IndentIncrease, IndentDecrease } from 'lucide-react';
-import LinkExtension from '@tiptap/extension-link';
-import UnderlineExtension from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
 
 interface RichTextEditorProps {
   value: string;
@@ -27,14 +27,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      LinkExtension.configure({
+      Link.configure({
         openOnClick: false,
         linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary underline',
         }
       }),
-      UnderlineExtension,
+      Underline,
     ],
     content: value,
     editorProps: {
@@ -58,7 +58,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const setLink = () => {
     if (!linkUrl) {
-      editor?.chain().focus().extendMarkRange('link').unsetLink().run();
+      // Use the unlink command instead of unsetLink
+      editor?.chain().focus().extendMarkRange('link').unlink().run();
       setShowLinkInput(false);
       return;
     }
@@ -69,6 +70,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       url = 'https://' + url;
     }
 
+    // Use setLink with the proper signature
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     setLinkUrl('');
     setShowLinkInput(false);
