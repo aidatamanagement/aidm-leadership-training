@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { usePreview } from '@/contexts/PreviewContext';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,18 +17,14 @@ const CourseDetails: React.FC = () => {
     getStudentProgress,
     getTotalQuizScore
   } = useData();
-  const { previewMode, previewAsStudentId } = usePreview();
 
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
-  
-  // Determine which user ID to use based on whether we're in preview mode
-  const effectiveUserId = previewMode && previewAsStudentId ? previewAsStudentId : user?.id;
 
   useEffect(() => {
     setCourse(courses.find(c => c.id === courseId));
   }, [courses, courseId]);
 
-  if (!user || !effectiveUserId || !course) {
+  if (!user || !course) {
     return (
       <AppLayout>
         <div className="text-center py-12">
@@ -44,7 +38,7 @@ const CourseDetails: React.FC = () => {
     );
   }
 
-  const quizScore = getTotalQuizScore(effectiveUserId, course.id);
+  const quizScore = getTotalQuizScore(user.id, course.id);
   
   // Sort lessons by order
   const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
@@ -80,8 +74,8 @@ const CourseDetails: React.FC = () => {
         <h2 className="text-xl font-bold mb-4">Course Content</h2>
         <div className="space-y-4">
           {sortedLessons.map((lesson) => {
-            const isAccessible = isLessonAccessible(effectiveUserId, course.id, lesson.order);
-            const progress = getStudentProgress(effectiveUserId, course.id).find(p => p.lessonId === lesson.id);
+            const isAccessible = isLessonAccessible(user.id, course.id, lesson.order);
+            const progress = getStudentProgress(user.id, course.id).find(p => p.lessonId === lesson.id);
             const isCompleted = progress?.completed || false;
             
             return (
