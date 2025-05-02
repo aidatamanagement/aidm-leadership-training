@@ -3,6 +3,7 @@ import React from 'react';
 import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CourseCardProps {
   course: Course;
@@ -15,6 +16,7 @@ interface CourseCardProps {
   onToggleLock: () => void;
   onRemoveCourse: () => void;
   formatTimeSpent: (seconds: number) => string;
+  showPreviewButton?: boolean;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -27,7 +29,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
   isLocked,
   onToggleLock,
   onRemoveCourse,
-  formatTimeSpent
+  formatTimeSpent,
+  showPreviewButton = false
 }) => {
   return (
     <div className="border rounded-md p-4 bg-white">
@@ -39,6 +42,18 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </p>
         </div>
         <div className="flex space-x-1">
+          {showPreviewButton && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              asChild
+              title="Preview Course"
+            >
+              <Link to={`/courses/${course.id}`}>
+                <Eye className="h-3 w-3" />
+              </Link>
+            </Button>
+          )}
           <Button 
             size="sm" 
             variant={isLocked ? "destructive" : "outline"} 

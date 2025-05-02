@@ -63,6 +63,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 onToggleLock={() => toggleCourseLock(student.id, courseId)}
                 onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
                 formatTimeSpent={formatTimeSpent}
+                showPreviewButton={true}
               />
             );
           })}
