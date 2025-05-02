@@ -7,7 +7,7 @@ import CourseCard from './CourseCard';
 
 interface AssignedCoursesListProps {
   student: Student;
-  onAssignCourse: () => void;
+  onAssignCourse: () => void; // Add this property to match StudentList's usage
 }
 
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
