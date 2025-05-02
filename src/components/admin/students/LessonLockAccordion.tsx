@@ -5,8 +5,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button';
 import { Lock, LockOpen } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
 
 interface LessonLockAccordionProps {
   course: Course;
@@ -77,45 +75,40 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
     <Accordion type="single" collapsible className="mt-4 border-t pt-2">
       <AccordionItem value="lesson-lock">
         <AccordionTrigger className="text-sm font-medium">
-          Lock individual lessons
+          Lock a lesson
         </AccordionTrigger>
         <AccordionContent>
           {isLoading ? (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : course.lessons && course.lessons.length > 0 ? (
-            <ScrollArea className="h-[300px] pr-4">
-              <div className="space-y-3 pr-3">
-                {course.lessons
-                  .sort((a, b) => a.order - b.order)
-                  .map((lesson) => (
-                    <Card key={lesson.id} className="flex items-center justify-between p-3 shadow-sm">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{lesson.title}</p>
-                        <p className="text-xs text-gray-500">Lesson {lesson.order}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant={isLocked(lesson.id) ? "destructive" : "outline"}
-                        onClick={() => handleToggleLock(lesson.id)}
-                        disabled={loadingLessonId === lesson.id}
-                        className="ml-2 min-w-[32px]"
-                      >
-                        {loadingLessonId === lesson.id ? (
-                          <div className="animate-spin h-3 w-3 border-t-2 border-b-2 border-current rounded-full" />
-                        ) : isLocked(lesson.id) ? (
-                          <Lock className="h-3 w-3" />
-                        ) : (
-                          <LockOpen className="h-3 w-3" />
-                        )}
-                      </Button>
-                    </Card>
-                  ))}
-              </div>
-            </ScrollArea>
+          ) : course.lessons.length === 0 ? (
+            <p className="text-sm text-gray-500">No lessons available in this course.</p>
           ) : (
-            <p className="text-sm text-gray-500 py-2">No lessons available in this course.</p>
+            <div className="space-y-2">
+              {course.lessons
+                .sort((a, b) => a.order - b.order)
+                .map((lesson) => (
+                  <div key={lesson.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{lesson.title}</p>
+                      <p className="text-xs text-gray-500">Lesson {lesson.order}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={isLocked(lesson.id) ? "destructive" : "outline"}
+                      onClick={() => handleToggleLock(lesson.id)}
+                      disabled={loadingLessonId === lesson.id}
+                    >
+                      {isLocked(lesson.id) ? (
+                        <Lock className="h-3 w-3" />
+                      ) : (
+                        <LockOpen className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                ))}
+            </div>
           )}
         </AccordionContent>
       </AccordionItem>
