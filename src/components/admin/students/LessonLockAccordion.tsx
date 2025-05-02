@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Course, useData } from '@/contexts/DataContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,15 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
   const { toggleLessonLock, fetchLessonLocks } = useData();
   const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
   const [lessonLockStates, setLessonLockStates] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
   
   // Load lesson lock states when accordion is opened
   useEffect(() => {
     if (!isOpen) return;
+    if (hasLoadedRef.current) return;
     
     const loadLockStates = async () => {
       try {
@@ -32,6 +34,7 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
         const locks = await fetchLessonLocks(studentId, course.id);
         console.log("Received locks:", locks);
         setLessonLockStates(locks);
+        hasLoadedRef.current = true;
       } catch (error) {
         console.error('Error loading lesson locks:', error);
         setError('Failed to load lesson lock statuses');
@@ -79,14 +82,21 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
   const isLocked = (lessonId: string) => {
     return lessonLockStates[lessonId] || false;
   };
+
+  const handleAccordionChange = (value: string) => {
+    const newIsOpen = value === "lesson-lock";
+    setIsOpen(newIsOpen);
+  };
   
   return (
-    <Accordion type="single" collapsible className="mt-4 border-t pt-2">
+    <Accordion 
+      type="single" 
+      collapsible 
+      className="mt-4 border-t pt-2"
+      onValueChange={handleAccordionChange}
+    >
       <AccordionItem value="lesson-lock">
-        <AccordionTrigger 
-          className="text-sm font-medium"
-          onClick={() => setIsOpen(prev => !prev)}
-        >
+        <AccordionTrigger className="text-sm font-medium">
           Lock a lesson
         </AccordionTrigger>
         <AccordionContent>
@@ -107,6 +117,7 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
               <p>{error}</p>
               <Button 
                 onClick={() => {
+                  hasLoadedRef.current = false;
                   setIsOpen(true);
                 }} 
                 variant="outline" 
