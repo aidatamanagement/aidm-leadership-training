@@ -4,6 +4,7 @@ import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CourseCard from './CourseCard';
+import { formatTimeSpent } from '@/lib/utils';
 
 interface AssignedCoursesListProps {
   student: Student;
@@ -12,13 +13,6 @@ interface AssignedCoursesListProps {
 
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
   const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment, isCourseLockedForUser } = useData();
-
-  // Format time spent
-  const formatTimeSpent = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}min`;
-  };
 
   return (
     <>
@@ -63,7 +57,6 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 viewedLessonsCount={viewedLessonsCount}
                 onToggleLock={() => toggleCourseLock(student.id, courseId)}
                 onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
-                formatTimeSpent={formatTimeSpent}
               />
             );
           })}

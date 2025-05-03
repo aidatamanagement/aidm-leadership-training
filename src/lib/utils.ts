@@ -19,7 +19,9 @@ export function formatTimeSpent(seconds: number): string {
   let result = '';
   if (hours > 0) result += `${hours}h `;
   if (minutes > 0 || hours > 0) result += `${minutes}m `;
-  result += `${remainingSeconds}s`;
+  if (remainingSeconds > 0 || (hours === 0 && minutes === 0)) {
+    result += `${remainingSeconds}s`;
+  }
   
-  return result;
+  return result.trim();
 }
