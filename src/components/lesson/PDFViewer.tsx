@@ -1,15 +1,12 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import * as PDFJS from 'pdfjs-dist';
 
-// Import the worker explicitly so it can be bundled
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs';
-
-// Set the workerSrc to use the imported worker directly
-PDFJS.GlobalWorkerOptions.workerSrc = pdfWorker;
+// Set the worker source path directly to the worker file
+// This approach uses the CDN to load the worker file which is more reliable
+PDFJS.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS.version}/build/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
