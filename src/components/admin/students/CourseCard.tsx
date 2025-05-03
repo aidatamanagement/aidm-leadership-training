@@ -41,14 +41,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <div className="border rounded-md p-4 bg-white">
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2">
         <div>
           <h5 className="font-semibold">{course.title}</h5>
           <p className="text-sm text-gray-600">
             Progress: {completedLessons} / {totalLessons} lessons
           </p>
         </div>
-        <div className="flex space-x-1">
+        <div className="flex space-x-1 self-start">
           <Button 
             size="sm" 
             variant="outline" 
@@ -84,7 +84,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600">
         <div className="flex items-center">
           <Clock className="mr-1 h-3 w-3" />
           <span>
