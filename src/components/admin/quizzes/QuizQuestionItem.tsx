@@ -86,13 +86,12 @@ const QuizQuestionItem: React.FC<QuizQuestionItemProps> = ({
               </RadioGroup>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
+            <div className="flex justify-end space-x-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCancel}
                 disabled={isLoading}
-                className="w-full sm:w-auto"
               >
                 <X className="h-4 w-4 mr-1" /> Cancel
               </Button>
@@ -100,7 +99,6 @@ const QuizQuestionItem: React.FC<QuizQuestionItemProps> = ({
                 size="sm"
                 onClick={handleSave}
                 disabled={isLoading}
-                className="w-full sm:w-auto"
               >
                 <Check className="h-4 w-4 mr-1" /> Save
               </Button>
@@ -108,9 +106,9 @@ const QuizQuestionItem: React.FC<QuizQuestionItemProps> = ({
           </div>
         ) : (
           <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="flex justify-between">
               <h4 className="font-medium">{question.question}</h4>
-              <div className="flex space-x-1 self-start">
+              <div className="flex space-x-1">
                 <Button
                   variant="ghost"
                   size="sm"
