@@ -4,10 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import * as PDFJS from 'pdfjs-dist';
-import 'pdfjs-dist/web/pdf_viewer.css';
 
-// Set the workerSrc to use the PDF.js worker from the CDN
-PDFJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS.version}/pdf.worker.min.js`;
+// Import the worker explicitly so it can be bundled
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs';
+
+// Set the workerSrc to use the imported worker directly
+PDFJS.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -35,8 +37,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     
     const loadPDF = async () => {
       try {
+        console.log('Loading PDF from URL:', pdfUrl);
         const loadingTask = PDFJS.getDocument(pdfUrl);
         const pdf = await loadingTask.promise;
+        console.log('PDF loaded successfully, pages:', pdf.numPages);
         setNumPages(pdf.numPages);
         
         // Load first page
