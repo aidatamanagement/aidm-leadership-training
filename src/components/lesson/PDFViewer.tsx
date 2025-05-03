@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Loader } from 'lucide-react';
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -43,8 +44,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     <Card className="mb-8">
       <CardContent className="p-4">
         {isLoading && (
-          <div className={`w-full ${viewerHeight}`}>
-            <Skeleton className="w-full h-full" />
+          <div className={`w-full ${viewerHeight} bg-gray-50 rounded-lg flex flex-col items-center justify-center`}>
+            <div className="flex flex-col items-center space-y-4">
+              <Loader className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-gray-500 text-sm">Loading PDF document...</p>
+              <div className="w-48">
+                <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full animate-pulse w-1/2"></div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
         
@@ -54,13 +63,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
             <p className="text-gray-500 text-sm mt-2">{error}</p>
           </div>
         ) : (
-          <iframe 
-            src={pdfUrl}
-            className={`w-full ${viewerHeight} border-0`}
-            onLoad={handleLoad}
-            onError={handleError}
-            title="PDF Document"
-          />
+          <div className={isLoading ? 'hidden' : ''}>
+            <iframe 
+              src={pdfUrl}
+              className={`w-full ${viewerHeight} border-0`}
+              onLoad={handleLoad}
+              onError={handleError}
+              title="PDF Document"
+            />
+          </div>
         )}
       </CardContent>
     </Card>
