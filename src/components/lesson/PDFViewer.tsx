@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -10,6 +11,7 @@ interface PDFViewerProps {
 const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const handleLoad = () => {
     console.log("PDF loaded successfully:", pdfUrl);
@@ -21,6 +23,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     setIsLoading(false);
     setError('Failed to load PDF. Please check the file URL.');
   };
+
+  // Set height based on device type
+  const viewerHeight = isMobile ? 'h-[40vh]' : 'h-[80vh]';
 
   if (!pdfUrl) {
     return (
@@ -38,20 +43,20 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     <Card className="mb-8">
       <CardContent className="p-4">
         {isLoading && (
-          <div className="w-full h-[80vh]">
+          <div className={`w-full ${viewerHeight}`}>
             <Skeleton className="w-full h-full" />
           </div>
         )}
         
         {error ? (
-          <div className="bg-gray-100 rounded-lg p-6 h-[80vh] flex flex-col items-center justify-center">
+          <div className={`bg-gray-100 rounded-lg p-6 ${viewerHeight} flex flex-col items-center justify-center`}>
             <p className="text-red-500">Error loading PDF</p>
             <p className="text-gray-500 text-sm mt-2">{error}</p>
           </div>
         ) : (
           <iframe 
             src={pdfUrl}
-            className="w-full h-[80vh] border-0"
+            className={`w-full ${viewerHeight} border-0`}
             onLoad={handleLoad}
             onError={handleError}
             title="PDF Document"
