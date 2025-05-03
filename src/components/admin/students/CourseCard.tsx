@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import LessonLockAccordion from './LessonLockAccordion';
 import { formatTimeSpent } from '@/lib/utils';
+
 interface CourseCardProps {
   course: Course;
   studentId: string;
@@ -21,6 +23,7 @@ interface CourseCardProps {
   onRemoveCourse: () => void;
   formatTimeSpent?: (seconds: number) => string;
 }
+
 const CourseCard: React.FC<CourseCardProps> = ({
   course,
   studentId,
@@ -34,10 +37,26 @@ const CourseCard: React.FC<CourseCardProps> = ({
   onRemoveCourse,
   formatTimeSpent: customFormatTimeSpent
 }) => {
+  // Use a local state to immediately update the UI when lock status changes
+  const [localLocked, setLocalLocked] = useState(isLocked);
+  
   // Use the global utility function if no custom formatter is provided
   const displayTimeSpent = (seconds: number) => {
     return customFormatTimeSpent?.(seconds) || formatTimeSpent(seconds);
   };
+  
+  // Handle the toggle with immediate UI update
+  const handleToggleLock = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocalLocked(!localLocked);
+    onToggleLock();
+  };
+  
+  // Update local state when prop changes
+  React.useEffect(() => {
+    setLocalLocked(isLocked);
+  }, [isLocked]);
+  
   return <div className="border rounded-md p-4 bg-white">
       <div className="flex  justify-between items-start mb-3 sm: flex-wrap sm: gap-3">
         <div>
@@ -52,16 +71,18 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <Eye className="h-3 w-3" />
             </Link>
           </Button>
-          <Button size="sm" variant={isLocked ? "destructive" : "outline"} onClick={e => {
-          e.stopPropagation();
-          onToggleLock();
-        }} title={isLocked ? "Unlock Course" : "Lock Course"}>
-            {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
+          <Button 
+            size="sm" 
+            variant={localLocked ? "destructive" : "outline"} 
+            onClick={handleToggleLock} 
+            title={localLocked ? "Unlock Course" : "Lock Course"}
+          >
+            {localLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
           <Button size="sm" variant="ghost" onClick={e => {
-          e.stopPropagation();
-          onRemoveCourse();
-        }}>
+            e.stopPropagation();
+            onRemoveCourse();
+          }}>
             <Trash className="h-3 w-3" />
           </Button>
         </div>
@@ -91,4 +112,5 @@ const CourseCard: React.FC<CourseCardProps> = ({
       <LessonLockAccordion course={course} studentId={studentId} />
     </div>;
 };
+
 export default CourseCard;

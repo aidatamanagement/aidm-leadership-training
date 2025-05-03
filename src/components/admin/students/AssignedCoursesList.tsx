@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -14,6 +15,23 @@ interface AssignedCoursesListProps {
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
   const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment, isCourseLockedForUser } = useData();
   const isMobile = useIsMobile();
+  const [loadingCourseIds, setLoadingCourseIds] = useState<Set<string>>(new Set());
+
+  const handleToggleLock = async (studentId: string, courseId: string) => {
+    setLoadingCourseIds(prev => new Set([...prev, courseId]));
+    
+    try {
+      await toggleCourseLock(studentId, courseId);
+    } catch (error) {
+      console.error('Error toggling course lock:', error);
+    } finally {
+      setLoadingCourseIds(prev => {
+        const newSet = new Set([...prev]);
+        newSet.delete(courseId);
+        return newSet;
+      });
+    }
+  };
 
   return (
     <>
@@ -44,6 +62,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
             const quizScore = getTotalQuizScore(student.id, courseId);
             const isLocked = isCourseLockedForUser(student.id, courseId);
             const viewedLessonsCount = studentProgress.filter(p => p.pdfViewed).length;
+            const isLoading = loadingCourseIds.has(courseId);
             
             return (
               <CourseCard 
@@ -56,8 +75,12 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 quizScore={quizScore}
                 isLocked={isLocked}
                 viewedLessonsCount={viewedLessonsCount}
-                onToggleLock={() => toggleCourseLock(student.id, courseId)}
-                onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
+                onToggleLock={() => handleToggleLock(student.id, courseId)}
+                onRemoveCourse={() => {
+                  if (confirm('Are you sure you want to remove this course from the student?')) {
+                    removeCourseAssignment(student.id, courseId);
+                  }
+                }}
               />
             );
           })}
