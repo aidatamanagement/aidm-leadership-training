@@ -249,8 +249,8 @@ const CourseManagement: React.FC = () => {
           {courses.map(course => (
             <AccordionItem key={course.id} value={course.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
-                <div className="flex justify-between items-center w-full">
-                  <div className="text-left">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
+                  <div className="text-left mb-2 md:mb-0">
                     <h3 className="text-lg font-semibold">{course.title}</h3>
                     <p className="text-sm text-gray-600">{course.description}</p>
                   </div>

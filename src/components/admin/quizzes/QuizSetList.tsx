@@ -44,8 +44,8 @@ const QuizSetList = ({
       {quizSets.map(quizSet => (
         <AccordionItem key={quizSet.id} value={quizSet.id} className="border rounded-md overflow-hidden">
           <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
-            <div className="flex justify-between items-center w-full">
-              <div className="text-left">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
+              <div className="text-left mb-2 md:mb-0">
                 <h3 className="text-lg font-semibold">{quizSet.title}</h3>
                 <p className="text-sm text-gray-600">{quizSet.questions.length} questions</p>
               </div>
@@ -75,7 +75,7 @@ const QuizSetList = ({
           </AccordionTrigger>
           
           <AccordionContent className="p-4">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
               <h4 className="text-sm font-medium">Questions</h4>
               
               <Button size="sm" variant="outline" onClick={() => onAddQuizQuestion(quizSet)}>

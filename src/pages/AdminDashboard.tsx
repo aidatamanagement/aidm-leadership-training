@@ -36,10 +36,10 @@ const AdminDashboard: React.FC = () => {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs defaultValue="courses" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-8 w-fit inline-block">
-            <TabsTrigger value="courses" className="mb-2 md:mb-0">Course Management</TabsTrigger>
-            <TabsTrigger value="students" className="mb-2 md:mb-0">Student Management</TabsTrigger>
-            <TabsTrigger value="quizzes" className="mb-2 md:mb-0">Quiz Management</TabsTrigger>
+          <TabsList className="mb-8 w-full md:w-fit flex-wrap">
+            <TabsTrigger value="courses" className="flex-grow md:flex-grow-0 mb-2 md:mb-0">Course Management</TabsTrigger>
+            <TabsTrigger value="students" className="flex-grow md:flex-grow-0 mb-2 md:mb-0">Student Management</TabsTrigger>
+            <TabsTrigger value="quizzes" className="flex-grow md:flex-grow-0 mb-2 md:mb-0">Quiz Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses">
