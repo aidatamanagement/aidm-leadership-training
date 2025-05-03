@@ -4,7 +4,7 @@ import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CourseCard from './CourseCard';
-import { formatTimeSpent } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AssignedCoursesListProps {
   student: Student;
@@ -13,12 +13,13 @@ interface AssignedCoursesListProps {
 
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
   const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment, isCourseLockedForUser } = useData();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+      <div className="flex flex-row justify-between items-center mb-4 gap-2 w-full">
         <h4 className="text-sm font-medium">Assigned Courses</h4>
-        <Button size="sm" variant="outline" onClick={onAssignCourse} className="w-full sm:w-auto">
+        <Button size="sm" variant="outline" onClick={onAssignCourse} className={isMobile ? "w-auto" : "w-auto"}>
           <Plus className="mr-2 h-4 w-4" /> Assign Course
         </Button>
       </div>
