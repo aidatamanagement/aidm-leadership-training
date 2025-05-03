@@ -76,18 +76,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     setShowLinkInput(false);
   };
 
-  // Function to check if indent increase is possible
-  const canIndent = () => {
-    if (!editor) return false;
-    return editor.can().sinkListItem('listItem');
-  };
-
-  // Function to check if outdent is possible
-  const canOutdent = () => {
-    if (!editor) return false;
-    return editor.can().liftListItem('listItem');
-  };
-
   return (
     <div className={`border rounded-md overflow-hidden bg-background ${className}`}>
       <div className="bg-muted/20 p-1 border-b flex flex-wrap gap-1">
@@ -181,19 +169,19 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </div>
         <button 
           type="button"
-          onClick={() => editor?.chain().focus().liftListItem('listItem').run()}
-          className={`p-1 rounded-md hover:bg-muted ${!canOutdent() ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={() => editor?.chain().focus().lift('listItem').run()}
+          className={`p-1 rounded-md hover:bg-muted`}
           title="Decrease Indent"
-          disabled={!canOutdent()}
+          disabled={!editor?.can().lift('listItem')}
         >
           <IndentDecrease className="h-4 w-4" />
         </button>
         <button 
           type="button"
           onClick={() => editor?.chain().focus().sinkListItem('listItem').run()}
-          className={`p-1 rounded-md hover:bg-muted ${!canIndent() ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`p-1 rounded-md hover:bg-muted`}
           title="Increase Indent"
-          disabled={!canIndent()}
+          disabled={!editor?.can().sinkListItem('listItem')}
         >
           <IndentIncrease className="h-4 w-4" />
         </button>
