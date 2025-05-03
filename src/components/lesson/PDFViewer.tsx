@@ -26,7 +26,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     return (
       <Card className="mb-8">
         <CardContent className="p-4">
-          <div className="bg-gray-100 rounded-lg p-6 h-[80vh] sm:h-[40vh] flex flex-col items-center justify-center">
+          <div className="bg-gray-100 rounded-lg p-6 h-[80vh] sm:h-[40vh] overflow-auto flex flex-col items-center justify-center">
             <p className="text-gray-500">No PDF available for this lesson.</p>
           </div>
         </CardContent>
