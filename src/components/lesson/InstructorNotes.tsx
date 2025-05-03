@@ -7,15 +7,21 @@ interface InstructorNotesProps {
 }
 
 const InstructorNotes: React.FC<InstructorNotesProps> = ({ notes }) => {
+  const hasNotes = notes && notes.trim() !== '';
+  
   return (
     <div className="mb-8">
       <h2 className="text-xl font-bold mb-4">Instructor's Notes</h2>
       <Card>
         <CardContent className="p-6">
-          <div 
-            className="prose max-w-none rich-text-editor"
-            dangerouslySetInnerHTML={{ __html: notes || 'No instructor notes available.' }}
-          />
+          {hasNotes ? (
+            <div 
+              className="prose max-w-none rich-text-editor"
+              dangerouslySetInnerHTML={{ __html: notes }}
+            />
+          ) : (
+            <p className="text-gray-500 italic">No instructor notes available.</p>
+          )}
         </CardContent>
       </Card>
     </div>

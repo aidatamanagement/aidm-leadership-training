@@ -186,16 +186,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IndentIncrease className="h-4 w-4" />
         </button>
       </div>
-      <EditorContent 
-        editor={editor} 
-        style={{ minHeight }}
-        className="p-0"
-      />
-      {editor && !editor.getText() && (
-        <div className="absolute top-[2.5rem] left-3 text-gray-400 pointer-events-none">
-          {placeholder}
-        </div>
-      )}
+      <div className="relative">
+        <EditorContent 
+          editor={editor} 
+          style={{ minHeight }}
+          className="p-0"
+        />
+        {editor && !editor.getText() && (
+          <div className="absolute top-3 left-3 text-gray-400 pointer-events-none">
+            {placeholder}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
