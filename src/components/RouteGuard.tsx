@@ -16,8 +16,10 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const { isCourseLockedForUser, isLessonLocked } = useData();
   const [isLessonAccessBlocked, setIsLessonAccessBlocked] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
 
   useEffect(() => {
+    // Check role permissions
     if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
       toast({
         title: 'Access Denied',
@@ -27,30 +29,44 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
     }
   }, [isLoading, isAuthenticated, user, allowedRoles]);
 
+  // Check for lesson lock status
   useEffect(() => {
     const checkLessonLock = async () => {
-      if (user?.type === 'student' && courseId && lessonId) {
-        const isLocked = await isLessonLocked(user.id, courseId, lessonId);
+      if (!user || !courseId || !lessonId) {
+        setIsCheckingAccess(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAccess(true);
         
-        if (isLocked) {
-          toast({
-            title: 'Lesson Locked',
-            description: 'This lesson has been locked by your administrator.',
-            variant: 'destructive',
-          });
-          setIsLessonAccessBlocked(true);
-        } else {
-          setIsLessonAccessBlocked(false);
+        if (user.type === 'student') {
+          const isLocked = await isLessonLocked(user.id, courseId, lessonId);
+          
+          if (isLocked) {
+            toast({
+              title: 'Lesson Locked',
+              description: 'This lesson has been locked by your administrator.',
+              variant: 'destructive',
+            });
+            setIsLessonAccessBlocked(true);
+          } else {
+            setIsLessonAccessBlocked(false);
+          }
         }
+      } catch (error) {
+        console.error('Error checking lesson lock:', error);
+        setIsLessonAccessBlocked(false);
+      } finally {
+        setIsCheckingAccess(false);
       }
     };
     
-    if (user && courseId && lessonId) {
-      checkLessonLock();
-    }
+    checkLessonLock();
   }, [user, courseId, lessonId, isLessonLocked]);
 
-  if (isLoading) {
+  // Show loading state while checking locks or auth
+  if (isLoading || (user?.type === 'student' && courseId && lessonId && isCheckingAccess)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
@@ -58,6 +74,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
     );
   }
 
+  // Handle unauthenticated users
   if (!isAuthenticated || !user) {
     return <Navigate to="/" replace />;
   }

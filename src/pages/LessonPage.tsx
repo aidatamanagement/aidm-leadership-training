@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -52,14 +51,14 @@ const LessonPage: React.FC = () => {
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
   const [isNextLessonLocked, setIsNextLessonLocked] = useState(false);
 
-  // Track lesson progress
-  const [progress, setProgress] = useState(
-    user && courseId && lessonId 
-      ? getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId)
-      : null
-  );
+  // Memoize the progress data to prevent unnecessary re-renders
+  const progress = useMemo(() => {
+    if (!user || !courseId || !lessonId) return null;
+    const studentProgress = getStudentProgress(user.id, courseId);
+    return studentProgress.find(p => p.lessonId === lessonId);
+  }, [user, courseId, lessonId, getStudentProgress]);
   
-  // Use our custom timer hook
+  // Use our refactored timer hook with the memoized progress
   const { totalTimeSpent } = useLessonTimer({
     userId: user?.id || null,
     courseId: courseId || '',
@@ -117,22 +116,17 @@ const LessonPage: React.FC = () => {
             });
         }
         
-        // Load user progress for this lesson
-        if (user) {
-          const lessonProgress = getStudentProgress(user.id, courseId).find(p => p.lessonId === lessonId);
-          setProgress(lessonProgress);
-          
-          if (lessonProgress?.quizScore !== null && lessonProgress?.quizSetId) {
-            setQuizScore(lessonProgress.quizScore);
-          }
-          
-          setIsPdfViewed(lessonProgress?.pdfViewed || false);
+        // Load quiz score from progress if available
+        if (progress?.quizScore !== null && progress?.quizSetId) {
+          setQuizScore(progress.quizScore);
         }
+        
+        setIsPdfViewed(progress?.pdfViewed || false);
       }
     }
-  }, [courseId, lessonId, courses, quizSets, user, getStudentProgress, isLessonLocked]);
+  }, [courseId, lessonId, courses, quizSets, user, progress]);
 
-  // Automatically mark PDF as viewed
+  // Automatically mark PDF as viewed (once)
   useEffect(() => {
     if (user && courseId && lessonId && !isPdfViewed) {
       setIsPdfViewed(true);
