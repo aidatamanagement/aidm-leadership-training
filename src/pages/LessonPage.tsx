@@ -30,7 +30,8 @@ const LessonPage: React.FC = () => {
     updateTimeSpent, 
     updatePdfViewed,
     isLessonAccessible,
-    getStudentProgress
+    getStudentProgress,
+    isLessonLocked
   } = useData();
 
   // State for course and lesson data
@@ -49,6 +50,7 @@ const LessonPage: React.FC = () => {
   // Navigation state
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
+  const [isNextLessonLocked, setIsNextLessonLocked] = useState(false);
 
   // Track lesson progress
   const [progress, setProgress] = useState(
@@ -93,17 +95,27 @@ const LessonPage: React.FC = () => {
         const sortedLessons = [...currentCourse.lessons].sort((a, b) => a.order - b.order);
         const currentIndex = sortedLessons.findIndex(l => l.id === lessonId);
         
-        setPrevLesson(
-          currentIndex > 0 
-            ? { id: sortedLessons[currentIndex - 1].id, title: sortedLessons[currentIndex - 1].title }
-            : null
-        );
+        const prevLessonData = currentIndex > 0 
+          ? { id: sortedLessons[currentIndex - 1].id, title: sortedLessons[currentIndex - 1].title }
+          : null;
+        setPrevLesson(prevLessonData);
         
-        setNextLesson(
-          currentIndex < sortedLessons.length - 1 
-            ? { id: sortedLessons[currentIndex + 1].id, title: sortedLessons[currentIndex + 1].title }
-            : null
-        );
+        const nextLessonData = currentIndex < sortedLessons.length - 1 
+          ? { id: sortedLessons[currentIndex + 1].id, title: sortedLessons[currentIndex + 1].title }
+          : null;
+        setNextLesson(nextLessonData);
+        
+        // Check if next lesson is locked
+        if (nextLessonData && user) {
+          isLessonLocked(user.id, courseId, nextLessonData.id)
+            .then(locked => {
+              setIsNextLessonLocked(locked);
+            })
+            .catch(error => {
+              console.error("Error checking if next lesson is locked:", error);
+              setIsNextLessonLocked(false);
+            });
+        }
         
         // Load user progress for this lesson
         if (user) {
@@ -118,7 +130,7 @@ const LessonPage: React.FC = () => {
         }
       }
     }
-  }, [courseId, lessonId, courses, quizSets, user, getStudentProgress]);
+  }, [courseId, lessonId, courses, quizSets, user, getStudentProgress, isLessonLocked]);
 
   // Automatically mark PDF as viewed
   useEffect(() => {
@@ -210,6 +222,7 @@ const LessonPage: React.FC = () => {
           nextLesson={nextLesson}
           onCompleteLesson={handleCompleteLesson}
           disableCompletion={isCompletionDisabled}
+          isNextLessonLocked={isNextLessonLocked}
         />
       </div>
     </AppLayout>

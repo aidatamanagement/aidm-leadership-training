@@ -2,7 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LockIcon } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LessonNavigationProps {
   courseId: string;
@@ -10,6 +11,7 @@ interface LessonNavigationProps {
   nextLesson: { id: string; title: string } | null;
   onCompleteLesson: () => void;
   disableCompletion: boolean;
+  isNextLessonLocked?: boolean;
 }
 
 const LessonNavigation: React.FC<LessonNavigationProps> = ({ 
@@ -17,27 +19,48 @@ const LessonNavigation: React.FC<LessonNavigationProps> = ({
   prevLesson, 
   nextLesson,
   onCompleteLesson,
-  disableCompletion
+  disableCompletion,
+  isNextLessonLocked = false
 }) => {
+  const isMobile = useIsMobile();
+  
+  const getDisableReason = () => {
+    if (disableCompletion) {
+      return "Complete all requirements before continuing";
+    }
+    if (isNextLessonLocked) {
+      return "Next lesson is locked by your instructor";
+    }
+    return nextLesson 
+      ? "Complete and continue to next lesson" 
+      : "Complete the course";
+  };
+
   return (
-    <div className="flex justify-between mt-8">
+    <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-between'} mt-8`}>
       {prevLesson ? (
-        <Button asChild variant="outline">
+        <Button 
+          asChild 
+          variant="outline"
+          className={isMobile ? 'w-full justify-center' : ''}
+        >
           <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Previous Lesson
           </Link>
         </Button>
       ) : (
-        <div></div>
+        <div className={isMobile ? 'hidden' : ''}></div>
       )}
       
-      <div className="flex gap-3">
+      <div className={`flex ${isMobile ? 'w-full' : ''} gap-3`}>
         {nextLesson && (
           <Button 
             onClick={onCompleteLesson}
-            disabled={disableCompletion}
-            title={disableCompletion ? "Complete all requirements before continuing" : "Complete and continue to next lesson"}
+            disabled={disableCompletion || isNextLessonLocked}
+            title={getDisableReason()}
+            className={isMobile ? 'w-full justify-center' : ''}
           >
+            {isNextLessonLocked && <LockIcon className="mr-2 h-4 w-4" />}
             Complete & Continue <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -46,7 +69,8 @@ const LessonNavigation: React.FC<LessonNavigationProps> = ({
           <Button 
             onClick={onCompleteLesson}
             disabled={disableCompletion}
-            title={disableCompletion ? "Complete all requirements before finishing" : "Complete the course"}
+            title={getDisableReason()}
+            className={isMobile ? 'w-full justify-center' : ''}
           >
             Complete Course <Check className="ml-2 h-4 w-4" />
           </Button>
