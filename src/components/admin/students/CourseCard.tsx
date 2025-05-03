@@ -6,7 +6,6 @@ import { LockOpen, Lock, Trash, Clock, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import LessonLockAccordion from './LessonLockAccordion';
 import { formatTimeSpent } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CourseCardProps {
   course: Course;
@@ -35,8 +34,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
   onRemoveCourse,
   formatTimeSpent: customFormatTimeSpent
 }) => {
-  const isMobile = useIsMobile();
-  
   // Use the global utility function if no custom formatter is provided
   const displayTimeSpent = (seconds: number) => {
     return customFormatTimeSpent?.(seconds) || formatTimeSpent(seconds);
@@ -87,7 +84,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
       </div>
       
-      <div className={`grid ${isMobile ? 'flex flex-wrap gap-4' : 'grid-cols-2 gap-2'} text-xs text-gray-600`}>
+      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
         <div className="flex items-center">
           <Clock className="mr-1 h-3 w-3" />
           <span>
