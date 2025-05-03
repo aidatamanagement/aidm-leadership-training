@@ -374,7 +374,7 @@ const CourseManagement: React.FC = () => {
                     </Button>
                   </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => <div key={lesson.id} className="border rounded-md p-4 bg-white">
-                        <div className="flex justify-between items-start mb-2  sm: flex-wrap: wrap">
+                        <div className="flex justify-between items-start mb-2  sm: flex-wrap">
                           <div>
                             <h5 className="font-semibold">{lesson.order}. {lesson.title}</h5>
                             <p className="text-sm text-gray-600">{lesson.description}</p>
