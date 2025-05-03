@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useCourses } from '@/contexts/CourseContext';
+import { useProgress } from '@/contexts/ProgressContext';
+import { useStudents } from '@/contexts/StudentContext';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import CourseHeader from '@/components/course/CourseHeader';
@@ -12,15 +15,15 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
+  const { courses } = useCourses();
+  const { isLessonLocked } = useStudents();
   const { 
-    courses, 
-    isLessonAccessible, 
-    getStudentProgress,
+    getStudentProgress, 
     getTotalQuizScore,
-    isCourseLockedForUser,
-    isLessonLocked,
-    isLoading
-  } = useData();
+    isLessonAccessible,
+    isCourseLockedForUser
+  } = useProgress();
+  const { isLoading } = useData();
   const isMobile = useIsMobile();
 
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
@@ -75,7 +78,6 @@ const CourseDetails: React.FC = () => {
     );
   }
 
-  const currentStudent = user;
   if (!course) {
     return (
       <AppLayout>
@@ -111,8 +113,6 @@ const CourseDetails: React.FC = () => {
           userId={user.id}
           isAdmin={isAdmin}
           isMobile={isMobile}
-          getStudentProgress={(userId, courseId) => getStudentProgress(userId, courseId)}
-          isLessonAccessible={isLessonAccessible}
           lessonLocks={lessonLocks}
         />
       </div>

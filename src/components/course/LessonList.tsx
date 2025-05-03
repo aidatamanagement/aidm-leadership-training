@@ -1,6 +1,8 @@
 
 import React from 'react';
 import LessonCard from './LessonCard';
+import { useProgress } from '@/contexts/ProgressContext';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface LessonListProps {
   lessons: Array<{
@@ -14,8 +16,6 @@ interface LessonListProps {
   userId: string;
   isAdmin: boolean;
   isMobile: boolean;
-  getStudentProgress: (userId: string, courseId: string) => any[];
-  isLessonAccessible: (userId: string, courseId: string, lessonOrder: number) => boolean;
   lessonLocks: Record<string, boolean>;
 }
 
@@ -25,10 +25,10 @@ const LessonList: React.FC<LessonListProps> = ({
   userId,
   isAdmin,
   isMobile,
-  getStudentProgress,
-  isLessonAccessible,
   lessonLocks
 }) => {
+  const { getStudentProgress, isLessonAccessible } = useProgress();
+  
   // Sort lessons by order
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
 
