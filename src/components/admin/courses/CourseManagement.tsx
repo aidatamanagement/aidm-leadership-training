@@ -333,7 +333,7 @@ const CourseManagement: React.FC = () => {
                           <RichTextEditor 
                             value={instructorNotes} 
                             onChange={setInstructorNotes}
-                            placeholder="Add instructor notes (supports HTML)"
+                            
                             rows={6}
                           />
                         </div>
