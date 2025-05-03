@@ -340,7 +340,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes">Instructor Notes</Label>
-                          <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="Add instructor notes (supports HTML)" rows={6} />
+                          <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
                         </div>
                         
                         <div className="space-y-2">
