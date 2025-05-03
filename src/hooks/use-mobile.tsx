@@ -18,30 +18,25 @@ export function useIsMobile() {
     // Safety check for SSR environments
     if (typeof window === 'undefined') return;
     
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    }
-
-    // Use both matchMedia for more modern browsers and resize for broader compatibility
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
-    try {
-      // Modern API for matchMedia
-      mql.addEventListener("change", handleResize);
-    } catch (e) {
-      // Fallback for older browsers
-      window.addEventListener('resize', handleResize);
+    const handleResize = () => {
+      setIsMobile(mql.matches);
     }
     
     // Set initial value
     handleResize();
     
-    return () => {
-      try {
-        mql.removeEventListener("change", handleResize);
-      } catch (e) {
-        window.removeEventListener('resize', handleResize);
-      }
+    // Modern API for matchMedia
+    try {
+      // Try to use the modern addEventListener API
+      mql.addEventListener("change", handleResize);
+      return () => mql.removeEventListener("change", handleResize);
+    } catch (error) {
+      // Fallback for older browsers that don't support addEventListener on matchMedia
+      console.warn("Using legacy matchMedia API");
+      mql.addListener(handleResize);
+      return () => mql.removeListener(handleResize);
     }
   }, []);
 
