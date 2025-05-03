@@ -25,13 +25,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   };
 
   // Set height based on device type
-  const viewerHeight = isMobile ? 'h-[40vh]' : 'h-[80vh]';
+  const viewerHeight = isMobile ? 'h-[50vh]' : 'h-[80vh]';
 
   if (!pdfUrl) {
     return (
-      <Card className="mb-8">
-        <CardContent className="p-4">
-          <div className="bg-gray-100 rounded-lg p-6 min-h-[40vh] sm:min-h-[80vh] flex flex-col items-center justify-center">
+      <Card className="mb-8 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="bg-gray-100 rounded-lg flex flex-col items-center justify-center w-full min-h-[40vh] sm:min-h-[80vh]">
             <p className="text-gray-500">No PDF available for this lesson.</p>
           </div>
         </CardContent>
@@ -40,28 +40,30 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   }
 
   return (
-    <Card className="mb-8">
-      <CardContent className="p-4">
-        {isLoading && (
-          <div className={`w-full ${viewerHeight}`}>
-            <Skeleton className="w-full h-full" />
-          </div>
-        )}
-        
-        {error ? (
-          <div className={`bg-gray-100 rounded-lg p-6 ${viewerHeight} flex flex-col items-center justify-center`}>
-            <p className="text-red-500">Error loading PDF</p>
-            <p className="text-gray-500 text-sm mt-2">{error}</p>
-          </div>
-        ) : (
-          <iframe 
-            src={pdfUrl}
-            className={`w-full ${viewerHeight} border-0`}
-            onLoad={handleLoad}
-            onError={handleError}
-            title="PDF Document"
-          />
-        )}
+    <Card className="mb-8 overflow-hidden">
+      <CardContent className="p-0">
+        <div className={`w-full ${viewerHeight} relative`}>
+          {isLoading && (
+            <div className="absolute inset-0 z-10">
+              <Skeleton className="w-full h-full m-0 rounded-none" />
+            </div>
+          )}
+          
+          {error ? (
+            <div className="bg-gray-100 w-full h-full flex flex-col items-center justify-center">
+              <p className="text-red-500">Error loading PDF</p>
+              <p className="text-gray-500 text-sm mt-2">{error}</p>
+            </div>
+          ) : (
+            <iframe 
+              src={pdfUrl}
+              className={`w-full h-full border-0 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}`}
+              onLoad={handleLoad}
+              onError={handleError}
+              title="PDF Document"
+            />
+          )}
+        </div>
       </CardContent>
     </Card>
   );
