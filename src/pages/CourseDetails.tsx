@@ -200,7 +200,7 @@ const CourseDetails: React.FC = () => {
                       
                       {progress && progress.quizScore !== null && (
                         <div className="text-xs text-gray-600">
-                          Quiz Score: {progress.quizScore} / {progress.quizTotal ?? 'N/A'}
+                          Quiz Score: {progress.quizScore}
                         </div>
                       )}
                     </div>
