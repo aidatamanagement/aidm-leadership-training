@@ -21,24 +21,17 @@ export function useIsMobile() {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
     const handleResize = () => {
-      setIsMobile(mql.matches);
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
+    
+    // Modern API for matchMedia
+    mql.addEventListener("change", handleResize)
     
     // Set initial value
     handleResize();
     
-    // Modern API for matchMedia
-    try {
-      // Try to use the modern addEventListener API
-      mql.addEventListener("change", handleResize);
-      return () => mql.removeEventListener("change", handleResize);
-    } catch (error) {
-      // Fallback for older browsers that don't support addEventListener on matchMedia
-      console.warn("Using legacy matchMedia API");
-      mql.addListener(handleResize);
-      return () => mql.removeListener(handleResize);
-    }
-  }, []);
+    return () => mql.removeEventListener("change", handleResize)
+  }, [])
 
   return isMobile;
 }

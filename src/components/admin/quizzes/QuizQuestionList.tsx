@@ -19,7 +19,7 @@ const QuizQuestionList = ({
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg">
         <p className="text-gray-600 mb-4">No questions in this quiz set yet.</p>
-        <Button variant="outline" onClick={() => onEditQuestion('')} className="w-full sm:w-auto">
+        <Button variant="outline" onClick={() => onEditQuestion('')}>
           <Plus className="mr-2 h-4 w-4" /> Add Your First Question
         </Button>
       </div>
@@ -27,12 +27,12 @@ const QuizQuestionList = ({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {quizSet.questions.map(question => (
         <div key={question.id} className="border rounded-md p-4 bg-white">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+          <div className="flex justify-between items-start">
             <p className="font-medium">{question.question}</p>
-            <div className="flex space-x-1 self-start">
+            <div className="flex space-x-1">
               <Button size="sm" variant="ghost" onClick={() => onEditQuestion(question.id)}>
                 <Edit className="h-3 w-3" />
               </Button>
