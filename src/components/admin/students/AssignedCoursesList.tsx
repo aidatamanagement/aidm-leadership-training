@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import CourseCard from './CourseCard';
 import { formatTimeSpent } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/components/ui/use-toast';
 
 interface AssignedCoursesListProps {
   student: Student;
@@ -24,12 +25,40 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
       await toggleCourseLock(studentId, courseId);
     } catch (error) {
       console.error('Error toggling course lock:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update course lock status",
+        variant: "destructive"
+      });
     } finally {
       setLoadingCourseIds(prev => {
         const newSet = new Set([...prev]);
         newSet.delete(courseId);
         return newSet;
       });
+    }
+  };
+
+  const handleRemoveCourse = async (studentId: string, courseId: string) => {
+    if (confirm('Are you sure you want to remove this course from the student?')) {
+      setLoadingCourseIds(prev => new Set([...prev, courseId]));
+      
+      try {
+        await removeCourseAssignment(studentId, courseId);
+      } catch (error) {
+        console.error('Error removing course assignment:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove course assignment",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingCourseIds(prev => {
+          const newSet = new Set([...prev]);
+          newSet.delete(courseId);
+          return newSet;
+        });
+      }
     }
   };
 
@@ -76,11 +105,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 isLocked={isLocked}
                 viewedLessonsCount={viewedLessonsCount}
                 onToggleLock={() => handleToggleLock(student.id, courseId)}
-                onRemoveCourse={() => {
-                  if (confirm('Are you sure you want to remove this course from the student?')) {
-                    removeCourseAssignment(student.id, courseId);
-                  }
-                }}
+                onRemoveCourse={() => handleRemoveCourse(student.id, courseId)}
               />
             );
           })}

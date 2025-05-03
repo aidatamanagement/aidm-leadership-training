@@ -37,7 +37,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   onRemoveCourse,
   formatTimeSpent: customFormatTimeSpent
 }) => {
-  // Use a local state to immediately update the UI when lock status changes
+  // Use local state to immediately update the UI when lock status changes
   const [localLocked, setLocalLocked] = useState(isLocked);
   
   // Use the global utility function if no custom formatter is provided
@@ -57,8 +57,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
     setLocalLocked(isLocked);
   }, [isLocked]);
   
-  return <div className="border rounded-md p-4 bg-white">
-      <div className="flex  justify-between items-start mb-3 sm: flex-wrap sm: gap-3">
+  return (
+    <div className="border rounded-md p-4 bg-white">
+      <div className="flex justify-between items-start mb-3 sm:flex-wrap sm:gap-3">
         <div>
           <h5 className="font-semibold mb-2">{course.title}</h5>
           <p className="text-sm text-gray-600">
@@ -79,10 +80,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
           >
             {localLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
-          <Button size="sm" variant="ghost" onClick={e => {
-            e.stopPropagation();
-            onRemoveCourse();
-          }}>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemoveCourse();
+            }}
+            title="Remove Course"
+          >
             <Trash className="h-3 w-3" />
           </Button>
         </div>
@@ -104,13 +110,16 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
       </div>
       
-      {quizScore.total > 0 && <div className="mt-2 text-xs text-gray-600">
+      {quizScore.total > 0 && (
+        <div className="mt-2 text-xs text-gray-600">
           Quiz Score: {quizScore.score} / {quizScore.total}
-        </div>}
+        </div>
+      )}
       
-      {/* Add the new lesson lock accordion */}
+      {/* Add the lesson lock accordion */}
       <LessonLockAccordion course={course} studentId={studentId} />
-    </div>;
+    </div>
+  );
 };
 
 export default CourseCard;
