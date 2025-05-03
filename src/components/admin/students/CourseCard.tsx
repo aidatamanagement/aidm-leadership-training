@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Course } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -52,10 +53,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <Eye className="h-3 w-3" />
             </Link>
           </Button>
-          <Button size="sm" variant={isLocked ? "destructive" : "outline"} onClick={e => {
-          e.stopPropagation();
-          onToggleLock();
-        }} title={isLocked ? "Unlock Course" : "Lock Course"}>
+          <Button 
+            size="sm" 
+            variant={isLocked ? "destructive" : "outline"} 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleLock();
+            }} 
+            title={isLocked ? "Unlock Course" : "Lock Course"}
+          >
             {isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
           </Button>
           <Button size="sm" variant="ghost" onClick={e => {

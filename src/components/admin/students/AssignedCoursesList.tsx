@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CourseCard from './CourseCard';
 import { formatTimeSpent } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/components/ui/use-toast';
 
 interface AssignedCoursesListProps {
   student: Student;
@@ -14,6 +16,23 @@ interface AssignedCoursesListProps {
 const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAssignCourse }) => {
   const { courses, getStudentProgress, getTotalQuizScore, toggleCourseLock, removeCourseAssignment, isCourseLockedForUser } = useData();
   const isMobile = useIsMobile();
+  const [loadingCourseId, setLoadingCourseId] = useState<string | null>(null);
+
+  const handleToggleLock = async (studentId: string, courseId: string) => {
+    try {
+      setLoadingCourseId(courseId);
+      await toggleCourseLock(studentId, courseId);
+    } catch (error) {
+      console.error('Error toggling course lock:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update course lock status',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingCourseId(null);
+    }
+  };
 
   return (
     <>
@@ -56,7 +75,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
                 quizScore={quizScore}
                 isLocked={isLocked}
                 viewedLessonsCount={viewedLessonsCount}
-                onToggleLock={() => toggleCourseLock(student.id, courseId)}
+                onToggleLock={() => handleToggleLock(student.id, courseId)}
                 onRemoveCourse={() => removeCourseAssignment(student.id, courseId)}
               />
             );

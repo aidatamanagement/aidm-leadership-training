@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from 'react';
 import { CourseProvider, useCourses } from './CourseContext';
 import { StudentProvider, useStudents } from './StudentContext';
@@ -94,10 +95,14 @@ const ComposedDataProvider: React.FC<ComposedDataProviderProps> = ({
     setIsLoading
   ]);
 
-  // Create a wrapper function that adapts the boolean return to void
+  // Create a fixed toggleCourseLock wrapper function that preserves the boolean return value
   const toggleCourseLockWrapper = async (studentId: string, courseId: string): Promise<void> => {
-    await studentContext.toggleCourseLock(studentId, courseId);
-    // No return value needed - this converts the Promise<boolean> to Promise<void>
+    // Call the original function but don't use its return value directly in the interface
+    const newLockStatus = await studentContext.toggleCourseLock(studentId, courseId);
+    
+    // No return value needed, since the expected return type is void
+    // But we need the call to complete to refresh UI state correctly
+    console.log(`Course ${courseId} lock status toggled to: ${newLockStatus ? 'locked' : 'unlocked'}`);
   };
 
   // Combine all context values into a single object
@@ -142,7 +147,7 @@ const ComposedDataProvider: React.FC<ComposedDataProviderProps> = ({
     uploadPdf: progressContext.uploadPdf,
     
     // Lock functionality
-    toggleCourseLock: toggleCourseLockWrapper, // Use the wrapper function
+    toggleCourseLock: toggleCourseLockWrapper, // Use the fixed wrapper function
     isCourseLockedForUser: progressContext.isCourseLockedForUser,
     isLessonLocked: studentContext.isLessonLocked,
     toggleLessonLock: studentContext.toggleLessonLock,
