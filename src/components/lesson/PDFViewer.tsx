@@ -31,7 +31,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   if (!pdfUrl) {
     return (
       <Card className="mb-8">
-        <CardContent className="p-4">
+        <CardContent className="p-0">
           <div className="bg-gray-100 rounded-lg p-6 min-h-[40vh] sm:min-h-[80vh] flex flex-col items-center justify-center">
             <p className="text-gray-500">No PDF available for this lesson.</p>
           </div>
@@ -42,7 +42,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
   return (
     <Card className="mb-8">
-      <CardContent className="p-4">
+      <CardContent className="p-0">
         {isLoading && (
           <div className={`w-full ${viewerHeight} bg-gray-50 rounded-lg flex flex-col items-center justify-center`}>
             <div className="flex flex-col items-center space-y-4">
