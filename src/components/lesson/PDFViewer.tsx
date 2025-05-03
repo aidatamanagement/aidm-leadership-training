@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,7 +14,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
   const handleLoad = () => {
     console.log("PDF loaded successfully:", pdfUrl);
-    setIsLoading(false);
+    // Add small delay to ensure smooth transition
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
   };
 
   const handleError = () => {
@@ -43,13 +45,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     <Card className="mb-8 overflow-hidden">
       <CardContent className="p-0">
         <div className={`w-full ${viewerHeight} relative`}>
-          {isLoading && (
-            <div className="absolute inset-0 z-10">
-              <Skeleton className="w-full h-full m-0 rounded-none" />
-            </div>
-          )}
+          {/* Always render the skeleton to maintain consistent layout */}
+          <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isLoading ? 'opacity-100' : 'opacity-0'}`}>
+            <Skeleton className="w-full h-full m-0 rounded-none" />
+          </div>
           
-          <div className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+          {/* Always render the iframe too, just keep it invisible until loaded */}
+          <div className={`w-full h-full transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
             {error ? (
               <div className="bg-gray-100 w-full h-full flex flex-col items-center justify-center">
                 <p className="text-red-500">Error loading PDF</p>
