@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { Loader } from 'lucide-react';
 
 // Import our components
 import LessonHeader from '@/components/lesson/LessonHeader';
@@ -45,6 +47,8 @@ const LessonPage: React.FC = () => {
   // State for user interaction
   const [quizScore, setQuizScore] = useState(0);
   const [isPdfViewed, setIsPdfViewed] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   
   // Navigation state
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
@@ -68,7 +72,21 @@ const LessonPage: React.FC = () => {
     saveIntervalSeconds: 30
   });
 
+  // Handle PDF loading state change
+  const handlePdfLoadingChange = (loading: boolean) => {
+    setIsPdfLoading(loading);
+    if (!loading) {
+      // Add a small delay before removing the page loading state 
+      // to ensure smooth transition
+      setTimeout(() => setIsPageLoading(false), 300);
+    }
+  };
+
   useEffect(() => {
+    // Set initial loading state
+    setIsPageLoading(true);
+    setIsPdfLoading(true);
+    
     // Update data when URL params change
     const currentCourse = courses.find(c => c.id === courseId);
     setCourse(currentCourse);
@@ -122,7 +140,13 @@ const LessonPage: React.FC = () => {
         }
         
         setIsPdfViewed(progress?.pdfViewed || false);
+      } else {
+        // If lesson is not found, remove the loading state
+        setIsPageLoading(false);
       }
+    } else {
+      // If course is not found, remove the loading state
+      setIsPageLoading(false);
     }
   }, [courseId, lessonId, courses, quizSets, user, progress]);
 
@@ -136,6 +160,19 @@ const LessonPage: React.FC = () => {
 
   // Error handling for missing data
   if (!user || !course || !lesson) {
+    // If we're still loading, show the loading screen instead of the error
+    if (isPageLoading) {
+      return (
+        <AppLayout>
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <Loader className="h-12 w-12 animate-spin text-primary mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Loading Lesson...</h2>
+            <p className="text-gray-600">Please wait while we prepare your learning materials</p>
+          </div>
+        </AppLayout>
+      );
+    }
+    
     return (
       <AppLayout>
         <div className="text-center py-12">
@@ -188,6 +225,19 @@ const LessonPage: React.FC = () => {
     (quizScore / quizSet.questions.length * 100) < quizSettings.passMarkPercentage
   );
 
+  // If the page is still loading, show a loading screen
+  if (isPageLoading) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader className="h-12 w-12 animate-spin text-primary mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Loading Lesson...</h2>
+          <p className="text-gray-600">Please wait while we prepare your learning materials</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
@@ -198,7 +248,10 @@ const LessonPage: React.FC = () => {
           timeSpent={totalTimeSpent}
         />
         
-        <PDFViewer pdfUrl={lesson.pdfUrl} />
+        <PDFViewer 
+          pdfUrl={lesson.pdfUrl} 
+          onLoadStateChange={handlePdfLoadingChange} 
+        />
         
         <InstructorNotes notes={lesson.instructorNotes} />
         

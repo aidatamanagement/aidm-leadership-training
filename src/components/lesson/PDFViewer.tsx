@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,12 +7,20 @@ import { Loader } from 'lucide-react';
 
 interface PDFViewerProps {
   pdfUrl: string;
+  onLoadStateChange?: (isLoading: boolean) => void;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl, onLoadStateChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // Call the callback whenever the loading state changes
+    if (onLoadStateChange) {
+      onLoadStateChange(isLoading);
+    }
+  }, [isLoading, onLoadStateChange]);
 
   const handleLoad = () => {
     console.log("PDF loaded successfully:", pdfUrl);
