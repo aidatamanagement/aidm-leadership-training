@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/components/ui/use-toast';
+import { FileDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -49,8 +51,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     }
   };
 
-  // Set height based on device type with improved proportions
-  const viewerHeight = isMobile ? 'h-[50vh]' : 'h-[75vh]';
+  // Improved height settings with better mobile support
+  const viewerHeight = isMobile ? 'h-[60vh]' : 'h-[75vh]';
+
+  const downloadPDF = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
+    }
+  };
 
   if (!pdfUrl) {
     return (
@@ -67,6 +75,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   return (
     <Card className="mb-8 shadow-md">
       <CardContent className="p-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-medium">Lesson PDF</h3>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={downloadPDF}
+            className="flex items-center gap-1"
+          >
+            <FileDown className="h-4 w-4" />
+            <span>Download</span>
+          </Button>
+        </div>
+        
         {isLoading && (
           <div className={`w-full ${viewerHeight} flex items-center justify-center bg-gray-50 rounded-lg`}>
             <div className="text-center">
@@ -80,25 +101,33 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           <div className={`bg-gray-50 rounded-lg p-6 ${viewerHeight} flex flex-col items-center justify-center`}>
             <p className="text-red-500 font-medium">Error loading PDF</p>
             <p className="text-gray-500 text-sm mt-2 mb-4">{error}</p>
-            <button 
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            <Button 
               onClick={handleRetry}
               disabled={retryCount >= 3}
             >
               {retryCount >= 3 ? "Too many retries" : "Retry"}
-            </button>
+            </Button>
           </div>
         ) : (
-          <div className="w-full rounded-lg overflow-hidden border border-gray-100">
-            <iframe 
-              src={pdfUrl}
-              className={`w-full ${viewerHeight} border-0`}
+          <div className="w-full rounded-lg overflow-hidden border border-gray-100 bg-white">
+            <object 
+              data={pdfUrl}
+              type="application/pdf"
+              className={`w-full ${viewerHeight}`}
               onLoad={handleLoad}
               onError={handleError}
               title="PDF Document"
               style={{ display: isLoading ? 'none' : 'block' }}
-              key={`pdf-${retryCount}`} // Force iframe reload on retry
-            />
+              key={`pdf-${retryCount}`} // Force reload on retry
+            >
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <p className="mb-4">Unable to display PDF. Please use the download button above.</p>
+                <Button onClick={downloadPDF} className="flex items-center gap-1">
+                  <FileDown className="h-4 w-4" />
+                  <span>Download PDF</span>
+                </Button>
+              </div>
+            </object>
           </div>
         )}
       </CardContent>
