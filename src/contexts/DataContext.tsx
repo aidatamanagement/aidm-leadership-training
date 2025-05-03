@@ -1,10 +1,9 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { CourseProvider, useCourses } from './CourseContext';
 import { StudentProvider, useStudents } from './StudentContext';
 import { QuizProvider, useQuizzes } from './QuizContext';
 import { ProgressProvider, useProgress } from './ProgressContext';
-import { DataContextType, ProviderProps } from './types/SharedTypes';
+import { DataContextType, ProviderProps, StudentContextWithBooleanReturn } from './types/SharedTypes';
 
 // Create the main data context
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -95,6 +94,12 @@ const ComposedDataProvider: React.FC<ComposedDataProviderProps> = ({
     setIsLoading
   ]);
 
+  // Create a wrapper function that adapts the boolean return to void
+  const toggleCourseLockWrapper = async (studentId: string, courseId: string): Promise<void> => {
+    await studentContext.toggleCourseLock(studentId, courseId);
+    // No return value needed - this converts the Promise<boolean> to Promise<void>
+  };
+
   // Combine all context values into a single object
   const contextValue: DataContextType = {
     // Course methods
@@ -137,7 +142,7 @@ const ComposedDataProvider: React.FC<ComposedDataProviderProps> = ({
     uploadPdf: progressContext.uploadPdf,
     
     // Lock functionality
-    toggleCourseLock: studentContext.toggleCourseLock,
+    toggleCourseLock: toggleCourseLockWrapper, // Use the wrapper function
     isCourseLockedForUser: progressContext.isCourseLockedForUser,
     isLessonLocked: studentContext.isLessonLocked,
     toggleLessonLock: studentContext.toggleLessonLock,

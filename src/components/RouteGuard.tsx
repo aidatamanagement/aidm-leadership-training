@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
@@ -15,6 +15,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const { isCourseLockedForUser, isLessonLocked } = useData();
+  const [isLessonAccessBlocked, setIsLessonAccessBlocked] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.type) && user.type !== 'admin') {
@@ -37,7 +38,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
             description: 'This lesson has been locked by your administrator.',
             variant: 'destructive',
           });
-          // Navigation will happen in the return statement below
+          setIsLessonAccessBlocked(true);
+        } else {
+          setIsLessonAccessBlocked(false);
         }
       }
     };
@@ -80,10 +83,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Check if the lesson is locked (this needs to be async so we handle it in the useEffect)
-  if (user.type === 'student' && courseId && lessonId) {
-    // We don't need to await here since we're using useEffect to check and navigate
-    return <>{children}</>;
+  // Check if the lesson is locked
+  if (user.type === 'student' && courseId && lessonId && isLessonAccessBlocked) {
+    return <Navigate to={`/courses/${courseId}`} replace />;
   }
 
   return <>{children}</>;

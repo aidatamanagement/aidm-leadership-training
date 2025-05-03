@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { Student, ProviderProps } from './types/SharedTypes';
+import { Student, ProviderProps, StudentContextWithBooleanReturn } from './types/SharedTypes';
 import * as studentService from './services/studentService';
 
 interface StudentContextType {
@@ -10,7 +10,7 @@ interface StudentContextType {
   deleteStudent: (studentId: string) => Promise<void>;
   assignCourse: (studentId: string, courseId: string) => Promise<void>;
   removeCourseAssignment: (studentId: string, courseId: string) => Promise<void>;
-  toggleCourseLock: (studentId: string, courseId: string) => Promise<void>;
+  toggleCourseLock: (studentId: string, courseId: string) => Promise<boolean>;
   isLessonLocked: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
   toggleLessonLock: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
   fetchLessonLocks: (studentId: string, courseId: string) => Promise<Record<string, boolean>>;
@@ -85,7 +85,7 @@ export const StudentProvider: React.FC<ProviderProps> = ({ children }) => {
     }));
   };
 
-  const toggleCourseLock = async (studentId: string, courseId: string) => {
+  const toggleCourseLock = async (studentId: string, courseId: string): Promise<boolean> => {
     const newLockedStatus = await studentService.toggleCourseLock(studentId, courseId);
     return newLockedStatus;
   };
