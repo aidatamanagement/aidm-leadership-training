@@ -16,17 +16,66 @@ const CourseDetails: React.FC = () => {
     courses, 
     isLessonAccessible, 
     getStudentProgress,
-    getTotalQuizScore
+    getTotalQuizScore,
+    isCourseLockedForUser,
+    isLessonLocked,
+    isLoading
   } = useData();
 
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
+  const [lessonLocks, setLessonLocks] = useState<Record<string, boolean>>({});
+  const [loadingLocks, setLoadingLocks] = useState(false);
   const isAdmin = user?.type === 'admin';
 
   useEffect(() => {
     setCourse(courses.find(c => c.id === courseId));
   }, [courses, courseId]);
 
-  if (!user || !course) {
+  // Load lesson locks when component mounts
+  useEffect(() => {
+    if (!user || !courseId || isAdmin) return;
+
+    const loadLessonLocks = async () => {
+      try {
+        setLoadingLocks(true);
+        // For each lesson, check if it's locked
+        if (course) {
+          const lockPromises = course.lessons.map(async (lesson) => {
+            const isLocked = await isLessonLocked(user.id, courseId, lesson.id);
+            return { lessonId: lesson.id, isLocked };
+          });
+          
+          const results = await Promise.all(lockPromises);
+          
+          const lockMap: Record<string, boolean> = {};
+          results.forEach(({ lessonId, isLocked }) => {
+            lockMap[lessonId] = isLocked;
+          });
+          
+          setLessonLocks(lockMap);
+        }
+      } catch (error) {
+        console.error('Error loading lesson locks:', error);
+      } finally {
+        setLoadingLocks(false);
+      }
+    };
+    
+    loadLessonLocks();
+  }, [user, courseId, course, isAdmin, isLessonLocked]);
+
+  if (isLoading || !user) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const currentStudent = user;
+  if (!course) {
     return (
       <AppLayout>
         <div className="text-center py-12">
@@ -44,6 +93,11 @@ const CourseDetails: React.FC = () => {
   
   // Sort lessons by order
   const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
+
+  // Function to check if a specific lesson is locked
+  const isLessonLockedForStudent = (lessonId: string) => {
+    return lessonLocks[lessonId] || false;
+  };
 
   return (
     <AppLayout>
@@ -88,6 +142,7 @@ const CourseDetails: React.FC = () => {
             const isAccessible = isAdmin || isLessonAccessible(user.id, course.id, lesson.order);
             const progress = getStudentProgress(user.id, course.id).find(p => p.lessonId === lesson.id);
             const isCompleted = progress?.completed || false;
+            const isCurrentLessonLocked = isAdmin ? false : isLessonLockedForStudent(lesson.id);
             
             return (
               <Card 
@@ -98,17 +153,24 @@ const CourseDetails: React.FC = () => {
                     : isAccessible 
                     ? 'border-l-4 border-l-primary' 
                     : 'border-l-4 border-l-gray-300 opacity-75'
-                }`}
+                } ${isCurrentLessonLocked ? 'bg-gray-50' : ''}`}
               >
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">
                     {lesson.order}. {lesson.title}
-                    {isCompleted && (
+                    {isCompleted && !isCurrentLessonLocked && (
                       <CheckCircle className="inline-block ml-2 h-4 w-4 text-green-500" />
+                    )}
+                    {isCurrentLessonLocked && (
+                      <Lock className="inline-block ml-2 h-4 w-4 text-red-500" />
                     )}
                   </CardTitle>
                   <div className="flex-shrink-0">
-                    {isAccessible ? (
+                    {isCurrentLessonLocked ? (
+                      <Button disabled size="sm" variant="outline">
+                        <Lock className="mr-2 h-4 w-4" /> Lesson Locked
+                      </Button>
+                    ) : isAccessible ? (
                       <Button asChild size="sm" variant={isCompleted ? "outline" : "default"}>
                         <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
                           {isCompleted ? (
@@ -138,7 +200,7 @@ const CourseDetails: React.FC = () => {
                       
                       {progress && progress.quizScore !== null && (
                         <div className="text-xs text-gray-600">
-                          Quiz Score: {progress.quizScore} / {progress.quizScore !== null ? 'N/A' : '?'}
+                          Quiz Score: {progress.quizScore} / {progress.quizTotal ?? 'N/A'}
                         </div>
                       )}
                     </div>
