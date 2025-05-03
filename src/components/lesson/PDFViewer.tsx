@@ -49,20 +49,22 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
             </div>
           )}
           
-          {error ? (
-            <div className="bg-gray-100 w-full h-full flex flex-col items-center justify-center">
-              <p className="text-red-500">Error loading PDF</p>
-              <p className="text-gray-500 text-sm mt-2">{error}</p>
-            </div>
-          ) : (
-            <iframe 
-              src={pdfUrl}
-              className={`w-full h-full border-0 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}`}
-              onLoad={handleLoad}
-              onError={handleError}
-              title="PDF Document"
-            />
-          )}
+          <div className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+            {error ? (
+              <div className="bg-gray-100 w-full h-full flex flex-col items-center justify-center">
+                <p className="text-red-500">Error loading PDF</p>
+                <p className="text-gray-500 text-sm mt-2">{error}</p>
+              </div>
+            ) : (
+              <iframe 
+                src={pdfUrl}
+                className="w-full h-full border-0"
+                onLoad={handleLoad}
+                onError={handleError}
+                title="PDF Document"
+              />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
