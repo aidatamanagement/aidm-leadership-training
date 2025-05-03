@@ -95,7 +95,7 @@ const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, stude
       className="mt-4 border-t pt-2"
       onValueChange={handleAccordionChange}
     >
-      <AccordionItem value="lesson-lock">
+      <AccordionItem value="lesson-lock" className="border-b-0">
         <AccordionTrigger className="text-sm font-medium">
           Lock a lesson
         </AccordionTrigger>

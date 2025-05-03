@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Student, useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ const AssignedCoursesList: React.FC<AssignedCoursesListProps> = ({ student, onAs
 
   return (
     <>
-      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-between items-center'} mb-4`}>
+      <div className={`flex justify-between items-center mb-4`}>
         <h4 className="text-sm font-medium">Assigned Courses</h4>
         <Button size="sm" variant="outline" onClick={onAssignCourse}>
           <Plus className="mr-2 h-4 w-4" /> Assign Course
