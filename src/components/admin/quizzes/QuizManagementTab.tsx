@@ -235,6 +235,33 @@ const QuizManagementTab: React.FC = () => {
               </div>
             </DialogContent>
           </Dialog>
+          
+          <Dialog open={isEditQuizSetOpen} onOpenChange={setIsEditQuizSetOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Quiz Set</DialogTitle>
+                <DialogDescription>
+                  Update the quiz set title.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editQuizSetTitle">Quiz Set Title</Label>
+                  <Input 
+                    id="editQuizSetTitle" 
+                    placeholder="Enter quiz set title" 
+                    value={quizSetTitle} 
+                    onChange={e => setQuizSetTitle(e.target.value)} 
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleUpdateQuizSet} disabled={!quizSetTitle}>
+                  Update Quiz Set
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
