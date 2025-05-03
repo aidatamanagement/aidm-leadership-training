@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,12 +30,8 @@ const LessonPage: React.FC = () => {
     updatePdfViewed,
     isLessonAccessible,
     getStudentProgress,
-    isLessonLocked,
-    isLoading: isDataLoading
+    isLessonLocked
   } = useData();
-
-  // Page loading state
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
   // State for course and lesson data
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
@@ -129,9 +124,6 @@ const LessonPage: React.FC = () => {
         setIsPdfViewed(progress?.pdfViewed || false);
       }
     }
-
-    // End loading state once we have data
-    setIsPageLoading(false);
   }, [courseId, lessonId, courses, quizSets, user, progress]);
 
   // Automatically mark PDF as viewed (once)
@@ -141,17 +133,6 @@ const LessonPage: React.FC = () => {
       updatePdfViewed(user.id, courseId, lessonId);
     }
   }, [user, courseId, lessonId, isPdfViewed, updatePdfViewed]);
-
-  // Show loading while data is being fetched
-  if (isDataLoading || isPageLoading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-[80vh]">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
-  }
 
   // Error handling for missing data
   if (!user || !course || !lesson) {
