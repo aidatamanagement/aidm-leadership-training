@@ -18,20 +18,32 @@ export function useIsMobile() {
     // Safety check for SSR environments
     if (typeof window === 'undefined') return;
     
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    
     const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     }
+
+    // Use both matchMedia for more modern browsers and resize for broader compatibility
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     
-    // Modern API for matchMedia
-    mql.addEventListener("change", handleResize)
+    try {
+      // Modern API for matchMedia
+      mql.addEventListener("change", handleResize);
+    } catch (e) {
+      // Fallback for older browsers
+      window.addEventListener('resize', handleResize);
+    }
     
     // Set initial value
     handleResize();
     
-    return () => mql.removeEventListener("change", handleResize)
-  }, [])
+    return () => {
+      try {
+        mql.removeEventListener("change", handleResize);
+      } catch (e) {
+        window.removeEventListener('resize', handleResize);
+      }
+    }
+  }, []);
 
   return isMobile;
 }
