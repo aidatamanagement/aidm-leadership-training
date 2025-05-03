@@ -1,31 +1,12 @@
-
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash, Eye, Check } from 'lucide-react';
 import PDFUploader from '@/components/lesson/PDFUploader';
@@ -33,7 +14,6 @@ import RichTextEditor from '@/components/RichTextEditor';
 
 // Import types needed from DataContext
 import type { Course, Lesson } from '@/contexts/DataContext';
-
 const CourseManagement: React.FC = () => {
   const {
     courses,
@@ -45,7 +25,6 @@ const CourseManagement: React.FC = () => {
     deleteLesson,
     quizSets
   } = useData();
-  
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isEditCourseOpen, setIsEditCourseOpen] = useState(false);
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
@@ -127,7 +106,7 @@ const CourseManagement: React.FC = () => {
         description: lessonDescription,
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId,
-        pdfUrl: pdfUrl || currentLesson.pdfUrl, // Use new URL if uploaded, otherwise keep existing
+        pdfUrl: pdfUrl || currentLesson.pdfUrl // Use new URL if uploaded, otherwise keep existing
       });
       resetLessonForm();
       setIsEditLessonOpen(false);
@@ -168,9 +147,7 @@ const CourseManagement: React.FC = () => {
     setSelectedQuizSetId(null);
     setPdfUrl('');
   };
-  
-  return (
-    <div>
+  return <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold mb-2">Course Management</h2>
@@ -237,17 +214,13 @@ const CourseManagement: React.FC = () => {
         </Dialog>
       </div>
       
-      {courses.length === 0 ? (
-        <div className="text-center py-12 bg-gray-100 rounded-lg">
+      {courses.length === 0 ? <div className="text-center py-12 bg-gray-100 rounded-lg">
           <p className="text-gray-600 mb-4">No courses available.</p>
           <Button onClick={() => setIsAddCourseOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add Your First Course
           </Button>
-        </div>
-      ) : (
-        <Accordion type="single" collapsible className="space-y-4">
-          {courses.map(course => (
-            <AccordionItem key={course.id} value={course.id} className="border rounded-md overflow-hidden">
+        </div> : <Accordion type="single" collapsible className="space-y-4">
+          {courses.map(course => <AccordionItem key={course.id} value={course.id} className="border rounded-md overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 focus:bg-gray-50">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
                   <div className="text-left mb-2 md:mb-0">
@@ -255,36 +228,23 @@ const CourseManagement: React.FC = () => {
                     <p className="text-sm text-gray-600">{course.description}</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      asChild 
-                      onClick={e => {
-                        e.stopPropagation();
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" asChild onClick={e => {
+                e.stopPropagation();
+              }}>
                       <Link to={`/courses/${course.id}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={e => {
-                        e.stopPropagation();
-                        openEditCourseDialog(course);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                openEditCourseDialog(course);
+              }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteCourse(course);
-                      }}
-                    >
+                    <Button size="sm" variant="ghost" onClick={e => {
+                e.stopPropagation();
+                handleDeleteCourse(course);
+              }}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
@@ -322,20 +282,12 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="pdfUpload">Upload PDF Slides</Label>
-                          <PDFUploader 
-                            lessonId={`new-lesson-${Date.now()}`} 
-                            onUploadComplete={handlePdfUploadComplete} 
-                          />
+                          <PDFUploader lessonId={`new-lesson-${Date.now()}`} onUploadComplete={handlePdfUploadComplete} />
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes">Instructor Notes</Label>
-                          <RichTextEditor 
-                            value={instructorNotes} 
-                            onChange={setInstructorNotes}
-                            
-                            rows={6}
-                          />
+                          <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
                         </div>
                         
                         <div className="space-y-2">
@@ -346,11 +298,9 @@ const CourseManagement: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">None</SelectItem>
-                              {quizSets.map(quizSet => (
-                                <SelectItem key={quizSet.id} value={quizSet.id}>
+                              {quizSets.map(quizSet => <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -385,21 +335,12 @@ const CourseManagement: React.FC = () => {
 
                         <div className="space-y-2">
                           <Label htmlFor="editPdfUpload">Update PDF Slides (Optional)</Label>
-                          <PDFUploader 
-                            lessonId={currentLesson?.id || `edit-lesson-${Date.now()}`}
-                            onUploadComplete={handlePdfUploadComplete}
-                            currentPdfUrl={currentLesson?.pdfUrl}
-                          />
+                          <PDFUploader lessonId={currentLesson?.id || `edit-lesson-${Date.now()}`} onUploadComplete={handlePdfUploadComplete} currentPdfUrl={currentLesson?.pdfUrl} />
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes">Instructor Notes</Label>
-                          <RichTextEditor 
-                            value={instructorNotes} 
-                            onChange={setInstructorNotes}
-                            placeholder="Add instructor notes (supports HTML)"
-                            rows={6}
-                          />
+                          <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="Add instructor notes (supports HTML)" rows={6} />
                         </div>
                         
                         <div className="space-y-2">
@@ -410,11 +351,9 @@ const CourseManagement: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">None</SelectItem>
-                              {quizSets.map(quizSet => (
-                                <SelectItem key={quizSet.id} value={quizSet.id}>
+                              {quizSets.map(quizSet => <SelectItem key={quizSet.id} value={quizSet.id}>
                                   {quizSet.title} ({quizSet.questions.length} questions)
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -428,18 +367,14 @@ const CourseManagement: React.FC = () => {
                   </Dialog>
                 </div>
                 
-                {course.lessons.length === 0 ? (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                {course.lessons.length === 0 ? <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <p className="text-gray-600 mb-4">No lessons in this course yet.</p>
                     <Button variant="outline" onClick={() => openAddLessonDialog(course)}>
                       <Plus className="mr-2 h-4 w-4" /> Add Your First Lesson
                     </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => (
-                      <div key={lesson.id} className="border rounded-md p-4 bg-white">
-                        <div className="flex justify-between items-start mb-2">
+                  </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => <div key={lesson.id} className="border rounded-md p-4 bg-white">
+                        <div className="flex justify-between items-start mb-2 sm: flex-wrap: wrap\n\n">
                           <div>
                             <h5 className="font-semibold">{lesson.order}. {lesson.title}</h5>
                             <p className="text-sm text-gray-600">{lesson.description}</p>
@@ -453,23 +388,15 @@ const CourseManagement: React.FC = () => {
                             </Button>
                           </div>
                         </div>
-                        {lesson.quizSetId && (
-                          <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
+                        {lesson.quizSetId && <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
                             <Check className="mr-1 h-3 w-3" />
                             Has Quiz
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          </div>}
+                      </div>)}
+                  </div>}
               </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
-    </div>
-  );
+            </AccordionItem>)}
+        </Accordion>}
+    </div>;
 };
-
 export default CourseManagement;
