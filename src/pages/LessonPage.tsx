@@ -12,28 +12,14 @@ import LessonLoading from '@/components/lesson/LessonLoading';
 
 // Import custom hooks
 import { useLessonData } from '@/hooks/useLessonData';
-import { useLessonTimer } from '@/hooks/useLessonTimer';
-import { useData } from '@/contexts/DataContext';
 
 const LessonPage: React.FC = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const { updateTimeSpent } = useData();
   
   // Get lesson data from our custom hook
   const { course, lesson, progress } = useLessonData();
-  
-  // Use our timer hook for the lesson - properly imported at the top
-  const { totalTimeSpent } = (course && lesson && user) ? 
-    useLessonTimer({
-      userId: user.id,
-      courseId: courseId!,
-      lessonId: lessonId!,
-      initialTimeSpent: progress?.timeSpent || 0,
-      updateTimeSpent: updateTimeSpent,
-      saveIntervalSeconds: 30
-    }) : { totalTimeSpent: 0 };
 
   // Set initial loading state
   useEffect(() => {
@@ -70,7 +56,7 @@ const LessonPage: React.FC = () => {
           courseId={courseId!}
           lessonTitle={lesson.title}
           lessonDescription={lesson.description}
-          timeSpent={totalTimeSpent}
+          timeSpent={progress?.timeSpent || 0}
         />
         
         <LessonContent 

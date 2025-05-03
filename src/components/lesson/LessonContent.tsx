@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -44,18 +44,18 @@ const LessonContent: React.FC<LessonContentProps> = ({ courseId, lessonId }) => 
   const [quizScore, setQuizScore] = useState(0);
   const [isPdfViewed, setIsPdfViewed] = useState(false);
   
-  // Use our refactored timer hook with the memoized progress
+  // Use our timer hook with the memoized progress
   const { totalTimeSpent } = useLessonTimer({
     userId: user?.id || null,
-    courseId: courseId || '',
-    lessonId: lessonId || '',
+    courseId,
+    lessonId,
     initialTimeSpent: progress?.timeSpent || 0,
     updateTimeSpent,
     saveIntervalSeconds: 30
   });
 
   // Automatically mark PDF as viewed (once)
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && courseId && lessonId && !isPdfViewed) {
       setIsPdfViewed(true);
       updatePdfViewed(user.id, courseId, lessonId);
