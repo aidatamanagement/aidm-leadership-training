@@ -30,8 +30,7 @@ const LessonPage: React.FC = () => {
     updateTimeSpent, 
     updatePdfViewed,
     isLessonAccessible,
-    getStudentProgress,
-    isLessonLocked
+    getStudentProgress
   } = useData();
 
   // State for course and lesson data
@@ -50,7 +49,6 @@ const LessonPage: React.FC = () => {
   // Navigation state
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
-  const [isNextLessonLocked, setIsNextLessonLocked] = useState(false);
 
   // Track lesson progress
   const [progress, setProgress] = useState(
@@ -68,20 +66,6 @@ const LessonPage: React.FC = () => {
     updateTimeSpent,
     saveIntervalSeconds: 30
   });
-
-  // Check if next lesson is locked
-  useEffect(() => {
-    const checkNextLessonLock = async () => {
-      if (user && courseId && nextLesson) {
-        const locked = await isLessonLocked(user.id, courseId, nextLesson.id);
-        setIsNextLessonLocked(locked);
-      }
-    };
-    
-    if (nextLesson) {
-      checkNextLessonLock();
-    }
-  }, [user, courseId, nextLesson, isLessonLocked]);
 
   useEffect(() => {
     // Update data when URL params change
@@ -185,16 +169,10 @@ const LessonPage: React.FC = () => {
     markLessonComplete(user.id, courseId, lessonId, quizScore);
     
     // Navigate to next lesson or course completion page
-    if (nextLesson && !isNextLessonLocked) {
+    if (nextLesson) {
       navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
-    } else if (!nextLesson) {
-      navigate(`/courses/${courseId}/completion`);
     } else {
-      // If next lesson is locked, just show a toast
-      toast({
-        title: "Lesson Completed",
-        description: "The next lesson is locked by your administrator.",
-      });
+      navigate(`/courses/${courseId}/completion`);
     }
   };
 
@@ -232,7 +210,6 @@ const LessonPage: React.FC = () => {
           nextLesson={nextLesson}
           onCompleteLesson={handleCompleteLesson}
           disableCompletion={isCompletionDisabled}
-          isNextLessonLocked={isNextLessonLocked}
         />
       </div>
     </AppLayout>
