@@ -18,16 +18,16 @@ export function useLessonTimer({
   updateTimeSpent,
   saveIntervalSeconds = 30
 }: UseLessonTimerProps) {
-  // Use useState for the displayed total time (initial + current session)
-  const [totalTimeSpent, setTotalTimeSpent] = useState(initialTimeSpent);
+  // State only for display purposes - doesn't affect the timer's internal tracking
+  const [displayedTime, setDisplayedTime] = useState(initialTimeSpent);
   
-  // Use refs for tracking the current session time to avoid re-render issues
+  // Use refs to prevent re-renders and dependency changes from affecting the timer
+  const initialTimeRef = useRef(initialTimeSpent);
   const sessionTimeRef = useRef(0);
   const lastSaveTimeRef = useRef(0);
   const timerIdRef = useRef<number | null>(null);
-  
-  // Track if the page is visible
   const isPageVisibleRef = useRef(true);
+  const hasInitializedRef = useRef(false);
 
   // Handle visibility change
   useEffect(() => {
@@ -43,15 +43,26 @@ export function useLessonTimer({
     };
   }, []);
 
-  // Start the timer
+  // Start the timer only once when component mounts
   useEffect(() => {
-    console.log(`Starting timer with initial time: ${initialTimeSpent}s`);
+    // Prevent multiple initializations if dependencies change
+    if (hasInitializedRef.current) {
+      return;
+    }
+    
+    // Mark as initialized
+    hasInitializedRef.current = true;
+    
+    // Store the initial time in the ref
+    initialTimeRef.current = initialTimeSpent;
+    
+    console.log(`Starting timer with initial time: ${initialTimeRef.current}s`);
     
     const incrementTime = () => {
       // Only increment if page is visible
       if (isPageVisibleRef.current) {
         sessionTimeRef.current += 1;
-        setTotalTimeSpent(initialTimeSpent + sessionTimeRef.current);
+        setDisplayedTime(initialTimeRef.current + sessionTimeRef.current);
         
         // Save periodically
         if (userId && sessionTimeRef.current - lastSaveTimeRef.current >= saveIntervalSeconds) {
@@ -79,10 +90,10 @@ export function useLessonTimer({
         updateTimeSpent(userId, courseId, lessonId, remainingTime);
       }
     };
-  }, [userId, courseId, lessonId, initialTimeSpent, updateTimeSpent, saveIntervalSeconds]);
+  }, [userId, courseId, lessonId]); // Remove initialTimeSpent and updateTimeSpent from dependencies
 
   return {
-    totalTimeSpent,
+    totalTimeSpent: displayedTime,
     sessionTime: sessionTimeRef.current
   };
 }
