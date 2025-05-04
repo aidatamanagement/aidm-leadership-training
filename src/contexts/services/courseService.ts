@@ -121,6 +121,36 @@ export const updateCourse = async (courseId: string, updates: Partial<Course>): 
 // Delete a course
 export const deleteCourse = async (courseId: string): Promise<void> => {
   try {
+    // First, fetch all lesson IDs for this course
+    const { data: lessonIds, error: lessonError } = await supabase
+      .from('lessons')
+      .select('id')
+      .eq('course_id', courseId);
+    
+    if (lessonError) throw lessonError;
+    
+    // Delete any lesson locks associated with lessons in this course
+    if (lessonIds && lessonIds.length > 0) {
+      const ids = lessonIds.map(l => l.id);
+      
+      // Delete lesson locks for all lessons in this course
+      const { error: lockDeleteError } = await supabase
+        .from('user_lesson_locks')
+        .delete()
+        .in('lesson_id', ids);
+      
+      if (lockDeleteError) throw lockDeleteError;
+    }
+    
+    // Also delete locks that reference this course directly
+    const { error: courseLockDeleteError } = await supabase
+      .from('user_lesson_locks')
+      .delete()
+      .eq('course_id', courseId);
+    
+    if (courseLockDeleteError) throw courseLockDeleteError;
+    
+    // Now it's safe to delete the course (cascade will handle deleting lessons)
     const { error } = await supabase
       .from('courses')
       .delete()
@@ -234,6 +264,15 @@ export const updateLesson = async (courseId: string, lessonId: string, updates: 
 // Delete a lesson
 export const deleteLesson = async (courseId: string, lessonId: string, allLessons: Lesson[]): Promise<void> => {
   try {
+    // First, delete any lesson lock records for this lesson
+    const { error: lockDeleteError } = await supabase
+      .from('user_lesson_locks')
+      .delete()
+      .eq('lesson_id', lessonId);
+    
+    if (lockDeleteError) throw lockDeleteError;
+    
+    // Now it's safe to delete the lesson
     const { error } = await supabase
       .from('lessons')
       .delete()
