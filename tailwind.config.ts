@@ -19,9 +19,6 @@ export default {
 			}
 		},
 		extend: {
-			screens: {
-				'max-xs': { max: '480px' }, // Screens <= 480px
-			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
