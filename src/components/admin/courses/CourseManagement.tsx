@@ -41,7 +41,7 @@ const CourseManagement: React.FC = () => {
   const [pdfUrl, setPdfUrl] = useState<string>('');
 
   // Define a more subtle required field indicator style
-  const requiredFieldIndicator = "text-gray-400 ml-1 text-sm";
+  const requiredFieldIndicator = "text-red-500 ml-1";
   const requiredHelpText = "text-xs text-gray-500";
 
   // Handle add course
@@ -292,7 +292,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="pdfUrl" className="flex items-center">
-                            PDF URL <span className={requiredFieldIndicator}>*required</span>
+                            PDF URL <span className={requiredFieldIndicator}>*</span>
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -326,7 +326,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes" className="flex items-center">
-                            Instructor Notes <span className={requiredFieldIndicator}>*required</span>
+                            Instructor Notes <span className={requiredFieldIndicator}>*</span>
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
                           {!instructorNotes && (
@@ -382,7 +382,7 @@ const CourseManagement: React.FC = () => {
 
                         <div className="space-y-2">
                           <Label htmlFor="editPdfUrl" className="flex items-center">
-                            PDF URL <span className={requiredFieldIndicator}>*required</span>
+                            PDF URL <span className={requiredFieldIndicator}>*</span>
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -430,7 +430,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes" className="flex items-center">
-                            Instructor Notes <span className={requiredFieldIndicator}>*required</span>
+                            Instructor Notes <span className={requiredFieldIndicator}>*</span>
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
                           {!instructorNotes && (
