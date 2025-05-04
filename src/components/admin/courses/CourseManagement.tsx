@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -8,8 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash, Eye, Check } from 'lucide-react';
-import PDFUploader from '@/components/lesson/PDFUploader';
+import { Plus, Pencil, Trash, Eye, Check, FileIcon, ExternalLink } from 'lucide-react';
 import RichTextEditor from '@/components/RichTextEditor';
 
 // Import types needed from DataContext
@@ -78,18 +78,13 @@ const CourseManagement: React.FC = () => {
     setIsEditCourseOpen(true);
   };
 
-  // Handle PDF upload completion
-  const handlePdfUploadComplete = (url: string) => {
-    setPdfUrl(url);
-  };
-
   // Handle add lesson
   const handleAddLesson = () => {
     if (currentCourse) {
       addLesson(currentCourse.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: pdfUrl || '/placeholder.pdf',
+        pdfUrl: pdfUrl || 'https://example.com/placeholder.pdf',
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -106,7 +101,7 @@ const CourseManagement: React.FC = () => {
         description: lessonDescription,
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId,
-        pdfUrl: pdfUrl || currentLesson.pdfUrl // Use new URL if uploaded, otherwise keep existing
+        pdfUrl: pdfUrl || currentLesson.pdfUrl
       });
       resetLessonForm();
       setIsEditLessonOpen(false);
@@ -147,6 +142,18 @@ const CourseManagement: React.FC = () => {
     setSelectedQuizSetId(null);
     setPdfUrl('');
   };
+
+  // Helper function to validate URL
+  const isValidUrl = (urlString: string): boolean => {
+    try { 
+      new URL(urlString); 
+      return true;
+    }
+    catch(e){ 
+      return false;
+    }
+  };
+
   return <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
@@ -269,7 +276,7 @@ const CourseManagement: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-1  gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="lessonTitle">Lesson Title</Label>
                             <Input id="lessonTitle" placeholder="Enter lesson title" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} />
@@ -281,8 +288,31 @@ const CourseManagement: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="pdfUpload">Upload PDF Slides</Label>
-                          <PDFUploader lessonId={`new-lesson-${Date.now()}`} onUploadComplete={handlePdfUploadComplete} />
+                          <Label htmlFor="pdfUrl">PDF URL</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="pdfUrl" 
+                              placeholder="Enter URL to PDF document" 
+                              value={pdfUrl} 
+                              onChange={e => setPdfUrl(e.target.value)} 
+                              className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
+                            />
+                            {pdfUrl && isValidUrl(pdfUrl) && (
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => window.open(pdfUrl, '_blank')}
+                                title="Open PDF in new tab"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {pdfUrl && !isValidUrl(pdfUrl) && (
+                            <p className="text-xs text-red-500">Please enter a valid URL</p>
+                          )}
+                          <p className="text-xs text-gray-500">Enter the full URL to a PDF document (e.g., https://example.com/document.pdf)</p>
                         </div>
                         
                         <div className="space-y-2">
@@ -306,7 +336,10 @@ const CourseManagement: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button onClick={handleAddLesson} disabled={!lessonTitle || !lessonDescription}>
+                        <Button 
+                          onClick={handleAddLesson} 
+                          disabled={!lessonTitle || !lessonDescription || (pdfUrl && !isValidUrl(pdfUrl))}
+                        >
                           Save Lesson
                         </Button>
                       </div>
@@ -322,7 +355,7 @@ const CourseManagement: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-1  gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="editLessonTitle">Lesson Title</Label>
                             <Input id="editLessonTitle" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} />
@@ -334,8 +367,48 @@ const CourseManagement: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="editPdfUpload">Update PDF Slides (Optional)</Label>
-                          <PDFUploader lessonId={currentLesson?.id || `edit-lesson-${Date.now()}`} onUploadComplete={handlePdfUploadComplete} currentPdfUrl={currentLesson?.pdfUrl} />
+                          <Label htmlFor="editPdfUrl">PDF URL</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="editPdfUrl" 
+                              placeholder="Enter URL to PDF document" 
+                              value={pdfUrl} 
+                              onChange={e => setPdfUrl(e.target.value)} 
+                              className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
+                            />
+                            {pdfUrl && isValidUrl(pdfUrl) && (
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => window.open(pdfUrl, '_blank')}
+                                title="Open PDF in new tab"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {pdfUrl && !isValidUrl(pdfUrl) && (
+                            <p className="text-xs text-red-500">Please enter a valid URL</p>
+                          )}
+                          {currentLesson?.pdfUrl && (
+                            <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between mt-2">
+                              <div className="flex items-center">
+                                <FileIcon className="h-5 w-5 text-blue-500 mr-2" />
+                                <span className="text-sm font-medium truncate max-w-[200px]">
+                                  Current PDF
+                                </span>
+                              </div>
+                              <a 
+                                href={currentLesson.pdfUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline flex items-center"
+                              >
+                                View <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="space-y-2">
@@ -359,7 +432,10 @@ const CourseManagement: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button onClick={handleUpdateLesson} disabled={!lessonTitle || !lessonDescription}>
+                        <Button 
+                          onClick={handleUpdateLesson} 
+                          disabled={!lessonTitle || !lessonDescription || (pdfUrl && !isValidUrl(pdfUrl))}
+                        >
                           Update Lesson
                         </Button>
                       </div>
@@ -374,7 +450,7 @@ const CourseManagement: React.FC = () => {
                     </Button>
                   </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => <div key={lesson.id} className="border rounded-md p-4 bg-white">
-                        <div className="flex justify-between items-start mb-2  sm: flex-wrap">
+                        <div className="flex justify-between items-start mb-2 sm:flex-wrap">
                           <div>
                             <h5 className="font-semibold">{lesson.order}. {lesson.title}</h5>
                             <p className="text-sm text-gray-600">{lesson.description}</p>
@@ -388,10 +464,16 @@ const CourseManagement: React.FC = () => {
                             </Button>
                           </div>
                         </div>
-                        {lesson.quizSetId && <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
-                            <Check className="mr-1 h-3 w-3" />
-                            Has Quiz
-                          </div>}
+                        <div className="flex flex-wrap gap-2">
+                          {lesson.quizSetId && <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded">
+                              <Check className="mr-1 h-3 w-3" />
+                              Has Quiz
+                            </div>}
+                          {lesson.pdfUrl && <div className="mt-2 text-xs inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                              <FileIcon className="mr-1 h-3 w-3" />
+                              PDF
+                            </div>}
+                        </div>
                       </div>)}
                   </div>}
               </AccordionContent>

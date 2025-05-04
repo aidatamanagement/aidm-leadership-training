@@ -160,7 +160,7 @@ export const addLesson = async (courseId: string, lesson: Omit<Lesson, 'id' | 'o
           course_id: courseId,
           title: lesson.title,
           description: lesson.description,
-          pdf_url: lesson.pdfUrl || '/placeholder.pdf',
+          pdf_url: lesson.pdfUrl || 'https://example.com/placeholder.pdf',
           instructor_notes: lesson.instructorNotes,
           quiz_set_id: lesson.quizSetId,
           order: newOrder
