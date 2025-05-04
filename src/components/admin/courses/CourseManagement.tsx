@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -84,7 +83,7 @@ const CourseManagement: React.FC = () => {
       addLesson(currentCourse.id, {
         title: lessonTitle,
         description: lessonDescription,
-        pdfUrl: pdfUrl || 'https://example.com/placeholder.pdf',
+        pdfUrl: pdfUrl,
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId
       });
@@ -101,7 +100,7 @@ const CourseManagement: React.FC = () => {
         description: lessonDescription,
         instructorNotes: instructorNotes,
         quizSetId: selectedQuizSetId,
-        pdfUrl: pdfUrl || currentLesson.pdfUrl
+        pdfUrl: pdfUrl
       });
       resetLessonForm();
       setIsEditLessonOpen(false);
@@ -288,7 +287,9 @@ const CourseManagement: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="pdfUrl">PDF URL</Label>
+                          <Label htmlFor="pdfUrl" className="flex items-center">
+                            PDF URL <span className="text-red-500 ml-1">*</span>
+                          </Label>
                           <div className="flex gap-2">
                             <Input 
                               id="pdfUrl" 
@@ -296,6 +297,7 @@ const CourseManagement: React.FC = () => {
                               value={pdfUrl} 
                               onChange={e => setPdfUrl(e.target.value)} 
                               className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
+                              required
                             />
                             {pdfUrl && isValidUrl(pdfUrl) && (
                               <Button 
@@ -309,6 +311,9 @@ const CourseManagement: React.FC = () => {
                               </Button>
                             )}
                           </div>
+                          {!pdfUrl && (
+                            <p className="text-xs text-red-500">PDF URL is required</p>
+                          )}
                           {pdfUrl && !isValidUrl(pdfUrl) && (
                             <p className="text-xs text-red-500">Please enter a valid URL</p>
                           )}
@@ -316,8 +321,13 @@ const CourseManagement: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="instructorNotes">Instructor Notes</Label>
+                          <Label htmlFor="instructorNotes" className="flex items-center">
+                            Instructor Notes <span className="text-red-500 ml-1">*</span>
+                          </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
+                          {!instructorNotes && (
+                            <p className="text-xs text-red-500">Instructor notes are required</p>
+                          )}
                         </div>
                         
                         <div className="space-y-2">
@@ -338,7 +348,7 @@ const CourseManagement: React.FC = () => {
                       <div className="flex justify-end">
                         <Button 
                           onClick={handleAddLesson} 
-                          disabled={!lessonTitle || !lessonDescription || (pdfUrl && !isValidUrl(pdfUrl))}
+                          disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}
                         >
                           Save Lesson
                         </Button>
@@ -367,7 +377,9 @@ const CourseManagement: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="editPdfUrl">PDF URL</Label>
+                          <Label htmlFor="editPdfUrl" className="flex items-center">
+                            PDF URL <span className="text-red-500 ml-1">*</span>
+                          </Label>
                           <div className="flex gap-2">
                             <Input 
                               id="editPdfUrl" 
@@ -375,6 +387,7 @@ const CourseManagement: React.FC = () => {
                               value={pdfUrl} 
                               onChange={e => setPdfUrl(e.target.value)} 
                               className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
+                              required
                             />
                             {pdfUrl && isValidUrl(pdfUrl) && (
                               <Button 
@@ -388,8 +401,8 @@ const CourseManagement: React.FC = () => {
                               </Button>
                             )}
                           </div>
-                          {pdfUrl && !isValidUrl(pdfUrl) && (
-                            <p className="text-xs text-red-500">Please enter a valid URL</p>
+                          {!pdfUrl && (
+                            <p className="text-xs text-red-500">PDF URL is required</p>
                           )}
                           {currentLesson?.pdfUrl && (
                             <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between mt-2">
@@ -412,8 +425,13 @@ const CourseManagement: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="editInstructorNotes">Instructor Notes</Label>
+                          <Label htmlFor="editInstructorNotes" className="flex items-center">
+                            Instructor Notes <span className="text-red-500 ml-1">*</span>
+                          </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
+                          {!instructorNotes && (
+                            <p className="text-xs text-red-500">Instructor notes are required</p>
+                          )}
                         </div>
                         
                         <div className="space-y-2">
@@ -434,7 +452,7 @@ const CourseManagement: React.FC = () => {
                       <div className="flex justify-end">
                         <Button 
                           onClick={handleUpdateLesson} 
-                          disabled={!lessonTitle || !lessonDescription || (pdfUrl && !isValidUrl(pdfUrl))}
+                          disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}
                         >
                           Update Lesson
                         </Button>
