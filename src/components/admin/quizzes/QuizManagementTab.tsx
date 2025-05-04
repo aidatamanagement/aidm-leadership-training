@@ -105,6 +105,12 @@ const QuizManagementTab: React.FC = () => {
 
   // Open add quiz question dialog
   const handleOpenAddQuizQuestionDialog = (quizSet: QuizSet) => {
+    // Handle the case where quizSet has an empty id (from the empty state)
+    if (!quizSet.id) {
+      setIsAddQuizSetOpen(true);
+      return;
+    }
+    
     setCurrentQuizSet(quizSet);
     resetQuizQuestionForm();
     setIsAddQuizQuestionOpen(true);

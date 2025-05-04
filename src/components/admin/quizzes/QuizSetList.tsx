@@ -32,7 +32,7 @@ const QuizSetList = ({
     return (
       <div className="text-center py-12 bg-gray-100 rounded-lg">
         <p className="text-gray-600 mb-4">No quiz sets available.</p>
-        <Button onClick={() => onEditQuizSet({ id: '', title: '', questions: [] })}>
+        <Button onClick={() => onAddQuizQuestion({ id: '', title: '', questions: [] })}>
           <Plus className="mr-2 h-4 w-4" /> Add Your First Quiz Set
         </Button>
       </div>
