@@ -87,6 +87,7 @@ const QuizSetList = ({
               quizSet={quizSet}
               onEditQuestion={(questionId) => onEditQuizQuestion(quizSet, questionId)}
               onDeleteQuestion={(questionId) => onDeleteQuizQuestion(quizSet.id, questionId)}
+              onAddQuestion={() => onAddQuizQuestion(quizSet)}
             />
           </AccordionContent>
         </AccordionItem>

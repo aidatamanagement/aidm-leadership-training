@@ -8,18 +8,20 @@ interface QuizQuestionListProps {
   quizSet: QuizSet;
   onEditQuestion: (questionId: string) => void;
   onDeleteQuestion: (questionId: string) => void;
+  onAddQuestion: () => void;
 }
 
 const QuizQuestionList = ({
   quizSet,
   onEditQuestion,
-  onDeleteQuestion
+  onDeleteQuestion,
+  onAddQuestion
 }: QuizQuestionListProps) => {
   if (quizSet.questions.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg">
         <p className="text-gray-600 mb-4">No questions in this quiz set yet.</p>
-        <Button variant="outline" onClick={() => onEditQuestion('')}>
+        <Button variant="outline" onClick={onAddQuestion}>
           <Plus className="mr-2 h-4 w-4" /> Add Your First Question
         </Button>
       </div>
