@@ -312,7 +312,7 @@ const CourseManagement: React.FC = () => {
                           {pdfUrl && !isValidUrl(pdfUrl) && (
                             <p className="text-xs text-red-500">Please enter a valid URL</p>
                           )}
-                          <p className="text-xs text-gray-500">Enter the full URL to a PDF document (e.g., https://example.com/document.pdf)</p>
+                          <p className="text-xs text-gray-500">Enter the full URL to a PDF document (e.g., https://drive.google.com/file/d/FILE_ID/preview)</p>
                         </div>
                         
                         <div className="space-y-2">
