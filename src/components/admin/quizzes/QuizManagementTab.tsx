@@ -123,13 +123,6 @@ const QuizManagementTab: React.FC = () => {
     setIsEditQuizQuestionOpen(true);
   };
 
-  // Open add first question dialog (without a questionId)
-  const handleOpenAddFirstQuestionDialog = (quizSet: QuizSet) => {
-    setCurrentQuizSet(quizSet);
-    resetQuizQuestionForm();
-    setIsAddQuizQuestionOpen(true);
-  };
-
   // Handle save pass mark settings
   const handleSavePassMarkSettings = () => {
     updateQuizSettings({
