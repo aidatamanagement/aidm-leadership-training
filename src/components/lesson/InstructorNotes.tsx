@@ -5,16 +5,21 @@ import { Card, CardContent } from '@/components/ui/card';
 interface InstructorNotesProps {
   notes: string;
   required?: boolean;
+  requiredClassName?: string;
 }
 
-const InstructorNotes: React.FC<InstructorNotesProps> = ({ notes, required = false }) => {
+const InstructorNotes: React.FC<InstructorNotesProps> = ({ 
+  notes, 
+  required = false,
+  requiredClassName = "text-red-500 ml-1" 
+}) => {
   const hasNotes = notes && notes.trim() !== '';
   
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-bold mb-4">
+      <h2 className="text-xl font-bold mb-4 flex items-center">
         Instructor's Notes
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className={requiredClassName}>*</span>}
       </h2>
       <Card>
         <CardContent className="p-6">

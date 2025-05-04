@@ -40,6 +40,10 @@ const CourseManagement: React.FC = () => {
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>('');
 
+  // Define a more subtle required field indicator style
+  const requiredFieldIndicator = "text-gray-400 ml-1 text-sm";
+  const requiredHelpText = "text-xs text-gray-500";
+
   // Handle add course
   const handleAddCourse = () => {
     addCourse({
@@ -288,7 +292,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="pdfUrl" className="flex items-center">
-                            PDF URL <span className="text-red-500 ml-1">*</span>
+                            PDF URL <span className={requiredFieldIndicator}>*required</span>
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -312,21 +316,21 @@ const CourseManagement: React.FC = () => {
                             )}
                           </div>
                           {!pdfUrl && (
-                            <p className="text-xs text-red-500">PDF URL is required</p>
+                            <p className={requiredHelpText}>Please enter a URL to a PDF document</p>
                           )}
                           {pdfUrl && !isValidUrl(pdfUrl) && (
-                            <p className="text-xs text-red-500">Please enter a valid URL</p>
+                            <p className="text-xs text-amber-600">Please enter a valid URL</p>
                           )}
                           <p className="text-xs text-gray-500">Enter the full URL to a PDF document (e.g., https://drive.google.com/file/d/FILE_ID/preview)</p>
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes" className="flex items-center">
-                            Instructor Notes <span className="text-red-500 ml-1">*</span>
+                            Instructor Notes <span className={requiredFieldIndicator}>*required</span>
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
                           {!instructorNotes && (
-                            <p className="text-xs text-red-500">Instructor notes are required</p>
+                            <p className={requiredHelpText}>Please add instructions for this lesson</p>
                           )}
                         </div>
                         
@@ -378,7 +382,7 @@ const CourseManagement: React.FC = () => {
 
                         <div className="space-y-2">
                           <Label htmlFor="editPdfUrl" className="flex items-center">
-                            PDF URL <span className="text-red-500 ml-1">*</span>
+                            PDF URL <span className={requiredFieldIndicator}>*required</span>
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -402,7 +406,7 @@ const CourseManagement: React.FC = () => {
                             )}
                           </div>
                           {!pdfUrl && (
-                            <p className="text-xs text-red-500">PDF URL is required</p>
+                            <p className={requiredHelpText}>Please enter a URL to a PDF document</p>
                           )}
                           {currentLesson?.pdfUrl && (
                             <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between mt-2">
@@ -426,11 +430,11 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes" className="flex items-center">
-                            Instructor Notes <span className="text-red-500 ml-1">*</span>
+                            Instructor Notes <span className={requiredFieldIndicator}>*required</span>
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
                           {!instructorNotes && (
-                            <p className="text-xs text-red-500">Instructor notes are required</p>
+                            <p className={requiredHelpText}>Please add instructions for this lesson</p>
                           )}
                         </div>
                         
