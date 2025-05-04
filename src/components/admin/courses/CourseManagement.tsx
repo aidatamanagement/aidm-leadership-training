@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -149,15 +148,13 @@ const CourseManagement: React.FC = () => {
 
   // Helper function to validate URL
   const isValidUrl = (urlString: string): boolean => {
-    try { 
-      new URL(urlString); 
+    try {
+      new URL(urlString);
       return true;
-    }
-    catch(e){ 
+    } catch (e) {
       return false;
     }
   };
-
   return <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
@@ -296,32 +293,13 @@ const CourseManagement: React.FC = () => {
                             PDF URL
                           </Label>
                           <div className="flex gap-2">
-                            <Input 
-                              id="pdfUrl" 
-                              placeholder="Enter URL to PDF document" 
-                              value={pdfUrl} 
-                              onChange={e => setPdfUrl(e.target.value)} 
-                              className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
-                              required
-                            />
-                            {pdfUrl && isValidUrl(pdfUrl) && (
-                              <Button 
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => window.open(pdfUrl, '_blank')}
-                                title="Open PDF in new tab"
-                              >
+                            <Input id="pdfUrl" placeholder="Enter URL to PDF document" value={pdfUrl} onChange={e => setPdfUrl(e.target.value)} className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""} required />
+                            {pdfUrl && isValidUrl(pdfUrl) && <Button type="button" variant="outline" size="icon" onClick={() => window.open(pdfUrl, '_blank')} title="Open PDF in new tab">
                                 <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            )}
+                              </Button>}
                           </div>
-                          {!pdfUrl && (
-                            <p className={requiredHelpText}>Please enter a URL to a PDF document</p>
-                          )}
-                          {pdfUrl && !isValidUrl(pdfUrl) && (
-                            <p className="text-xs text-amber-600">Please enter a valid URL</p>
-                          )}
+                          {!pdfUrl && <p className={requiredHelpText}>Please enter a URL to a PDF document</p>}
+                          {pdfUrl && !isValidUrl(pdfUrl) && <p className="text-xs text-amber-600">Please enter a valid URL</p>}
                           <p className="text-xs text-gray-500">Enter the full URL to a PDF document (e.g., https://drive.google.com/file/d/FILE_ID/preview)</p>
                         </div>
                         
@@ -330,9 +308,7 @@ const CourseManagement: React.FC = () => {
                             Instructor Notes
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
-                          {!instructorNotes && (
-                            <p className={requiredHelpText}>Please add instructions for this lesson</p>
-                          )}
+                          {!instructorNotes && <p className={requiredHelpText}>Please add instructions for this lesson</p>}
                         </div>
                         
                         <div className="space-y-2">
@@ -351,10 +327,7 @@ const CourseManagement: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button 
-                          onClick={handleAddLesson} 
-                          disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}
-                        >
+                        <Button onClick={handleAddLesson} disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}>
                           Save Lesson
                         </Button>
                       </div>
@@ -386,47 +359,23 @@ const CourseManagement: React.FC = () => {
                             PDF URL
                           </Label>
                           <div className="flex gap-2">
-                            <Input 
-                              id="editPdfUrl" 
-                              placeholder="Enter URL to PDF document" 
-                              value={pdfUrl} 
-                              onChange={e => setPdfUrl(e.target.value)} 
-                              className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""}
-                              required
-                            />
-                            {pdfUrl && isValidUrl(pdfUrl) && (
-                              <Button 
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => window.open(pdfUrl, '_blank')}
-                                title="Open PDF in new tab"
-                              >
+                            <Input id="editPdfUrl" placeholder="Enter URL to PDF document" value={pdfUrl} onChange={e => setPdfUrl(e.target.value)} className={pdfUrl && !isValidUrl(pdfUrl) ? "border-red-500" : ""} required />
+                            {pdfUrl && isValidUrl(pdfUrl) && <Button type="button" variant="outline" size="icon" onClick={() => window.open(pdfUrl, '_blank')} title="Open PDF in new tab">
                                 <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            )}
+                              </Button>}
                           </div>
-                          {!pdfUrl && (
-                            <p className={requiredHelpText}>Please enter a URL to a PDF document</p>
-                          )}
-                          {currentLesson?.pdfUrl && (
-                            <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between mt-2">
+                          {!pdfUrl && <p className={requiredHelpText}>Please enter a URL to a PDF document</p>}
+                          {currentLesson?.pdfUrl && <div className="bg-gray-50 p-3 rounded-md border flex items-center justify-between mt-2">
                               <div className="flex items-center">
                                 <FileIcon className="h-5 w-5 text-blue-500 mr-2" />
                                 <span className="text-sm font-medium truncate max-w-[200px]">
                                   Current PDF
                                 </span>
                               </div>
-                              <a 
-                                href={currentLesson.pdfUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:underline flex items-center"
-                              >
+                              <a href={currentLesson.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center">
                                 View <ExternalLink className="h-3 w-3 ml-1" />
                               </a>
-                            </div>
-                          )}
+                            </div>}
                         </div>
                         
                         <div className="space-y-2">
@@ -434,9 +383,7 @@ const CourseManagement: React.FC = () => {
                             Instructor Notes
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
-                          {!instructorNotes && (
-                            <p className={requiredHelpText}>Please add instructions for this lesson</p>
-                          )}
+                          {!instructorNotes && <p className={requiredHelpText}>Please add instructions for this lesson</p>}
                         </div>
                         
                         <div className="space-y-2">
@@ -455,10 +402,7 @@ const CourseManagement: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button 
-                          onClick={handleUpdateLesson} 
-                          disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}
-                        >
+                        <Button onClick={handleUpdateLesson} disabled={!lessonTitle || !lessonDescription || !pdfUrl || !isValidUrl(pdfUrl) || !instructorNotes}>
                           Update Lesson
                         </Button>
                       </div>
@@ -473,7 +417,7 @@ const CourseManagement: React.FC = () => {
                     </Button>
                   </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[...course.lessons].sort((a, b) => a.order - b.order).map(lesson => <div key={lesson.id} className="border rounded-md p-4 bg-white">
-                        <div className="flex justify-between items-start mb-2 sm:flex-wrap">
+                        <div className="flex justify-between items-start mb-2 max-xs:flex-wrap\"">
                           <div>
                             <h5 className="font-semibold">{lesson.order}. {lesson.title}</h5>
                             <p className="text-sm text-gray-600">{lesson.description}</p>
