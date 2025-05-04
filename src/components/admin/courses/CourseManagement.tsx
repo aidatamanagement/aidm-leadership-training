@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -41,7 +42,7 @@ const CourseManagement: React.FC = () => {
   const [pdfUrl, setPdfUrl] = useState<string>('');
 
   // Define a more subtle required field indicator style
-  const requiredFieldIndicator = "text-red-500 ml-1";
+  const requiredFieldIndicator = "";
   const requiredHelpText = "text-xs text-gray-500";
 
   // Handle add course
@@ -292,7 +293,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="pdfUrl" className="flex items-center">
-                            PDF URL <span className={requiredFieldIndicator}>*</span>
+                            PDF URL
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -326,7 +327,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="instructorNotes" className="flex items-center">
-                            Instructor Notes <span className={requiredFieldIndicator}>*</span>
+                            Instructor Notes
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} rows={6} />
                           {!instructorNotes && (
@@ -382,7 +383,7 @@ const CourseManagement: React.FC = () => {
 
                         <div className="space-y-2">
                           <Label htmlFor="editPdfUrl" className="flex items-center">
-                            PDF URL <span className={requiredFieldIndicator}>*</span>
+                            PDF URL
                           </Label>
                           <div className="flex gap-2">
                             <Input 
@@ -430,7 +431,7 @@ const CourseManagement: React.FC = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="editInstructorNotes" className="flex items-center">
-                            Instructor Notes <span className={requiredFieldIndicator}>*</span>
+                            Instructor Notes
                           </Label>
                           <RichTextEditor value={instructorNotes} onChange={setInstructorNotes} placeholder="" rows={6} />
                           {!instructorNotes && (

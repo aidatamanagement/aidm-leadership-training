@@ -19,7 +19,6 @@ const InstructorNotes: React.FC<InstructorNotesProps> = ({
     <div className="mb-8">
       <h2 className="text-xl font-bold mb-4 flex items-center">
         Instructor's Notes
-        {required && <span className={requiredClassName}>*</span>}
       </h2>
       <Card>
         <CardContent className="p-6">
