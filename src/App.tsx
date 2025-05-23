@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import RouteGuard from "@/components/RouteGuard";
+import { DynamicBackground } from "@/components/DynamicBackground";
+import { GlassCard } from "@/components/ui/glass-card";
 
 // Pages
 import Login from "./pages/Login";
@@ -17,6 +18,9 @@ import LessonPage from "./pages/LessonPage";
 import CourseCompletion from "./pages/CourseCompletion";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import Prompts from "./pages/Prompts";
+import Courses from "./pages/Courses";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +37,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <DataProvider>
+            <DynamicBackground>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<RedirectIfAuthenticated />} />
@@ -44,6 +49,14 @@ const App = () => (
                 element={
                   <RouteGuard allowedRoles={["student"]}>
                     <StudentDashboard />
+                  </RouteGuard>
+                } 
+              />
+              <Route 
+                path="/courses" 
+                element={
+                  <RouteGuard allowedRoles={["student"]}>
+                    <Courses />
                   </RouteGuard>
                 } 
               />
@@ -81,12 +94,33 @@ const App = () => (
                   </RouteGuard>
                 } 
               />
+
+                {/* Profile route - accessible by both admin and student */}
+                <Route 
+                  path="/profile" 
+                  element={
+                    <RouteGuard allowedRoles={["admin", "student"]}>
+                      <Profile />
+                    </RouteGuard>
+                  } 
+                />
+
+                {/* Prompts route - accessible by both admin and student */}
+                <Route 
+                  path="/prompts" 
+                  element={
+                    <RouteGuard allowedRoles={["admin", "student"]}>
+                      <Prompts />
+                  </RouteGuard>
+                } 
+              />
               
               {/* Not found route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
             <Sonner />
+            </DynamicBackground>
           </DataProvider>
         </AuthProvider>
       </BrowserRouter>
@@ -101,7 +135,9 @@ const RedirectIfAuthenticated = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <GlassCard className="p-12">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-700"></div>
+        </GlassCard>
       </div>
     );
   }

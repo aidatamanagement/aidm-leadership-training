@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Loader } from 'lucide-react';
+import { Loader, Maximize2, Minimize2, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -12,6 +12,7 @@ interface PDFViewerProps {
 const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
 
   const handleLoad = () => {
@@ -25,8 +26,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     setError('Failed to load PDF. Please check the file URL.');
   };
 
-  // Set height based on device type
-  const viewerHeight = isMobile ? 'h-[40vh]' : 'h-[80vh]';
+  // Set height based on device type and expanded state
+  const viewerHeight = isExpanded 
+    ? (isMobile ? 'h-[80vh]' : 'h-[90vh]')
+    : (isMobile ? 'h-[40vh]' : 'h-[60vh]');
 
   if (!pdfUrl) {
     return (
@@ -43,6 +46,39 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   return (
     <Card className="mb-8">
       <CardContent className="p-0">
+        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+          <h2 className="text-xl font-bold">Lesson Content</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => window.open(pdfUrl, '_blank')}
+            >
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  Minimize
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  Expand
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
         {isLoading && (
           <div className={`w-full ${viewerHeight} bg-gray-50 rounded-lg flex flex-col items-center justify-center`}>
             <div className="flex flex-col items-center space-y-4">
