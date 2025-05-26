@@ -47,7 +47,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     } else {
       return [
         { path: '/dashboard', label: 'Dashboard' },
-        { path: '/courses', label: 'Services' },
+        { path: '/services', label: 'Services' },
         { path: '/prompts', label: 'Prompts' },
       ];
     }
@@ -60,7 +60,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <header className="fixed top-0 left-0 right-0 bg-white text-black shadow-md z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-8">
-            <Link to={user?.type === 'admin' ? '/admin' : '/dashboard'} className="text-xl font-bold">
+          <Link to={user?.type === 'admin' ? '/admin' : '/dashboard'} className="text-xl font-bold">
               <img src="/images/logo.png" alt="AIDM Leadership Training Logo" className="h-8" />
             </Link>
             
@@ -76,7 +76,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 >
                   {item.label}
-                </Link>
+          </Link>
               ))}
             </nav>
           </div>

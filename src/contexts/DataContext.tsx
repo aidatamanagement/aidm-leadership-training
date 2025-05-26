@@ -4,6 +4,7 @@ import { StudentProvider, useStudents } from './StudentContext';
 import { QuizProvider, useQuizzes } from './QuizContext';
 import { ProgressProvider, useProgress } from './ProgressContext';
 import { DataContextType, ProviderProps, StudentContextWithBooleanReturn } from './types/SharedTypes';
+import { ServiceProvider } from './ServiceContext';
 
 // Create the main data context
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -23,9 +24,11 @@ export const DataProvider: React.FC<ProviderProps> = ({ children }) => {
       <StudentProvider>
         <QuizProvider>
           <ProgressProvider>
-            <ComposedDataProvider isLoading={isLoading} setIsLoading={setIsLoading}>
-              {children}
-            </ComposedDataProvider>
+            <ServiceProvider>
+              <ComposedDataProvider isLoading={isLoading} setIsLoading={setIsLoading}>
+                {children}
+              </ComposedDataProvider>
+            </ServiceProvider>
           </ProgressProvider>
         </QuizProvider>
       </StudentProvider>

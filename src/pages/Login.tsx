@@ -82,8 +82,8 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">AIDM Leadership Training</h1>
-        <p className="text-gray-800">Sign in to access your training materials</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">AIDM Client Portal</h1>
+        <p className="text-gray-800">Sign in to access your account resources</p>
       </div>
       
       {!showForgotPassword ? (

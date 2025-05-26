@@ -7,6 +7,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Plus, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useServices } from '@/contexts/ServiceContext';
 
 const PROMPTS = [
   {
@@ -51,10 +52,30 @@ const StudentDashboard: React.FC = () => {
     isCourseLockedForUser,
     isLoading
   } = useData();
+  const { refreshServices } = useServices();
   const [activeTab, setActiveTab] = useState('overview');
   const [favoritePrompts, setFavoritePrompts] = useState<any[]>([]);
   const [randomPrompt, setRandomPrompt] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
+  const [enrolledServices, setEnrolledServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      // refreshServices();
+      const fetchEnrolledServices = async () => {
+        const { data, error } = await supabase
+          .from('user_services')
+          .select('service_id')
+          .eq('user_id', user.id);
+        if (error) {
+          console.error('Error fetching enrolled services:', error);
+        } else {
+          setEnrolledServices(data || []);
+        }
+      };
+      fetchEnrolledServices();
+    }
+  }, [user, refreshServices]);
 
   useEffect(() => {
     async function fetchFavorites() {
@@ -114,7 +135,7 @@ const StudentDashboard: React.FC = () => {
     const progress = getStudentProgress(user.id, course.id);
     return progress.some(p => p.completed) && !progress.every(p => p.completed);
   });
-  const enrolledCount = assignedCourses.length;
+  const enrolledCount = enrolledServices.length;
   const inProgressCount = inProgressCourses.length;
   const completedCount = completedCourses.length;
 

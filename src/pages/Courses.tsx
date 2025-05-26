@@ -1,23 +1,30 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/contexts/CourseContext';
 import { useProgress } from '@/contexts/ProgressContext';
-import { BookOpen, ArrowRight } from 'lucide-react';
+import { BookOpen, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const Courses: React.FC = () => {
   const { user } = useAuth();
   const { courses } = useCourses();
   const { getStudentProgress, getCompletedLessonsCount } = useProgress();
   const isAdmin = user?.type === 'admin';
+  const navigate = useNavigate();
 
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Services</h1>
+        <Button variant="ghost" size="sm" asChild className="mb-4">
+          <Link to="/services">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to services
+          </Link>
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Courses</h1>
         
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {courses.map(course => {
@@ -56,7 +63,7 @@ const Courses: React.FC = () => {
                   </div>
                   <Button asChild variant="success" className="gap-2">
                     <Link to={`/courses/${course.id}`}>
-                      {hasStarted ? 'Continue Service' : 'Start Service'}
+                      {hasStarted ? 'Continue Course' : 'Start Course'}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>

@@ -23,9 +23,9 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
   return (
     <div className="mb-6">
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to={isAdmin ? "/admin" : "/dashboard"}>
+        <Link to={isAdmin ? "/admin" : "/courses"}>
           <ArrowLeft className="mr-2 h-4 w-4" /> 
-          {isAdmin ? "Back to Admin Dashboard" : "Back to Dashboard"}
+          {isAdmin ? "Back to Admin Dashboard" : "Back to courses"}
         </Link>
       </Button>
       

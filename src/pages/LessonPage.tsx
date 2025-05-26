@@ -141,8 +141,8 @@ const LessonPage: React.FC = () => {
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Lesson Not Found</h2>
           <p className="text-gray-600 mb-6">The lesson you are looking for doesn't exist or you don't have access.</p>
-          <Button asChild>
-            <Link to="/dashboard">Return to Dashboard</Link>
+          <Button onClick={() => navigate(-1)}>
+            Back
           </Button>
         </div>
       </AppLayout>

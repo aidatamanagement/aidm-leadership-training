@@ -21,6 +21,9 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Prompts from "./pages/Prompts";
 import Courses from "./pages/Courses";
+import Services from '@/pages/Services';
+import ServiceDetail from '@/pages/ServiceDetail';
+import AddUserPage from './pages/AddUserPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,6 +97,14 @@ const App = () => (
                   </RouteGuard>
                 } 
               />
+              <Route 
+                path="/admin/add-user" 
+                element={
+                  <RouteGuard allowedRoles={["admin"]}>
+                    <AddUserPage />
+                  </RouteGuard>
+                } 
+              />
 
                 {/* Profile route - accessible by both admin and student */}
                 <Route 
@@ -114,6 +125,10 @@ const App = () => (
                   </RouteGuard>
                 } 
               />
+              
+              {/* Services routes */}
+              <Route path="/services" element={<Services />} />
+              <Route path="/services/:id" element={<ServiceDetail />} />
               
               {/* Not found route */}
               <Route path="*" element={<NotFound />} />
