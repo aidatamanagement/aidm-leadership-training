@@ -144,7 +144,7 @@ const StudentDashboard: React.FC = () => {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <GlassCard className="text-center">
-            <div className="text-lg font-semibold text-gray-700 mb-1">Enrolled Courses</div>
+            <div className="text-lg font-semibold text-gray-700 mb-1">Enrolled Services</div>
             <div className="text-3xl font-bold text-gray-900">{enrolledCount}</div>
           </GlassCard>
           <GlassCard className="text-center">
