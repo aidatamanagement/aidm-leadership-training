@@ -25,9 +25,9 @@ export const DataProvider: React.FC<ProviderProps> = ({ children }) => {
         <QuizProvider>
           <ProgressProvider>
             <ServiceProvider>
-              <ComposedDataProvider isLoading={isLoading} setIsLoading={setIsLoading}>
-                {children}
-              </ComposedDataProvider>
+            <ComposedDataProvider isLoading={isLoading} setIsLoading={setIsLoading}>
+              {children}
+            </ComposedDataProvider>
             </ServiceProvider>
           </ProgressProvider>
         </QuizProvider>

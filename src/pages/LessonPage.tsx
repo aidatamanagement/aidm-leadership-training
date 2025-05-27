@@ -50,6 +50,7 @@ const LessonPage: React.FC = () => {
   const [prevLesson, setPrevLesson] = useState<{ id: string; title: string } | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; title: string } | null>(null);
   const [isNextLessonLocked, setIsNextLessonLocked] = useState(false);
+  const [isCurrentLessonLocked, setIsCurrentLessonLocked] = useState(false);
 
   // Memoize the progress data to prevent unnecessary re-renders
   const progress = useMemo(() => {
@@ -104,6 +105,18 @@ const LessonPage: React.FC = () => {
           : null;
         setNextLesson(nextLessonData);
         
+        // Check if current lesson is locked
+        if (user) {
+          isLessonLocked(user.id, courseId, currentLesson.id)
+            .then(locked => {
+              setIsCurrentLessonLocked(locked);
+            })
+            .catch(error => {
+              console.error("Error checking if current lesson is locked:", error);
+              setIsCurrentLessonLocked(false);
+            });
+        }
+        
         // Check if next lesson is locked
         if (nextLessonData && user) {
           isLessonLocked(user.id, courseId, nextLessonData.id)
@@ -124,7 +137,7 @@ const LessonPage: React.FC = () => {
         setIsPdfViewed(progress?.pdfViewed || false);
       }
     }
-  }, [courseId, lessonId, courses, quizSets, user, progress]);
+  }, [courseId, lessonId, courses, quizSets, user, progress, isLessonLocked]);
 
   // Automatically mark PDF as viewed (once)
   useEffect(() => {
@@ -149,13 +162,28 @@ const LessonPage: React.FC = () => {
     );
   }
 
+  // If the current lesson is locked, show a locked message
+  if (isCurrentLessonLocked && user.type !== 'admin') {
+    return (
+      <AppLayout>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">Lesson Locked</h2>
+          <p className="text-gray-600 mb-6">This lesson has been locked by your instructor.</p>
+          <Button onClick={() => navigate(-1)}>
+            Back to Course
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
   // Handle quiz completion
   const handleQuizComplete = (score: number) => {
     setQuizScore(score);
   };
 
   // Handle completing the lesson
-  const handleCompleteLesson = () => {
+  const handleCompleteLesson = async () => {
     // Check if this lesson has a required quiz
     if (quizSet && quizSettings.enforcePassMark) {
       const passPercentage = quizSettings.passMarkPercentage;
@@ -172,12 +200,35 @@ const LessonPage: React.FC = () => {
     }
     
     // Mark the lesson as completed
-    markLessonComplete(user.id, courseId, lessonId, quizScore);
+    await markLessonComplete(user.id, courseId, lessonId, quizScore);
     
-    // Navigate to next lesson or course completion page
+    // Check if next lesson is locked before navigating
     if (nextLesson) {
-      navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
+      try {
+        const isNextLocked = await isLessonLocked(user.id, courseId, nextLesson.id);
+        
+        if (isNextLocked && user.type !== 'admin') {
+          toast({
+            title: "Next Lesson Locked",
+            description: "The next lesson is currently locked. Please contact your instructor for access.",
+            variant: "destructive"
+          });
+          // Stay on current lesson
+          return;
+        }
+        
+        // If next lesson is not locked or user is admin, proceed with navigation
+        navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
+      } catch (error) {
+        console.error("Error checking next lesson lock status:", error);
+        toast({
+          title: "Error",
+          description: "Failed to check next lesson status. Please try again.",
+          variant: "destructive"
+        });
+      }
     } else {
+      // If there's no next lesson, go to course completion page
       navigate(`/courses/${courseId}/completion`);
     }
   };

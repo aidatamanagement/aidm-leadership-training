@@ -1,78 +1,105 @@
-
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Check, LockIcon } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface LessonNavigationProps {
   courseId: string;
   prevLesson: { id: string; title: string } | null;
   nextLesson: { id: string; title: string } | null;
-  onCompleteLesson: () => void;
-  disableCompletion: boolean;
+  onCompleteLesson: () => Promise<void>;
+  disableCompletion?: boolean;
   isNextLessonLocked?: boolean;
 }
 
-const LessonNavigation: React.FC<LessonNavigationProps> = ({ 
-  courseId, 
-  prevLesson, 
+const LessonNavigation: React.FC<LessonNavigationProps> = ({
+  courseId,
+  prevLesson,
   nextLesson,
   onCompleteLesson,
-  disableCompletion,
+  disableCompletion = false,
   isNextLessonLocked = false
 }) => {
-  const isMobile = useIsMobile();
-  
-  const getDisableReason = () => {
-    if (disableCompletion) {
-      return "Complete all requirements before continuing";
+  const navigate = useNavigate();
+
+  const handleComplete = async () => {
+    try {
+      await onCompleteLesson();
+      // Navigate back to lesson list
+      navigate(`/courses/${courseId}`);
+      toast({
+        title: 'Lesson Completed',
+        description: 'You have successfully completed this lesson.'
+      });
+    } catch (error) {
+      console.error('Error completing lesson:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete lesson. Please try again.',
+        variant: 'destructive'
+      });
     }
-    if (isNextLessonLocked) {
-      return "Next lesson is locked by your instructor";
-    }
-    return nextLesson 
-      ? "Complete and continue to next lesson" 
-      : "Complete the course";
   };
 
+  const handleCompleteAndContinue = async () => {
+    try {
+      await onCompleteLesson();
+      if (nextLesson) {
+        navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
+      }
+    } catch (error) {
+      console.error('Error completing lesson:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete lesson. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getDisableReason = () => {
+    if (disableCompletion) {
+      return 'Complete all required activities to continue';
+    }
+    if (isNextLessonLocked) {
+      return 'Next lesson is locked';
+    }
+    return '';
+  };
+
+  const disableReason = getDisableReason();
+
   return (
-    <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-between'} mt-8`}>
-      {prevLesson ? (
-        <Button 
-          asChild 
-          variant="outline"
-          className={isMobile ? 'w-full justify-center' : ''}
-        >
-          <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Previous Lesson
-          </Link>
-        </Button>
-      ) : (
-        <div className={isMobile ? 'hidden' : ''}></div>
-      )}
-      
-      <div className={`flex ${isMobile ? 'w-full' : ''} gap-3`}>
-        {nextLesson && (
-          <Button 
-            onClick={onCompleteLesson}
-            disabled={disableCompletion || isNextLessonLocked}
-            title={getDisableReason()}
-            className={isMobile ? 'w-full justify-center' : ''}
-          >
-            {isNextLessonLocked && <LockIcon className="mr-2 h-4 w-4" />}
-            Complete & Continue <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+    <div className="flex items-center justify-between mt-8">
+      <Button
+        variant="outline"
+        onClick={() => navigate(`/courses/${courseId}/lessons/${prevLesson?.id}`)}
+        disabled={!prevLesson}
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" />
+        {prevLesson ? `Previous: ${prevLesson.title}` : 'No Previous Lesson'}
+      </Button>
+
+      <div className="flex items-center gap-4">
+        {disableReason && (
+          <span className="text-sm text-muted-foreground">{disableReason}</span>
         )}
         
-        {!nextLesson && (
-          <Button 
-            onClick={onCompleteLesson}
+        {isNextLessonLocked ? (
+          <Button
+            onClick={handleComplete}
             disabled={disableCompletion}
-            title={getDisableReason()}
-            className={isMobile ? 'w-full justify-center' : ''}
           >
-            Complete Course <Check className="ml-2 h-4 w-4" />
+            Complete
+          </Button>
+        ) : (
+          <Button
+            onClick={handleCompleteAndContinue}
+            disabled={disableCompletion}
+          >
+            Complete & Continue
+            {nextLesson && <ChevronRight className="ml-2 h-4 w-4" />}
           </Button>
         )}
       </div>

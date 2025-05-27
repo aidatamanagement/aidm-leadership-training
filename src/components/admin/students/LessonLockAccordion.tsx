@@ -1,11 +1,11 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Course, useData } from '@/contexts/DataContext';
+import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Lock, LockOpen } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Course } from '@/contexts/DataContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Lock, Unlock } from 'lucide-react';
 
 interface LessonLockAccordionProps {
   course: Course;
@@ -13,150 +13,132 @@ interface LessonLockAccordionProps {
 }
 
 const LessonLockAccordion: React.FC<LessonLockAccordionProps> = ({ course, studentId }) => {
-  const { toggleLessonLock, fetchLessonLocks } = useData();
-  const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
-  const [lessonLockStates, setLessonLockStates] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const hasLoadedRef = useRef(false);
-  
-  // Load lesson lock states when accordion is opened
-  useEffect(() => {
-    if (!isOpen) return;
-    if (hasLoadedRef.current) return;
-    
-    const loadLockStates = async () => {
+  const [lockedLessons, setLockedLessons] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
+
+  // Fetch locked lessons on component mount
+  React.useEffect(() => {
+    const fetchLockedLessons = async () => {
       try {
-        setError(null);
-        setIsLoading(true);
-        console.log("Fetching lesson locks for student:", studentId, "course:", course.id);
-        const locks = await fetchLessonLocks(studentId, course.id);
-        console.log("Received locks:", locks);
-        setLessonLockStates(locks);
-        hasLoadedRef.current = true;
+        const { data, error } = await supabase
+          .from('user_lesson_locks')
+          .select('lesson_id')
+          .eq('user_id', studentId)
+          .eq('course_id', course.id);
+
+        if (error) throw error;
+
+        const lockedIds = new Set(data.map(item => item.lesson_id));
+        setLockedLessons(lockedIds);
       } catch (error) {
-        console.error('Error loading lesson locks:', error);
-        setError('Failed to load lesson lock statuses');
+        console.error('Error fetching locked lessons:', error);
         toast({
-          title: "Error",
-          description: "Failed to load lesson lock statuses",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to fetch lesson lock status',
+          variant: 'destructive'
         });
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    loadLockStates();
-  }, [studentId, course.id, fetchLessonLocks, isOpen]);
-  
-  const handleToggleLock = async (lessonId: string) => {
+    fetchLockedLessons();
+  }, [course.id, studentId]);
+
+  const toggleLessonLock = async (lessonId: string) => {
+    setLoading(true);
     try {
-      setLoadingLessonId(lessonId);
-      // Now we're using the lesson-level locking function
-      const newLockStatus = await toggleLessonLock(studentId, course.id, lessonId);
+      const isCurrentlyLocked = lockedLessons.has(lessonId);
       
-      // Update the local state
-      setLessonLockStates(prev => ({
-        ...prev,
-        [lessonId]: newLockStatus
-      }));
-      
-      toast({
-        title: newLockStatus ? "Lesson Locked" : "Lesson Unlocked",
-        description: `The lesson has been ${newLockStatus ? "locked" : "unlocked"} for this student.`,
-      });
+      if (isCurrentlyLocked) {
+        // Remove lock
+        const { error } = await supabase
+          .from('user_lesson_locks')
+          .delete()
+          .eq('user_id', studentId)
+          .eq('course_id', course.id)
+          .eq('lesson_id', lessonId);
+
+        if (error) throw error;
+        
+        setLockedLessons(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(lessonId);
+          return newSet;
+        });
+
+        toast({
+          title: 'Lesson Unlocked',
+          description: 'Student can now access this lesson'
+        });
+      } else {
+        // Add lock
+        const { error } = await supabase
+          .from('user_lesson_locks')
+          .insert({
+            user_id: studentId,
+            course_id: course.id,
+            lesson_id: lessonId
+          });
+
+        if (error) throw error;
+        
+        setLockedLessons(prev => new Set([...prev, lessonId]));
+
+        toast({
+          title: 'Lesson Locked',
+          description: 'Student cannot access this lesson'
+        });
+      }
     } catch (error) {
       console.error('Error toggling lesson lock:', error);
       toast({
-        title: "Error",
-        description: "Failed to update lesson lock status.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update lesson lock status',
+        variant: 'destructive'
       });
     } finally {
-      setLoadingLessonId(null);
+      setLoading(false);
     }
   };
 
-  const isLocked = (lessonId: string) => {
-    return lessonLockStates[lessonId] || false;
-  };
-
-  const handleAccordionChange = (value: string) => {
-    const newIsOpen = value === "lesson-lock";
-    setIsOpen(newIsOpen);
-  };
-  
   return (
-    <Accordion 
-      type="single" 
-      collapsible 
-      className="mt-4 border-t pt-2"
-      onValueChange={handleAccordionChange}
-    >
-      <AccordionItem value="lesson-lock" className="border-b-0">
+    <Accordion type="single" collapsible className="mt-4">
+      <AccordionItem value="lessons">
         <AccordionTrigger className="text-sm font-medium">
-          Lock a lesson
+          Lesson Access Control
         </AccordionTrigger>
         <AccordionContent>
-          {isLoading ? (
-            <div className="flex flex-col space-y-2 min-h-[100px]">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                  <Skeleton className="h-8 w-8 rounded-md" />
+          <div className="space-y-2">
+            {course.lessons.map((lesson) => (
+              <div key={lesson.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`lesson-${lesson.id}`}
+                    checked={lockedLessons.has(lesson.id)}
+                    onCheckedChange={() => toggleLessonLock(lesson.id)}
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor={`lesson-${lesson.id}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {lesson.title}
+                  </label>
                 </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="p-4 text-center text-red-500">
-              <p>{error}</p>
-              <Button 
-                onClick={() => {
-                  hasLoadedRef.current = false;
-                  setIsOpen(true);
-                }} 
-                variant="outline" 
-                size="sm" 
-                className="mt-2"
-              >
-                Retry
-              </Button>
-            </div>
-          ) : course.lessons.length === 0 ? (
-            <p className="text-sm text-gray-500">No lessons available in this course.</p>
-          ) : (
-            <div className="space-y-2">
-              {course.lessons
-                .sort((a, b) => a.order - b.order)
-                .map((lesson) => (
-                  <div key={lesson.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{lesson.title}</p>
-                      <p className="text-xs text-gray-500">Lesson {lesson.order}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={isLocked(lesson.id) ? "destructive" : "outline"}
-                      onClick={() => handleToggleLock(lesson.id)}
-                      disabled={loadingLessonId === lesson.id}
-                    >
-                      {loadingLessonId === lesson.id ? (
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-b-transparent" />
-                      ) : isLocked(lesson.id) ? (
-                        <Lock className="h-3 w-3" />
-                      ) : (
-                        <LockOpen className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
-                ))}
-            </div>
-          )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleLessonLock(lesson.id)}
+                  disabled={loading}
+                >
+                  {lockedLessons.has(lesson.id) ? (
+                    <Lock className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <Unlock className="h-4 w-4 text-green-500" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

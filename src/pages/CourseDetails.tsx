@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import CourseHeader from '@/components/course/CourseHeader';
 import LessonList from '@/components/course/LessonList';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/components/ui/use-toast';
 
 const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -27,94 +27,122 @@ const CourseDetails: React.FC = () => {
   const isMobile = useIsMobile();
 
   const [course, setCourse] = useState(courses.find(c => c.id === courseId));
-  const [lessonLocks, setLessonLocks] = useState<Record<string, boolean>>({});
-  const [loadingLocks, setLoadingLocks] = useState(false);
+  const [lessonAccessibility, setLessonAccessibility] = useState<Record<string, boolean>>({});
+  const [loadingAccessibility, setLoadingAccessibility] = useState(false);
   const isAdmin = user?.type === 'admin';
 
   useEffect(() => {
     setCourse(courses.find(c => c.id === courseId));
   }, [courses, courseId]);
 
-  // Load lesson locks when component mounts
   useEffect(() => {
-    if (!user || !courseId || isAdmin) return;
-
-    const loadLessonLocks = async () => {
+    const checkLessonAccessibility = async () => {
+      if (!course || !user) return;
+      
+      setLoadingAccessibility(true);
       try {
-        setLoadingLocks(true);
-        // For each lesson, check if it's locked
-        if (course) {
-          const lockPromises = course.lessons.map(async (lesson) => {
-            const isLocked = await isLessonLocked(user.id, courseId, lesson.id);
-            return { lessonId: lesson.id, isLocked };
-          });
-          
-          const results = await Promise.all(lockPromises);
-          
-          const lockMap: Record<string, boolean> = {};
-          results.forEach(({ lessonId, isLocked }) => {
-            lockMap[lessonId] = isLocked;
-          });
-          
-          setLessonLocks(lockMap);
+        const accessibility: Record<string, boolean> = {};
+        
+        // First, check all lesson locks
+        for (const lesson of course.lessons) {
+          const isLocked = await isLessonLocked(user.id, course.id, lesson.id);
+          accessibility[lesson.id] = !isLocked;
         }
+        
+        // Then, check sequential access for unlocked lessons
+        for (const lesson of course.lessons) {
+          if (lesson.order === 1) {
+            // First lesson is accessible unless explicitly locked
+            continue;
+          }
+          
+          // If the lesson is locked, skip checking sequential access
+          if (!accessibility[lesson.id]) continue;
+          
+          // Check if previous lesson is completed
+          const prevLesson = course.lessons.find(l => l.order === lesson.order - 1);
+          if (!prevLesson) continue;
+          
+          const prevLessonProgress = getStudentProgress(user.id, course.id)
+            .find(p => p.lessonId === prevLesson.id);
+          
+          // If previous lesson is not completed, mark current lesson as inaccessible
+          if (!prevLessonProgress?.completed) {
+            accessibility[lesson.id] = false;
+          }
+        }
+        
+        setLessonAccessibility(accessibility);
       } catch (error) {
-        console.error('Error loading lesson locks:', error);
+        console.error('Error checking lesson accessibility:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to check lesson accessibility',
+          variant: 'destructive'
+        });
       } finally {
-        setLoadingLocks(false);
+        setLoadingAccessibility(false);
       }
     };
-    
-    loadLessonLocks();
-  }, [user, courseId, course, isAdmin, isLessonLocked]);
 
-  if (isLoading || !user) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
-  }
+    checkLessonAccessibility();
+  }, [course, user, courses, getStudentProgress, isLessonLocked]);
 
   if (!course) {
     return (
       <AppLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Course Not Found</h2>
-          <p className="text-gray-600 mb-6">The course you are looking for doesn't exist or you don't have access.</p>
-          <Button asChild>
-            <Link to="/dashboard">Return to Dashboard</Link>
-          </Button>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Course not found</h1>
+            <Button asChild className="mt-4">
+              <Link to="/courses">Back to Courses</Link>
+            </Button>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
-  const quizScore = getTotalQuizScore(user.id, course.id);
+  const isCourseLocked = isCourseLockedForUser(user?.id || '', course.id);
+  const quizScore = getTotalQuizScore(user?.id || '', course.id);
+
+  if (isCourseLocked && !isAdmin) {
+    return (
+      <AppLayout>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Course Locked</h1>
+            <p className="text-gray-600 mt-2">This course has been locked by your instructor.</p>
+            <Button asChild className="mt-4">
+              <Link to="/courses">Back to Courses</Link>
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto">
-        <CourseHeader 
-          courseTitle={course.title}
-          courseDescription={course.description}
-          isAdmin={isAdmin}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <CourseHeader
+          course={course}
           quizScore={quizScore}
           isMobile={isMobile}
         />
         
-        <h2 className="text-xl font-bold mb-4">Course Content</h2>
-        
-        <LessonList
-          lessons={course.lessons}
-          courseId={course.id}
-          userId={user.id}
-          isAdmin={isAdmin}
-          isMobile={isMobile}
-          lessonLocks={lessonLocks}
-        />
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Lessons</h2>
+          <LessonList
+            course={course}
+            lessons={course.lessons}
+            studentProgress={getStudentProgress(user?.id || '', course.id)}
+            quizScores={quizScore}
+            isAdmin={isAdmin}
+            lessonAccessibility={lessonAccessibility}
+            loadingAccessibility={loadingAccessibility}
+          />
+        </div>
       </div>
     </AppLayout>
   );

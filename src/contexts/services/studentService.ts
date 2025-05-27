@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Student } from '../types/DataTypes';
@@ -263,16 +262,16 @@ export const isLessonLocked = async (studentId: string, courseId: string, lesson
   try {
     const { data, error } = await supabase
       .from('user_lesson_locks')
-      .select('locked')
+      .select('id')
       .eq('user_id', studentId)
       .eq('course_id', courseId)
       .eq('lesson_id', lessonId)
       .maybeSingle();
     
-    if (error) throw error;
+    if (error && error.code !== 'PGRST116') throw error;
     
-    // If no record exists, lesson is not locked
-    return data?.locked || false;
+    // If a record exists, the lesson is locked
+    return !!data;
   } catch (error) {
     console.error('Error checking lesson lock status:', error);
     return false;
@@ -285,7 +284,7 @@ export const toggleLessonLock = async (studentId: string, courseId: string, less
     // Check if a lock record exists
     const { data: existingLock, error: checkError } = await supabase
       .from('user_lesson_locks')
-      .select('*')
+      .select('id')
       .eq('user_id', studentId)
       .eq('course_id', courseId)
       .eq('lesson_id', lessonId)
@@ -296,29 +295,26 @@ export const toggleLessonLock = async (studentId: string, courseId: string, less
     let newLockStatus: boolean;
     
     if (existingLock) {
-      // Toggle existing lock
-      newLockStatus = !existingLock.locked;
-      
-      const { error: updateError } = await supabase
+      // Remove lock
+      const { error: deleteError } = await supabase
         .from('user_lesson_locks')
-        .update({ locked: newLockStatus })
+        .delete()
         .eq('id', existingLock.id);
         
-      if (updateError) throw updateError;
+      if (deleteError) throw deleteError;
+      newLockStatus = false;
     } else {
-      // Create new lock record (default to locked=true)
-      newLockStatus = true;
-      
+      // Create new lock record
       const { error: insertError } = await supabase
         .from('user_lesson_locks')
         .insert([{
           user_id: studentId,
           course_id: courseId,
-          lesson_id: lessonId,
-          locked: true
+          lesson_id: lessonId
         }]);
         
       if (insertError) throw insertError;
+      newLockStatus = true;
     }
     
     toast({
