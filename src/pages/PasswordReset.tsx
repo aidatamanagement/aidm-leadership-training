@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/components/ui/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { GlassCard } from '@/components/ui/glass-card';
 
 const PasswordReset: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -77,89 +77,88 @@ const PasswordReset: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-primary mb-2">AIDM Leadership Training</h1>
-        <p className="text-gray-600">Set your new password</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">AIDM Leadership Training</h1>
+        <p className="text-gray-800">Set your new password</p>
       </div>
 
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl">Update Password</CardTitle>
-          <CardDescription>Enter your new password below</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handlePasswordUpdate} className="space-y-4">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Enter your new password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+      <GlassCard className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-900">Update Password</h2>
+          <p className="text-gray-800 mt-1">Enter your new password below</p>
+        </div>
+        <form onSubmit={handlePasswordUpdate} className="space-y-4">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-gray-900 font-medium">New Password</Label>
+            <div className="relative">
+              <Input 
+                id="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Enter your new password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-white/90 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-green-600 focus:ring-green-600"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Input 
-                  id="confirmPassword" 
-                  type={showConfirmPassword ? "text" : "password"} 
-                  placeholder="Confirm your new password" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
+            <div className="relative">
+              <Input 
+                id="confirmPassword" 
+                type={showConfirmPassword ? "text" : "password"} 
+                placeholder="Confirm your new password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="bg-white/90 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-green-600 focus:ring-green-600"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary-light"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Updating...' : 'Update Password'}
-            </Button>
-          </form>
-        </CardContent>
-        
-        <CardFooter className="flex justify-center">
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full bg-green-700 text-white hover:bg-green-800 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Updating...' : 'Update Password'}
+          </Button>
+        </form>
+        <div className="flex justify-center pt-2">
           <Button 
             variant="link" 
             onClick={() => navigate('/', { replace: true })}
+            className="text-green-700 hover:text-green-800"
           >
             Back to Login
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </GlassCard>
     </div>
   );
 };
