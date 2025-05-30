@@ -47,8 +47,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     } else {
       return [
         { path: '/dashboard', label: 'Dashboard' },
-        { path: '/services', label: 'Services' },
-        { path: '/prompts', label: 'Prompts' },
       ];
     }
   };

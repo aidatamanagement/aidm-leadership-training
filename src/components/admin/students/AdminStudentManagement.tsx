@@ -11,7 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Lock, Unlock, CheckCircle } from 'lucide-react';
+import { Lock, Unlock, CheckCircle, Pencil, ChevronDown } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import the smaller components
 import StudentList from './StudentList';
@@ -30,32 +32,43 @@ const AdminStudentManagement: React.FC = () => {
   const [lockedLessons, setLockedLessons] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('services');
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<any>(null);
+
+  const fetchAssignedServices = async (studentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_services')
+        .select('service_id')
+        .eq('user_id', studentId)
+        .eq('status', 'active');
+  
+      if (error) {
+        console.error('Error fetching assigned services:', error);
+        setSelectedServices([]);
+        return;
+      }
+  
+      const ids = Array.isArray(data) ? data.map(row => String(row.service_id).trim()) : [];
+  
+      console.log('Fetched service_id list:', ids);
+      console.log('Service IDs in useServices context:', services.map(s => s.id));
+  
+      setSelectedServices(ids);
+    } catch (err) {
+      console.error('Unexpected error fetching assigned services:', err);
+      setSelectedServices([]);
+    }
+  };
+  
 
   useEffect(() => {
-    if (selectedStudent) {
-      const fetchAssignedServices = async () => {
-        const { data: serviceData, error: serviceError } = await supabase
-          .from<any, any>('user_services')
-          .select('service_id')
-          .eq('user_id', selectedStudent.id);
-
-        if (serviceError) {
-          console.error('Error fetching assigned services:', serviceError);
-          setSelectedServices([]);
-          return;
-        }
-
-        const ids = Array.isArray(serviceData)
-          ? serviceData.map((s: any) => String(s.service_id))
-          : [];
-        setSelectedServices(ids);
-      };
-
-      fetchAssignedServices();
+    if (selectedStudent && !servicesLoading) {
+      fetchAssignedServices(selectedStudent.id);
     } else {
       setSelectedServices([]);
     }
-  }, [selectedStudent, services.length]);
+  }, [selectedStudent, servicesLoading]);
 
   useEffect(() => {
     if (selectedStudent && selectedCourse) {
@@ -66,7 +79,8 @@ const AdminStudentManagement: React.FC = () => {
             .select('lesson_id')
             .eq('user_id', selectedStudent.id)
             .eq('course_id', selectedCourse);
-
+          console.log('selected student id:', selectedStudent.id);
+          // console.log('selected course id:', user_services.user_id);
           if (error) throw error;
 
           const lockedIds = new Set(data.map(item => item.lesson_id));
@@ -87,43 +101,68 @@ const AdminStudentManagement: React.FC = () => {
     }
   }, [selectedStudent, selectedCourse]);
 
-  const handleSaveAssignments = async () => {
-    if (!selectedStudent) return;
+  const startEditStudent = (student: any) => {
+    setEditingStudentId(student.id);
+    setEditDraft({ name: student.name, email: student.email, role: student.role });
+  };
 
+  const cancelEditStudent = () => {
+    setEditingStudentId(null);
+    setEditDraft(null);
+  };
+
+  const isEditChanged = (student: any) => {
+    return (
+      editDraft && (
+        editDraft.name !== student.name ||
+        editDraft.email !== student.email ||
+        editDraft.role !== student.role
+      )
+    );
+  };
+
+  const handleToggleService = async (serviceId: string, checked: boolean) => {
     try {
-      // Handle service assignments
-      const { error: serviceError } = await supabase
-        .from<any, any>('user_services')
-        .delete()
-        .eq('user_id', selectedStudent.id);
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_services')
+        .select('id')
+        .eq('user_id', selectedStudent.id)
+        .eq('service_id', serviceId)
+        .maybeSingle();
 
-      if (serviceError) throw serviceError;
-
-      if (selectedServices.length > 0) {
-        const { error: insertServiceError } = await supabase
-          .from<any, any>('user_services')
-          .insert(
-            selectedServices.map(serviceId => ({
-              user_id: selectedStudent.id,
-              service_id: serviceId
-            }))
-          );
-
-        if (insertServiceError) throw insertServiceError;
+      if (fetchError) {
+        toast({ title: 'Error', description: fetchError.message, variant: 'destructive' });
+        return;
       }
 
-      toast({
-        title: 'Assignments Updated',
-        description: 'Service assignments have been updated successfully.'
-      });
+      let error;
+      if (checked) {
+        if (existing) {
+          ({ error } = await supabase
+            .from('user_services')
+            .update({ status: 'active' })
+            .eq('id', existing.id));
+        } else {
+          ({ error } = await supabase
+            .from('user_services')
+            .insert({ user_id: selectedStudent.id, service_id: serviceId, status: 'active' }));
+        }
+      } else if (existing) {
+        ({ error } = await supabase
+          .from('user_services')
+          .update({ status: 'inactive' })
+          .eq('id', existing.id));
+      }
 
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        return;
+      }
+
+      await fetchAssignedServices(selectedStudent.id);
       refreshStudents();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update assignments',
-        variant: 'destructive',
-      });
+    } catch (error) {
+      toast({ title: 'Error', description: String(error), variant: 'destructive' });
     }
   };
 
@@ -236,22 +275,94 @@ const AdminStudentManagement: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <GlassCard className="p-6">
+          <GlassCard className="p-6 h-[420px] flex flex-col">
             <h3 className="text-lg font-semibold mb-4">Students</h3>
-            <div className="space-y-2">
-              {filteredStudents.map((student) => (
-                <div
-                  key={student.id}
-                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-50 ${
-                    selectedStudent?.id === student.id ? 'bg-gray-100' : ''
-                  }`}
-                  onClick={() => setSelectedStudent(student)}
-                >
-                  <div className="font-medium">{student.name}</div>
-                  <div className="text-sm text-gray-500">{student.email}</div>
-                </div>
-              ))}
-            </div>
+            <ScrollArea className="flex-1">
+              <div className="space-y-2">
+                {filteredStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    title={`User ID: ${student.id}`}
+                    className={`p-3 rounded-lg cursor-pointer hover:bg-gray-50 ${
+                      selectedStudent?.id === student.id ? 'bg-gray-100' : ''
+                    } flex flex-col relative`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col" onClick={() => setSelectedStudent(student)}>
+                        <span className="font-medium">{student.name}</span>
+                        <span className="text-sm text-gray-500">{student.email}</span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="ml-1 absolute right-2 top-2"
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (editingStudentId === student.id) cancelEditStudent()
+                          else startEditStudent(student)
+                        }}
+                        title="Edit Profile"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {editingStudentId === student.id && <ChevronDown className="h-4 w-4 text-muted-foreground absolute right-10 top-3" />}
+                    </div>
+                    {editingStudentId === student.id && (
+                      <div className="mt-3 bg-gray-50 rounded p-3 border flex flex-col gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <Input
+                            value={editDraft?.name || ''}
+                            onChange={e => setEditDraft((d: any) => ({ ...d, name: e.target.value }))}
+                            placeholder="Full Name"
+                          />
+                          <Input
+                            value={editDraft?.email || ''}
+                            onChange={e => setEditDraft((d: any) => ({ ...d, email: e.target.value }))}
+                            placeholder="Email"
+                            type="email"
+                          />
+                          <Input
+                            value={editDraft?.role || ''}
+                            onChange={e => setEditDraft((d: any) => ({ ...d, role: e.target.value }))}
+                            placeholder="Role"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end mt-2">
+                          <Button
+                            variant="outline"
+                            onClick={cancelEditStudent}
+                          >
+                            Discard
+                          </Button>
+                          <Button
+                            onClick={async () => {
+                              const { error } = await supabase
+                                .from('profiles')
+                                .update({
+                                  name: editDraft.name,
+                                  email: editDraft.email,
+                                  role: editDraft.role,
+                                })
+                                .eq('id', student.id)
+                              if (error) {
+                                toast({ title: 'Error', description: error.message, variant: 'destructive' })
+                                return
+                              }
+                              toast({ title: 'Success', description: 'Profile updated.' })
+                              refreshStudents()
+                              cancelEditStudent()
+                            }}
+                            disabled={!editDraft.name || !editDraft.email || !editDraft.role || !isEditChanged(student)}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </GlassCard>
         </div>
         
@@ -259,47 +370,30 @@ const AdminStudentManagement: React.FC = () => {
           <div className="p-6 text-center">Loading services...</div>
         ) : selectedStudent && (
           <div className="space-y-6">
-            <GlassCard className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                Service Assignments for {selectedStudent.email}
-              </h3>
-              <div className="space-y-4">
-                {services.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`service-${service.id}`}
-                      checked={selectedServices.includes(String(service.id))}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedServices([...selectedServices, String(service.id)]);
-                        } else {
-                          setSelectedServices(selectedServices.filter(id => id !== String(service.id)));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`service-${service.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
-                    >
-                      {service.title}
-                      {selectedServices.includes(String(service.id)) && (
-                        <CheckCircle className="ml-1 h-4 w-4 text-green-600" />
-                      )}
+            {/* Service Assignments Card */}
+            <GlassCard className="p-4">
+              <h3 className="text-base font-semibold mb-2">Service Assignments</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {services.map((service) => {
+                  const isAssigned = selectedServices.some(id => id.trim() === String(service.id).trim());
+                  return (
+                    <label key={`${selectedStudent.id}-${service.id}`} className="flex items-center gap-2 text-sm px-2 py-1 rounded hover:bg-gray-50 cursor-pointer">
+                      <Checkbox
+                        checked={isAssigned}
+                        onCheckedChange={(checked) => handleToggleService(service.id, checked)}
+                        id={`service-checkbox-${service.id}`}
+                        className="h-4 w-4"
+                      />
+                      <span htmlFor={`service-checkbox-${service.id}`}>{service.title}</span>
                     </label>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6">
-                <Button onClick={handleSaveAssignments}>
-                  Save Service Assignments
-                </Button>
+                  );
+                })}
               </div>
             </GlassCard>
-
             {/* Course Assignment Card */}
             <GlassCard className="p-6">
               <h3 className="text-lg font-semibold mb-4">
-                Course Assignment for {selectedStudent.email}
+                Course Assignment for {selectedStudent.name}
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">

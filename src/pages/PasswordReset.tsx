@@ -88,67 +88,67 @@ const PasswordReset: React.FC = () => {
           <h2 className="text-2xl font-semibold text-gray-900">Update Password</h2>
           <p className="text-gray-800 mt-1">Enter your new password below</p>
         </div>
-        <form onSubmit={handlePasswordUpdate} className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-2">
+          <form onSubmit={handlePasswordUpdate} className="space-y-4">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="space-y-2">
             <Label htmlFor="password" className="text-gray-900 font-medium">New Password</Label>
-            <div className="relative">
-              <Input 
-                id="password" 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Enter your new password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Enter your new password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 className="bg-white/90 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-green-600 focus:ring-green-600"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
+            
+            <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
-            <div className="relative">
-              <Input 
-                id="confirmPassword" 
-                type={showConfirmPassword ? "text" : "password"} 
-                placeholder="Confirm your new password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+              <div className="relative">
+                <Input 
+                  id="confirmPassword" 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  placeholder="Confirm your new password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
                 className="bg-white/90 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-green-600 focus:ring-green-600"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
-
-          <Button 
-            type="submit" 
+            
+            <Button 
+              type="submit" 
             className="w-full bg-green-700 text-white hover:bg-green-800 transition-colors"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Updating...' : 'Update Password'}
-          </Button>
-        </form>
+              disabled={isLoading}
+            >
+              {isLoading ? 'Updating...' : 'Update Password'}
+            </Button>
+          </form>
         <div className="flex justify-center pt-2">
           <Button 
             variant="link" 

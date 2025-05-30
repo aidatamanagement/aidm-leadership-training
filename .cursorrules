@@ -1,0 +1,91 @@
+# AIDM Leadership Training - Project Rules
+
+## 1. Code Organization
+- Keep components in `src/components/`
+- Admin components in `src/components/admin/`
+- Student components in `src/components/student/`
+- Shared UI components in `src/components/ui/`
+
+## 2. Naming Conventions
+- Components: PascalCase (e.g., `AdminStudentManagement.tsx`)
+- Hooks: camelCase with 'use' prefix (e.g., `useLessonTimer.ts`)
+- Contexts: PascalCase with 'Context' suffix (e.g., `AuthContext.tsx`)
+- Types: PascalCase with 'Type' suffix (e.g., `UserType.ts`)
+
+## 3. State Management
+- Use React Context for global state
+- Keep component state local when possible
+- Use proper TypeScript types for state
+- Handle loading and error states consistently
+
+## 4. Styling Rules
+- Use Tailwind CSS for styling
+- Follow mobile-first approach
+- Use consistent spacing (4px increments)
+- Use project color palette from tailwind config
+
+## 5. Component Structure
+- Maximum component length: 300 lines
+- Extract complex logic into custom hooks
+- Use proper prop types
+- Include error boundaries
+
+## 6. Git Workflow
+- Branch naming: feature/feature-name, fix/bug-name
+- Commit format: type(scope): description
+- PR required for all changes
+- Include description and linked issues
+
+## 7. TypeScript Rules
+- No `any` type allowed
+- Define interfaces for props
+- Use proper type definitions
+- Document complex types
+
+## 8. Performance Guidelines
+- Avoid unnecessary re-renders
+- Use proper memoization
+- Optimize large lists
+- Lazy load when possible
+
+## 9. Security Rules
+- Use proper authentication
+- Implement role-based access
+- Sanitize user inputs
+- Follow data privacy guidelines
+
+## 10. Testing Requirements
+- Test complex components
+- Test user interactions
+- Test error states
+- Test loading states
+
+## 11. Documentation
+- Document complex functions
+- Add JSDoc comments
+- Document component props
+- Keep README updated
+
+## 12. Accessibility
+- Follow WCAG 2.1 guidelines
+- Use proper ARIA labels
+- Ensure keyboard navigation
+- Maintain proper contrast
+
+## 13. Error Handling
+- Use error boundaries
+- Show user-friendly messages
+- Log errors appropriately
+- Handle network errors
+
+## 14. Code Review
+- Self-review before PR
+- Team review required
+- Address review comments
+- Merge after approval
+
+## 15. Deployment
+- Test in development
+- Verify in staging
+- Deploy to production
+- Monitor after deployment

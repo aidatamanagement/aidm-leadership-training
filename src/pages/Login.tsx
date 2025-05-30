@@ -60,7 +60,27 @@ const Login: React.FC = () => {
         redirectTo: `${window.location.origin}/password-reset`,
       });
       
-      if (error) throw error;
+      if (error) {
+        // Check for 'User not found' or similar error message/code
+        if (
+          error.message?.toLowerCase().includes('user') &&
+          error.message?.toLowerCase().includes('not found')
+        ) {
+          toast({
+            title: 'Email not found',
+            description: 'No account exists with this email address.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Password reset failed',
+            description: error.message || 'Something went wrong',
+            variant: 'destructive',
+          });
+        }
+        setIsResetLoading(false);
+        return;
+      }
       
       toast({
         title: 'Password reset email sent',
