@@ -4,6 +4,8 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
+import { Upload } from 'lucide-react'
+import UploadFileModal from './UploadFileModal'
 
 interface StudentProfile {
   id: string;
@@ -17,6 +19,7 @@ function StudentsList() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<StudentProfile>>({});
   const [loading, setLoading] = useState(false);
+  const [showUpload, setShowUpload] = useState<string | null>(null)
 
   useEffect(() => {
     fetchStudents();
@@ -107,7 +110,20 @@ function StudentsList() {
                     <div className="text-sm text-gray-500">{student.email}</div>
                     <div className="text-xs text-gray-400">{student.role}</div>
                   </div>
+                  <button
+                    className="p-1 hover:bg-gray-100 rounded mr-2"
+                    onClick={() => setShowUpload(student.id)}
+                    title="Upload File"
+                  >
+                    <Upload className="w-5 h-5 text-blue-600" />
+                  </button>
                   <Button size="sm" onClick={() => startEdit(student)}>Edit</Button>
+                  {showUpload === student.id && (
+                    <UploadFileModal
+                      student={student}
+                      onClose={() => setShowUpload(null)}
+                    />
+                  )}
                 </>
               )}
             </div>

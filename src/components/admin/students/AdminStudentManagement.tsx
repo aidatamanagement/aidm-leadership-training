@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Lock, Unlock, CheckCircle, Pencil, ChevronDown } from 'lucide-react';
+import { Lock, Unlock, CheckCircle, Pencil, ChevronDown, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -20,6 +20,8 @@ import StudentList from './StudentList';
 import AddStudentDialog from './AddStudentDialog';
 import EditStudentDialog from './EditStudentDialog';
 import AssignCourseDialog from './AssignCourseDialog';
+import UploadFileModal from './UploadFileModal';
+import StudentFileList from '@/components/student/files/StudentFileList'
 
 const AdminStudentManagement: React.FC = () => {
   const { students, refreshStudents } = useStudents();
@@ -34,33 +36,34 @@ const AdminStudentManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('services');
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<any>(null);
+  const [showUpload, setShowUpload] = useState<string | null>(null);
 
   const fetchAssignedServices = async (studentId: string) => {
     try {
       const { data, error } = await supabase
         .from('user_services')
-        .select('service_id')
+          .select('service_id')
         .eq('user_id', studentId)
         .eq('status', 'active');
-  
+
       if (error) {
         console.error('Error fetching assigned services:', error);
-        setSelectedServices([]);
-        return;
-      }
-  
+          setSelectedServices([]);
+          return;
+        }
+
       const ids = Array.isArray(data) ? data.map(row => String(row.service_id).trim()) : [];
   
       console.log('Fetched service_id list:', ids);
       console.log('Service IDs in useServices context:', services.map(s => s.id));
   
-      setSelectedServices(ids);
+        setSelectedServices(ids);
     } catch (err) {
       console.error('Unexpected error fetching assigned services:', err);
       setSelectedServices([]);
     }
-  };
-  
+      };
+
 
   useEffect(() => {
     if (selectedStudent && !servicesLoading) {
@@ -278,13 +281,13 @@ const AdminStudentManagement: React.FC = () => {
           <GlassCard className="p-6 h-[420px] flex flex-col">
             <h3 className="text-lg font-semibold mb-4">Students</h3>
             <ScrollArea className="flex-1">
-              <div className="space-y-2">
-                {filteredStudents.map((student) => (
-                  <div
-                    key={student.id}
+            <div className="space-y-2">
+              {filteredStudents.map((student) => (
+                <div
+                  key={student.id}
                     title={`User ID: ${student.id}`}
-                    className={`p-3 rounded-lg cursor-pointer hover:bg-gray-50 ${
-                      selectedStudent?.id === student.id ? 'bg-gray-100' : ''
+                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-50 ${
+                    selectedStudent?.id === student.id ? 'bg-gray-100' : ''
                     } flex flex-col relative`}
                   >
                     <div className="flex items-center justify-between w-full">
@@ -292,21 +295,35 @@ const AdminStudentManagement: React.FC = () => {
                         <span className="font-medium">{student.name}</span>
                         <span className="text-sm text-gray-500">{student.email}</span>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="ml-1 absolute right-2 top-2"
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (editingStudentId === student.id) cancelEditStudent()
-                          else startEditStudent(student)
-                        }}
-                        title="Edit Profile"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-row items-center gap-1 absolute right-2 top-2">
+                        <button
+                          className="p-1 hover:bg-gray-100 rounded"
+                          onClick={e => { e.stopPropagation(); setShowUpload(student.id) }}
+                          title="Upload File"
+                        >
+                          <Upload className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (editingStudentId === student.id) cancelEditStudent()
+                            else startEditStudent(student)
+                          }}
+                          title="Edit Profile"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
                       {editingStudentId === student.id && <ChevronDown className="h-4 w-4 text-muted-foreground absolute right-10 top-3" />}
                     </div>
+                    {showUpload === student.id && (
+                      <UploadFileModal
+                        student={student}
+                        onClose={() => setShowUpload(null)}
+                      />
+                    )}
                     {editingStudentId === student.id && (
                       <div className="mt-3 bg-gray-50 rounded p-3 border flex flex-col gap-2">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -359,9 +376,9 @@ const AdminStudentManagement: React.FC = () => {
                         </div>
                       </div>
                     )}
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
             </ScrollArea>
           </GlassCard>
         </div>
@@ -378,13 +395,13 @@ const AdminStudentManagement: React.FC = () => {
                   const isAssigned = selectedServices.some(id => id.trim() === String(service.id).trim());
                   return (
                     <label key={`${selectedStudent.id}-${service.id}`} className="flex items-center gap-2 text-sm px-2 py-1 rounded hover:bg-gray-50 cursor-pointer">
-                      <Checkbox
+                    <Checkbox
                         checked={isAssigned}
-                        onCheckedChange={(checked) => handleToggleService(service.id, checked)}
+                        onCheckedChange={(checked) => handleToggleService(service.id, Boolean(checked))}
                         id={`service-checkbox-${service.id}`}
                         className="h-4 w-4"
                       />
-                      <span htmlFor={`service-checkbox-${service.id}`}>{service.title}</span>
+                      <span>{service.title}</span>
                     </label>
                   );
                 })}
@@ -494,6 +511,15 @@ const AdminStudentManagement: React.FC = () => {
           </div>
         )}
       </div>
+      {/* Move Student Files Card below the grid for full width */}
+      {selectedStudent && (
+        <GlassCard className="p-6 mt-6">
+          <h3 className="text-lg font-semibold mb-4">
+            Files Shared with {selectedStudent.name}
+          </h3>
+          <StudentFileList studentId={selectedStudent.id} />
+        </GlassCard>
+      )}
     </div>
   );
 };

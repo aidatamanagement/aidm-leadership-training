@@ -334,6 +334,127 @@ export type Database = {
           },
         ]
       }
+      user_services: {
+        Row: {
+          id: string
+          user_id: string
+          service_id: string
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          service_id: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          service_id?: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      },
+      files: {
+        Row: {
+          id: string
+          student_id: string
+          uploader_id: string
+          name: string
+          path: string
+          type: string
+          uploaded_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          uploader_id: string
+          name: string
+          path: string
+          type: string
+          uploaded_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          uploader_id?: string
+          name?: string
+          path?: string
+          type?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      comments: {
+        Row: {
+          id: string
+          file_id: string
+          author_id: string
+          content: string
+          parent_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          file_id: string
+          author_id: string
+          content: string
+          parent_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          file_id?: string
+          author_id?: string
+          content?: string
+          parent_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

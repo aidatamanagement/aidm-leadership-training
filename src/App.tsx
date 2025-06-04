@@ -24,6 +24,7 @@ import Courses from "./pages/Courses";
 import Services from '@/pages/Services';
 import ServiceDetail from '@/pages/ServiceDetail';
 import AddUserPage from './pages/AddUserPage';
+import StudentFiles from './pages/StudentFiles';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +85,14 @@ const App = () => (
                 element={
                   <RouteGuard allowedRoles={["student"]}>
                     <CourseCompletion />
+                  </RouteGuard>
+                } 
+              />
+              <Route 
+                path="/student/files" 
+                element={
+                  <RouteGuard allowedRoles={["student"]}>
+                    <StudentFiles />
                   </RouteGuard>
                 } 
               />

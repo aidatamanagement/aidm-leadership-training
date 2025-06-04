@@ -57,6 +57,7 @@ const StudentDashboard: React.FC = () => {
   const [randomPrompt, setRandomPrompt] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
   const [enrolledServices, setEnrolledServices] = useState<any[]>([]);
+  const [filesCount, setFilesCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -73,6 +74,15 @@ const StudentDashboard: React.FC = () => {
         }
       };
       fetchEnrolledServices();
+      // Fetch files count
+      const fetchFilesCount = async () => {
+        const { count, error } = await supabase
+          .from('files')
+          .select('id', { count: 'exact', head: true })
+          .eq('student_id', user.id)
+        if (!error && typeof count === 'number') setFilesCount(count)
+      }
+      fetchFilesCount()
     }
   }, [user, refreshServices]);
 
@@ -193,10 +203,12 @@ const StudentDashboard: React.FC = () => {
             <div className="text-lg font-semibold text-gray-700 mb-1">In Progress</div>
             <div className="text-3xl font-bold text-gray-900">{inProgressCount}</div>
           </GlassCard>
-          <GlassCard className="text-center">
-            <div className="text-lg font-semibold text-gray-700 mb-1">Completed</div>
-            <div className="text-3xl font-bold text-gray-900">{completedCount}</div>
+          <Link to="/student/files" className="focus:outline-none">
+            <GlassCard className="text-center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-green-500">
+              <div className="text-lg font-semibold text-gray-700 mb-1">Files Shared</div>
+              <div className="text-3xl font-bold text-gray-900">{filesCount}</div>
           </GlassCard>
+          </Link>
           <GlassCard className="text-center">
             <div className="text-lg font-semibold text-gray-700 mb-1">Course Progress</div>
             <div className="text-3xl font-bold text-gray-900">{courseProgress}%</div>

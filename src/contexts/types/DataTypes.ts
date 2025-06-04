@@ -1,4 +1,3 @@
-
 export interface QuizQuestion {
   id: string;
   question: string;
@@ -95,4 +94,16 @@ export interface DataContextType {
   isLessonLocked: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
   toggleLessonLock: (studentId: string, courseId: string, lessonId: string) => Promise<boolean>;
   fetchLessonLocks: (studentId: string, courseId: string) => Promise<Record<string, boolean>>;
+}
+
+export interface FileType {
+  id: string
+  student_id: string
+  uploader_id: string
+  name: string
+  path: string
+  type: string
+  uploaded_at: string
+  uploader?: { id: string; name: string }
+  description?: string
 }
