@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -88,6 +88,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               >
                 <Link to="/profile">
                   <Avatar className="h-8 w-8 border-2 border-gray-200">
+                    {user.profile_image && (
+                      <AvatarImage src={user.profile_image} alt={user.name} />
+                    )}
                     <AvatarFallback className="bg-gray-100 text-gray-800">
                       {getInitials(user.name)}
                     </AvatarFallback>
