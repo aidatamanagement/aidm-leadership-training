@@ -5,7 +5,7 @@ import { useData, Course } from '@/contexts/DataContext';
 import AppLayout from '@/components/AppLayout';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Plus, Check } from 'lucide-react';
+import { BookOpen, Plus, Check, FileText, Home, MessageCircle, ArrowRight, HelpCircle, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useServices } from '@/contexts/ServiceContext';
 
@@ -194,20 +194,20 @@ const StudentDashboard: React.FC = () => {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <Link to="/services" className="focus:outline-none">
-            <GlassCard className="text-center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-green-500">
-            <div className="text-lg font-semibold text-gray-700 mb-1">Enrolled Services</div>
-            <div className="text-3xl font-bold text-gray-900">{enrolledCount}</div>
-          </GlassCard>
+            <GlassCard className="text-center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-green-500 enrolled-services-card">
+              <div className="text-lg font-semibold text-gray-700 mb-1">Enrolled Services</div>
+              <div className="text-3xl font-bold text-gray-900">{enrolledCount}</div>
+            </GlassCard>
           </Link>
-          <GlassCard className="text-center">
+          <GlassCard className="text-center in-progress-card">
             <div className="text-lg font-semibold text-gray-700 mb-1">In Progress</div>
             <div className="text-3xl font-bold text-gray-900">{inProgressCount}</div>
           </GlassCard>
           <Link to="/student/files" className="focus:outline-none">
-            <GlassCard className="text-center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-green-500">
+            <GlassCard className="text-center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-green-500 files-shared-card">
               <div className="text-lg font-semibold text-gray-700 mb-1">Files Shared</div>
               <div className="text-3xl font-bold text-gray-900">{filesCount}</div>
-          </GlassCard>
+            </GlassCard>
           </Link>
           <GlassCard className="text-center">
             <div className="text-lg font-semibold text-gray-700 mb-1">Course Progress</div>

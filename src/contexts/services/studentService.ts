@@ -30,7 +30,8 @@ export const fetchStudents = async (): Promise<Student[]> => {
         name: profile.name,
         email: profile.email,
         role: profile.role,
-        assignedCourses: studentAssignments
+        assignedCourses: studentAssignments,
+        profile_image: profile.profile_image
       };
     });
 
@@ -339,7 +340,7 @@ export const getLessonLocks = async (studentId: string, courseId: string): Promi
   try {
     const { data, error } = await supabase
       .from('user_lesson_locks')
-      .select('lesson_id, locked')
+      .select('lesson_id')
       .eq('user_id', studentId)
       .eq('course_id', courseId);
       
@@ -348,7 +349,7 @@ export const getLessonLocks = async (studentId: string, courseId: string): Promi
     // Convert to record format for easy lookup
     const lockMap: Record<string, boolean> = {};
     data.forEach(lock => {
-      lockMap[lock.lesson_id] = lock.locked;
+      lockMap[lock.lesson_id] = true;
     });
     
     return lockMap;

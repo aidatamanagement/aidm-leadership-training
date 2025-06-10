@@ -215,10 +215,6 @@ const AdminPage: React.FC = () => {
                     className="pl-8"
                   />
                 </div>
-                <Button onClick={() => setIsAddingStudent(true)}>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add Student
-                </Button>
               </div>
 
               <ScrollArea className="h-[600px]">

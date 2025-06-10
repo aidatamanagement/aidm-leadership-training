@@ -27,11 +27,6 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button id="add-student-button" className="w-full md:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Add Student
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>
@@ -70,11 +65,6 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
               </button>
             </div>
           </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={handleAddStudent} disabled={!studentName || !studentEmail || !studentPassword}>
-            Add Student
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

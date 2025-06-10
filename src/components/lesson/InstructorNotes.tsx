@@ -14,7 +14,7 @@ const InstructorNotes: React.FC<InstructorNotesProps> = ({
   required = false,
   requiredClassName = "text-red-500 ml-1" 
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const hasNotes = notes && notes.trim() !== '';
   
   return (

@@ -126,9 +126,9 @@ const Profile: React.FC = () => {
                 ) : (
                   <Avatar className="h-36 w-36 border-4 border-white/30 shadow-xl">
                     <AvatarFallback className="text-4xl bg-white/20 text-gray-800 flex items-center justify-center">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
                 )}
                 <div className="absolute bottom-2 right-2 bg-white/80 rounded-full p-2 shadow group-hover:bg-primary group-hover:text-white transition-colors">
                   <Camera className="w-6 h-6" />
@@ -159,14 +159,14 @@ const Profile: React.FC = () => {
                 </div> */}
               </div>
               <div className="border-t border-gray-200 pt-8 mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
-                <Button 
-                  variant="destructive" 
+              <Button 
+                variant="destructive" 
                   className="w-full sm:w-auto hover:bg-red-600"
-                  onClick={logout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
+                onClick={logout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto"

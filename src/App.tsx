@@ -8,6 +8,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import RouteGuard from "@/components/RouteGuard";
 import { DynamicBackground } from "@/components/DynamicBackground";
 import { GlassCard } from "@/components/ui/glass-card";
+import AppLayout from '@/components/AppLayout';
 
 // Pages
 import Login from "./pages/Login";
@@ -25,6 +26,7 @@ import Services from '@/pages/Services';
 import ServiceDetail from '@/pages/ServiceDetail';
 import AddUserPage from './pages/AddUserPage';
 import StudentFiles from './pages/StudentFiles';
+import StudentDetails from './pages/StudentDetails'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +113,14 @@ const App = () => (
                 element={
                   <RouteGuard allowedRoles={["admin"]}>
                     <AddUserPage />
+                  </RouteGuard>
+                } 
+              />
+              <Route 
+                path="/admin/students/:id" 
+                element={
+                  <RouteGuard allowedRoles={["admin"]}>
+                    <StudentDetails />
                   </RouteGuard>
                 } 
               />

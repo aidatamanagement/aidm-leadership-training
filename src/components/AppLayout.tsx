@@ -5,6 +5,8 @@ import { useData } from '@/contexts/DataContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { CoachVoxChat } from '@/components/CoachVoxChat';
+import { GuidedTour } from '@/components/GuidedTour'
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -70,7 +72,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   to={item.path}
                   className={cn(
                     "text-sm font-medium transition-colors hover:text-gray-600",
-                    location.pathname === item.path ? "text-black" : "text-gray-600"
+                    location.pathname === item.path ? "text-black" : "text-gray-600",
+                    item.path === '/dashboard' ? 'nav-dashboard' : '',
+                    item.path === '/profile' ? 'nav-profile' : ''
                   )}
                 >
                   {item.label}
@@ -83,7 +87,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <div className="flex items-center">
               <Button
                 variant="ghost"
-                className="p-0 hover:bg-gray-100"
+                className="p-0 hover:bg-gray-100 nav-profile"
                 asChild
               >
                 <Link to="/profile">
@@ -110,7 +114,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 to={item.path}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-gray-600",
-                  location.pathname === item.path ? "text-black" : "text-gray-600"
+                  location.pathname === item.path ? "text-black" : "text-gray-600",
+                  item.path === '/dashboard' ? 'nav-dashboard' : '',
+                  item.path === '/profile' ? 'nav-profile' : ''
                 )}
               >
                 {item.label}
@@ -130,6 +136,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           &copy; {new Date().getFullYear()} AIDM Leadership Training. All rights reserved.
         </div>
       </footer>
+
+      {/* Add CoachVox Chat only for students */}
+      {user?.type === 'student' && <CoachVoxChat />}
+
+      {/* Add Guided Tour */}
+      <GuidedTour />
     </div>
   );
 };

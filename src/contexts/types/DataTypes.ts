@@ -47,6 +47,7 @@ export interface Student {
   email: string;
   assignedCourses: string[];
   role: string;
+  profile_image?: string;
 }
 
 export interface QuizSettings {
