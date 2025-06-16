@@ -40,20 +40,21 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   // Define navigation items based on user type
-  const getNavigationItems = () => {
-    if (user?.type === 'admin') {
+  const getNavigationItems = (userType: string) => {
+    if (userType === 'admin') {
       return [
-        { path: '/admin', label: 'Admin Dashboard' },
-        { path: '/prompts', label: 'Prompts' },
-      ];
-    } else {
-      return [
-        { path: '/dashboard', label: 'Dashboard' },
+        { path: '/admin', label: 'Dashboard' },
+        { path: '/admin/student-services', label: 'Student Services' },
+        { path: '/admin/service-management', label: 'Service Management' },
+        { path: '/admin/prompts', label: 'Prompts' }
       ];
     }
+    return [
+      { path: '/dashboard', label: 'Dashboard' }
+    ];
   };
 
-  const NAVIGATION_ITEMS = getNavigationItems();
+  const NAVIGATION_ITEMS = getNavigationItems(user?.type || '');
 
   return (
     <div className="flex flex-col min-h-screen">
