@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Lock, Unlock, CheckCircle, Pencil, ChevronDown, Upload, UserIcon, UsersIcon, MailIcon, ArrowRight } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Import the smaller components
 import StudentList from './StudentList';
@@ -39,6 +39,7 @@ const AdminStudentManagement: React.FC = () => {
   const [editDraft, setEditDraft] = useState<any>(null);
   const [showUpload, setShowUpload] = useState<string | null>(null);
   const [showAddStudent, setShowAddStudent] = useState(false);
+  const navigate = useNavigate();
 
   // Stats
   const totalStudents = students.length;
@@ -280,6 +281,12 @@ const AdminStudentManagement: React.FC = () => {
           <h1 className="text-3xl font-bold mb-1">Students</h1>
           <p className="text-gray-500">Manage and monitor student progress</p>
         </div>
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md transition"
+          onClick={() => setShowAddStudent(true)}
+        >
+          + Add New User
+        </button>
       </div>
       <div className="mb-6">
         <Input
@@ -358,7 +365,10 @@ const AdminStudentManagement: React.FC = () => {
           </div>
         ))}
       </div>
-      <AddStudentDialog isOpen={showAddStudent} onOpenChange={setShowAddStudent} onAddStudent={() => {}} />
+      <AddStudentDialog 
+        isOpen={showAddStudent} 
+        onOpenChange={setShowAddStudent}
+      />
       {showUpload && (
         <UploadFileModal
           student={students.find(s => s.id === showUpload)}

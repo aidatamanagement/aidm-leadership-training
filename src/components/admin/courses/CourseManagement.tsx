@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -11,9 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash, Eye, Check, FileIcon, ExternalLink } from 'lucide-react';
 import RichTextEditor from '@/components/RichTextEditor';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AddQuizSetDialog from '../quizzes/AddQuizSetDialog';
+import EditQuizSetDialog from '../quizzes/EditQuizSetDialog';
+import PassMarkSettingsDialog from '../quizzes/PassMarkSettingsDialog';
+import QuizQuestionDialog from '../quizzes/QuizQuestionDialog';
+import QuizSetList from '../quizzes/QuizSetList';
 
 // Import types needed from DataContext
-import type { Course, Lesson } from '@/contexts/DataContext';
+import type { Course, Lesson, QuizSet } from '@/contexts/DataContext';
+
 const CourseManagement: React.FC = () => {
   const {
     courses,
@@ -23,7 +29,15 @@ const CourseManagement: React.FC = () => {
     addLesson,
     updateLesson,
     deleteLesson,
-    quizSets
+    quizSets,
+    quizSettings,
+    addQuizSet,
+    updateQuizSet,
+    deleteQuizSet,
+    addQuizQuestion,
+    updateQuizQuestion,
+    deleteQuizQuestion,
+    updateQuizSettings
   } = useData();
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isEditCourseOpen, setIsEditCourseOpen] = useState(false);
@@ -40,6 +54,15 @@ const CourseManagement: React.FC = () => {
   const [instructorNotes, setInstructorNotes] = useState('');
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+
+  // Quiz states
+  const [isAddQuizSetOpen, setIsAddQuizSetOpen] = useState(false);
+  const [isEditQuizSetOpen, setIsEditQuizSetOpen] = useState(false);
+  const [isAddQuizQuestionOpen, setIsAddQuizQuestionOpen] = useState(false);
+  const [isEditQuizQuestionOpen, setIsEditQuizQuestionOpen] = useState(false);
+  const [isPassMarkModalOpen, setIsPassMarkModalOpen] = useState(false);
+  const [currentQuizSet, setCurrentQuizSet] = useState<QuizSet | null>(null);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
 
   // Define a more subtle required field indicator style
   const requiredFieldIndicator = "";
@@ -158,7 +181,99 @@ const CourseManagement: React.FC = () => {
     }
   };
 
-  return <div>
+  // Quiz handlers
+  const handleAddQuizSet = (title: string) => {
+    addQuizSet({ title });
+    setIsAddQuizSetOpen(false);
+  };
+
+  const handleUpdateQuizSet = (title: string) => {
+    if (currentQuizSet) {
+      updateQuizSet(currentQuizSet.id, { title });
+      setIsEditQuizSetOpen(false);
+    }
+  };
+
+  const handleDeleteQuizSet = (quizSetId: string) => {
+    if (window.confirm('Are you sure you want to delete this quiz set?')) {
+      deleteQuizSet(quizSetId);
+    }
+  };
+
+  const handleOpenEditQuizSetDialog = (quizSet: QuizSet) => {
+    setCurrentQuizSet(quizSet);
+    setIsEditQuizSetOpen(true);
+  };
+
+  const handleAddQuizQuestion = (question: string, options: string[], correctAnswer: number) => {
+    if (currentQuizSet) {
+      addQuizQuestion(currentQuizSet.id, {
+        question,
+        options,
+        correctAnswer
+      });
+      resetQuizQuestionForm();
+      setIsAddQuizQuestionOpen(false);
+    }
+  };
+
+  const handleUpdateQuizQuestion = (question: string, options: string[], correctAnswer: number) => {
+    if (currentQuizSet && currentQuestionId) {
+      updateQuizQuestion(currentQuizSet.id, currentQuestionId, {
+        question,
+        options,
+        correctAnswer
+      });
+      resetQuizQuestionForm();
+      setIsEditQuizQuestionOpen(false);
+    }
+  };
+
+  const handleDeleteQuizQuestion = (quizSetId: string, questionId: string) => {
+    if (window.confirm('Are you sure you want to delete this question?')) {
+      deleteQuizQuestion(quizSetId, questionId);
+    }
+  };
+
+  const handleOpenAddQuizQuestionDialog = (quizSet: QuizSet) => {
+    if (!quizSet.id) {
+      setIsAddQuizSetOpen(true);
+      return;
+    }
+    setCurrentQuizSet(quizSet);
+    resetQuizQuestionForm();
+    setIsAddQuizQuestionOpen(true);
+  };
+
+  const handleOpenEditQuizQuestionDialog = (quizSet: QuizSet, questionId: string) => {
+    setCurrentQuizSet(quizSet);
+    setCurrentQuestionId(questionId);
+    setIsEditQuizQuestionOpen(true);
+  };
+
+  const handleSavePassMarkSettings = () => {
+    updateQuizSettings({
+      passMarkPercentage: quizSettings.passMarkPercentage,
+      enforcePassMark: quizSettings.enforcePassMark
+    });
+    setIsPassMarkModalOpen(false);
+  };
+
+  const resetQuizQuestionForm = () => {
+    setCurrentQuestionId(null);
+  };
+
+  const getCurrentQuestion = () => {
+    if (currentQuizSet && currentQuestionId) {
+      return currentQuizSet.questions.find(q => q.id === currentQuestionId);
+    }
+    return null;
+  };
+
+  const currentQuestion = getCurrentQuestion();
+
+  return <div className="space-y-8">
+      <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold mb-2">Course Management</h2>
@@ -502,6 +617,77 @@ const CourseManagement: React.FC = () => {
               </AccordionContent>
             </AccordionItem>)}
         </Accordion>}
+      </div>
+      
+      <div className="border-t pt-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Quiz Management</h2>
+            <p className="text-gray-600">
+              Create and manage quiz sets and questions.
+            </p>
+          </div>
+          
+          <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 w-full md:w-auto">
+            <PassMarkSettingsDialog
+              isOpen={isPassMarkModalOpen}
+              onOpenChange={setIsPassMarkModalOpen}
+              passMarkPercentage={quizSettings.passMarkPercentage}
+              setPassMarkPercentage={(percentage) => {
+                // Handle pass mark percentage change
+              }}
+              enforcePassMark={quizSettings.enforcePassMark}
+              setEnforcePassMark={(enforce) => {
+                // Handle enforce pass mark change
+              }}
+              onSave={handleSavePassMarkSettings}
+            />
+            
+            <AddQuizSetDialog
+              isOpen={isAddQuizSetOpen}
+              onOpenChange={setIsAddQuizSetOpen}
+              onAddQuizSet={handleAddQuizSet}
+            />
+            
+            <EditQuizSetDialog
+              isOpen={isEditQuizSetOpen}
+              onOpenChange={setIsEditQuizSetOpen}
+              initialTitle={currentQuizSet?.title || ''}
+              onUpdateQuizSet={handleUpdateQuizSet}
+            />
+          </div>
+        </div>
+        
+        <QuizSetList
+          quizSets={quizSets}
+          onEditQuizSet={handleOpenEditQuizSetDialog}
+          onDeleteQuizSet={handleDeleteQuizSet}
+          onAddQuizQuestion={handleOpenAddQuizQuestionDialog}
+          onEditQuizQuestion={handleOpenEditQuizQuestionDialog}
+          onDeleteQuizQuestion={handleDeleteQuizQuestion}
+        />
+
+        <QuizQuestionDialog
+          isOpen={isAddQuizQuestionOpen}
+          onOpenChange={setIsAddQuizQuestionOpen}
+          isEditing={false}
+          initialQuestion=""
+          initialOptions={['', '', '', '']}
+          initialCorrectAnswer={0}
+          onSave={handleAddQuizQuestion}
+        />
+
+        <QuizQuestionDialog
+          isOpen={isEditQuizQuestionOpen}
+          onOpenChange={setIsEditQuizQuestionOpen}
+          isEditing={true}
+          initialQuestion={currentQuestion?.question || ''}
+          initialOptions={currentQuestion?.options || ['', '', '', '']}
+          initialCorrectAnswer={currentQuestion?.correctAnswer || 0}
+          onSave={handleUpdateQuizQuestion}
+        />
+      </div>
     </div>;
 };
+
 export default CourseManagement;

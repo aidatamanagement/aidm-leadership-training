@@ -1,28 +1,71 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Eye, EyeOff } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface AddStudentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddStudent: (name: string, email: string, password: string) => void;
 }
 
-const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChange, onAddStudent }) => {
+const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChange }) => {
+  const { addStudent } = useStudents();
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleAddStudent = () => {
-    onAddStudent(studentName, studentEmail, studentPassword);
+  const handleAddStudent = async () => {
+    if (!studentName || !studentEmail || !studentPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await addStudent(
+        { name: studentName, email: studentEmail },
+        studentPassword,
+        'student'
+      );
+      
+      // Reset form
+      setStudentName('');
+      setStudentEmail('');
+      setStudentPassword('');
+      
+      // Close dialog
+      onOpenChange(false);
+      
+      toast({
+        title: "Success",
+        description: "Student added successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add student",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
     setStudentName('');
     setStudentEmail('');
     setStudentPassword('');
+    onOpenChange(false);
   };
   
   return (
@@ -37,12 +80,23 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="studentName">Full Name</Label>
-            <Input id="studentName" placeholder="Enter student name" value={studentName} onChange={e => setStudentName(e.target.value)} />
+            <Input 
+              id="studentName" 
+              placeholder="Enter student name" 
+              value={studentName} 
+              onChange={e => setStudentName(e.target.value)} 
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="studentEmail">Email</Label>
-            <Input id="studentEmail" type="email" placeholder="Enter student email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
+            <Input 
+              id="studentEmail" 
+              type="email" 
+              placeholder="Enter student email" 
+              value={studentEmail} 
+              onChange={e => setStudentEmail(e.target.value)} 
+            />
           </div>
           
           <div className="space-y-2">
@@ -66,6 +120,14 @@ const AddStudentDialog: React.FC<AddStudentDialogProps> = ({ isOpen, onOpenChang
             </div>
           </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleAddStudent} disabled={isLoading}>
+            {isLoading ? "Adding..." : "Add Student"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
