@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/use-toast'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useData } from '@/contexts/DataContext'
 
 function StudentDetails() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +22,7 @@ function StudentDetails() {
   const { students, refreshStudents } = useStudents()
   const { courses } = useCourses()
   const { services } = useServices()
+  const { assignCourse } = useData()
   const student = students.find(s => s.id === id)
 
   // Edit dialog state
@@ -42,6 +45,12 @@ function StudentDetails() {
 
   // assignedCourses is declared here
   const assignedCourses = courses.filter(course => student.assignedCourses.includes(course.id))
+
+  // Inside your component, after currentStudent and assignedCourses are defined:
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+
+  // List of courses not yet assigned to the student
+  const unassignedCourses = courses.filter(course => !student.assignedCourses.includes(course.id))
 
   // Initialize edit form when dialog opens
   useEffect(() => {
@@ -184,7 +193,7 @@ function StudentDetails() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex items-center gap-2 mb-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/admin')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/admin/student-services')}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-2xl font-bold">{student.name}</h1>
@@ -293,6 +302,32 @@ function StudentDetails() {
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="font-bold text-lg">Course Assignment</div>
+          </div>
+          <div className="mb-4">
+            <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {unassignedCourses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              className="mt-4"
+              onClick={async () => {
+                if (selectedCourseId) {
+                  await assignCourse(student.id, selectedCourseId)
+                  setSelectedCourseId('')
+                }
+              }}
+              disabled={!selectedCourseId}
+            >
+              Assign Course
+            </Button>
           </div>
           {assignedCourses.map(course => {
             const { completed, total } = getCourseProgress(course.id)
